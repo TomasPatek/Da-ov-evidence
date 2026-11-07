@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ j.id }} {{ j.nazev }} · Daňová evidence{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/zakazky">Zakázky</a></p>
+<div class="page-head">
+  <h1>{{ j.id }} {{ j.nazev }}</h1>
+  <a class="button primary" href="/faktury/nova?zakazka={{ j.id }}">Vystavit fakturu</a>
+</div>
+{% include "_errors.html" %}
+{% for w in warnings %}<div class="alert alert-warning" role="status">{{ w }}</div>{% endfor %}
+{% if request.query_params.get("ulozeno") %}<div class="alert alert-info" role="status">Uloženo.</div>{% endif %}
+<div class="grid">
+  <div class="stack">
+    <section class="card">
+      <h2>Hospodaření</h2>
+      <dl class="facts">
+        <dt>Fakturováno</dt><dd>{{ totals.fakturovano | czk }}</dd>
+        <dt>Uhrazeno</dt><dd>{{ totals.uhrazeno | czk }}</dd>
+        <dt>Přímé náklady</dt><dd>{{ totals.naklady | czk }} <span class="muted">(z přijatých dokladů, zatím se neevidují)</span></dd>
+      </dl>
+    </section>
+    <section class="card">
+      <h2>Faktury</h2>
+      {% if invoices %}
+      <ul class="plain">
+        {% for i in invoices %}<li><a href="/faktury/{{ i.cislo }}">{{ i.cislo }}</a> · {{ i.castka | czk }} <span class="badge badge-{{ i.stav }}">{{ i.stav }}</span></li>{% endfor %}
+      </ul>
+      {% else %}<p class="muted">Zatím bez faktury.</p>{% endif %}
+    </section>
+  </div>
+  <section class="card">
+    <h2>Údaje</h2>
+    {% if contact %}<p>Zákazník: <a href="/kontakty/{{ contact.id }}">{{ contact.nazev }}</a></p>{% endif %}
+    <form method="post" action="/zakazky/{{ j.id }}">
+      <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+      {% include "zakazky/_pole.html" %}
+      <button type="submit" class="primary">Uložit změny</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

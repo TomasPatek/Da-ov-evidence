@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<title>Faktura {{ inv.cislo }}</title>
+<style>
+{{ theme_css }}
+@page { size: A4; margin: 16mm 15mm 18mm; }
+* { box-sizing: border-box; }
+body { font-family: "DejaVu Sans", "Liberation Sans", Arial, sans-serif; font-size: 9.5pt; color: #1c2430; line-height: 1.4; margin: 0; }
+h1 { font-size: 20pt; margin: 0; color: var(--brand-primary); }
+.head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid var(--brand-primary); padding-bottom: 6mm; margin-bottom: 6mm; }
+.logo { max-height: 22mm; max-width: 70mm; }
+.head .title { text-align: right; }
+.head .title p { margin: 1mm 0 0; color: #5d6878; }
+.parties { display: flex; gap: 8mm; margin-bottom: 6mm; }
+.party { flex: 1; }
+.party h2, .box h2 { font-size: 8pt; text-transform: uppercase; letter-spacing: .05em; color: var(--brand-primary); margin: 0 0 2mm; }
+.party .name { font-weight: bold; font-size: 11pt; }
+.party p { margin: 0; }
+.customer { border: 1px solid #d8dde4; border-radius: 2mm; padding: 3mm 4mm; }
+.info { display: flex; gap: 8mm; margin-bottom: 6mm; }
+.box { flex: 1; }
+dl { display: grid; grid-template-columns: max-content 1fr; gap: 1mm 4mm; margin: 0; }
+dt { color: #5d6878; }
+dd { margin: 0; font-weight: bold; }
+.nowrap { white-space: nowrap; }
+table { width: 100%; border-collapse: collapse; margin-bottom: 4mm; }
+th { text-align: left; font-size: 8pt; text-transform: uppercase; color: #5d6878; border-bottom: 1.5px solid var(--brand-primary); padding: 1.5mm 2mm; }
+td { padding: 1.8mm 2mm; border-bottom: 1px solid #e3e7ec; vertical-align: top; }
+.num { text-align: right; white-space: nowrap; }
+tr { page-break-inside: avoid; }
+.total { display: flex; justify-content: flex-end; margin-bottom: 6mm; }
+.total div { background: var(--brand-primary); color: var(--brand-primary-contrast); padding: 3mm 5mm; border-radius: 2mm; font-size: 13pt; font-weight: bold; }
+.total span { font-size: 9pt; font-weight: normal; margin-right: 4mm; }
+.pay { display: flex; gap: 8mm; align-items: flex-start; page-break-inside: avoid; }
+.qr { width: 36mm; text-align: center; font-size: 7.5pt; color: #5d6878; }
+.qr img { width: 36mm; height: 36mm; }
+.notes { flex: 1; }
+.notes p { margin: 0 0 2mm; }
+.storno { color: #b42318; border: 2px solid #b42318; padding: 2mm 4mm; font-weight: bold; margin-bottom: 5mm; }
+footer { position: fixed; bottom: -10mm; left: 0; right: 0; font-size: 7.5pt; color: #5d6878; text-align: center; }
+</style>
+</head>
+<body>
+<footer>{{ firma.firma.nazev }} · IČO {{ firma.firma.ico }}{% if firma.firma.email %} · {{ firma.firma.email }}{% endif %}{% if firma.firma.telefon %} · {{ firma.firma.telefon }}{% endif %}{% if firma.firma.web %} · {{ firma.firma.web }}{% endif %}</footer>
+
+<div class="head">
+  <div>{% if logo_uri %}<img class="logo" src="{{ logo_uri }}" alt="">{% endif %}</div>
+  <div class="title">
+    <h1>Faktura {{ inv.cislo }}</h1>
+  </div>
+</div>
+
+{% if inv.stav == "stornovana" %}
+<div class="storno">STORNOVÁNO: {{ inv.duvod_storna }}</div>
+{% endif %}
+
+<div class="parties">
+  <div class="party">
+    <h2>Dodavatel</h2>
+    <p class="name">{{ firma.firma.nazev }}</p>
+    <p>{{ firma.firma.ulice }}</p>
+    <p>{{ firma.firma.psc }} {{ firma.firma.mesto }}</p>
+    <p>IČO: {{ firma.firma.ico }}{% if firma.firma.dic %}, DIČ: {{ firma.firma.dic }}{% endif %}</p>
+    {% if firma.firma.zapis_rejstrik %}<p>{{ firma.firma.zapis_rejstrik }}</p>{% endif %}
+  </div>
+  <div class="party customer">
+    <h2>Odběratel</h2>
+    <p class="name">{{ customer.nazev }}</p>
+    {% if customer.ulice %}<p>{{ customer.ulice }}</p>{% endif %}
+    {% if customer.mesto %}<p>{{ customer.psc }} {{ customer.mesto }}</p>{% endif %}
+    {% if customer.ico %}<p>IČO: {{ customer.ico }}{% if customer.dic %}, DIČ: {{ customer.dic }}{% endif %}</p>{% endif %}
+  </div>
+</div>
+
+<div class="info">
+  <div class="box">
+    <h2>Platební údaje</h2>
+    <dl>
+      <dt>Bankovní účet</dt><dd>{{ firma.banka.ucet }}</dd>
+      {% if firma.banka.iban %}<dt>IBAN</dt><dd class="nowrap">{{ firma.banka.iban | iban }}</dd>{% endif %}
+      <dt>Variabilní symbol</dt><dd>{{ inv.vs }}</dd>
+      <dt>Způsob úhrady</dt><dd>převodem</dd>
+    </dl>
+  </div>
+  <div class="box">
+    <h2>Data</h2>
+    <dl>
+      <dt>Datum vystavení</dt><dd>{{ inv.datum_vystaveni | cz_date }}</dd>
+      <dt>Datum splatnosti</dt><dd>{{ inv.datum_splatnosti | cz_date }}</dd>
+      {% if job %}<dt>Zakázka</dt><dd>{{ job.nazev }}</dd>{% endif %}
+    </dl>
+  </div>
+</div>
+
+<table>
+  <thead>
+    <tr><th>Popis</th><th class="num">Množství</th><th class="num">Cena za jednotku</th><th class="num">Celkem</th></tr>
+  </thead>
+  <tbody>
+  {% for item in items %}
+    <tr>
+      <td>{{ item.popis }}</td>
+      <td class="num">{{ item.mnozstvi | qty }} {{ item.jednotka }}</td>
+      <td class="num">{{ item.cena_jednotkova | czk }}</td>
+      <td class="num">{{ item.celkem | czk }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+<div class="total"><div><span>Celkem k úhradě</span>{{ inv.castka | czk }}</div></div>
+
+<div class="pay">
+  {% if qr_uri %}
+  <div class="qr"><img src="{{ qr_uri }}" alt="QR platba">QR Platba</div>
+  {% endif %}
+  <div class="notes">
+    <p><strong>{{ firma.fakturace.text_dph }}</strong></p>
+    {% if inv.poznamka %}<p>{{ inv.poznamka }}</p>{% endif %}
+  </div>
+</div>
+</body>
+</html>

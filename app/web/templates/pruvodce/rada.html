@@ -20,6 +20,9 @@
   <label>Splatnost faktur (dní)
     <input type="number" name="splatnost_dni" value="{{ fak.splatnost_dni }}" min="0" max="365">
   </label>
+  <label>Text na faktuře o DPH
+    <input type="text" name="text_dph" value="{{ fak.text_dph }}" required>
+  </label>
   <button type="submit" class="primary">Dokončit nastavení</button>
 </form>
 {% endblock %}

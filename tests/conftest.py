@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterator
+from email.message import EmailMessage
 from pathlib import Path
 
 import pytest
@@ -9,6 +10,7 @@ from fastapi.testclient import TestClient
 
 from app.ares.client import AresSubjekt, AresUnavailable
 from app.config import Settings
+from app.mail.smtp import MailError
 from app.main import create_app
 
 PASSWORD = "spravne-kone-baterie"
@@ -38,6 +40,26 @@ class FakeAres:
         return self.subjects.get(ico.zfill(8))
 
 
+class FakeMailer:
+    """Collects messages instead of sending them."""
+
+    def __init__(self) -> None:
+        self.sent: list[EmailMessage] = []
+        self.configured = True
+        self.sender_address = "fakturace@example.cz"
+        self.fail = False
+
+    def send(self, message: EmailMessage) -> None:
+        if self.fail:
+            raise MailError("Odeslání se nepovedlo (TimeoutError). Zkuste to znovu.")
+        self.sent.append(message)
+
+
+@pytest.fixture
+def fake_mailer() -> FakeMailer:
+    return FakeMailer()
+
+
 @pytest.fixture
 def settings(tmp_path: Path) -> Settings:
     return Settings(
@@ -55,8 +77,10 @@ def fake_ares() -> FakeAres:
 
 
 @pytest.fixture
-def client(settings: Settings, fake_ares: FakeAres) -> Iterator[TestClient]:
-    app = create_app(settings, ares=fake_ares)
+def client(
+    settings: Settings, fake_ares: FakeAres, fake_mailer: FakeMailer
+) -> Iterator[TestClient]:
+    app = create_app(settings, ares=fake_ares, mailer=fake_mailer)
     with TestClient(app, follow_redirects=False) as c:
         yield c
 
@@ -112,7 +136,12 @@ def complete_wizard(client: TestClient) -> None:
         ("/pruvodce/vzhled", {"primary": "#112233", "accent": "#ffcc00"}),
         (
             "/pruvodce/rada",
-            {"format_cisla": "RRRRNNNN", "pocatecni_cislo": "1", "splatnost_dni": "14"},
+            {
+                "format_cisla": "RRRRNNNN",
+                "pocatecni_cislo": "1",
+                "splatnost_dni": "14",
+                "text_dph": "Nejsem plátce DPH.",
+            },
         ),
     ]
     for path, data in steps:

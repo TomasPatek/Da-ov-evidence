@@ -38,6 +38,11 @@ class Settings:
     imap_user: str = ""
     smtp_host: str = ""
     smtp_user: str = ""
+    smtp_port: int = 465
+    smtp_security: str = "ssl"  # ssl | starttls | none (none only for local test servers)
+    smtp_from: str = ""
+    # Never printed: excluded from repr so it cannot end up in a log line.
+    smtp_password: str = field(default="", repr=False)
 
     @property
     def branding_dir(self) -> Path:
@@ -66,7 +71,19 @@ class Settings:
             imap_user=os.environ.get("IMAP_USER", ""),
             smtp_host=os.environ.get("SMTP_HOST", ""),
             smtp_user=os.environ.get("SMTP_USER", ""),
+            smtp_port=int(os.environ.get("SMTP_PORT") or 465),
+            smtp_security=_smtp_security(),
+            smtp_from=os.environ.get("SMTP_FROM", ""),
+            smtp_password=os.environ.get("SMTP_PASSWORD", ""),
         )
+
+
+def _smtp_security() -> str:
+    value = os.environ.get("SMTP_SECURITY", "").strip().lower()
+    if value in ("ssl", "starttls", "none"):
+        return value
+    # Default by port: 465 is implicit TLS, anything else upgrades with STARTTLS.
+    return "ssl" if (os.environ.get("SMTP_PORT") or "465") == "465" else "starttls"
 
 
 def _persisted_secret(config_dir: Path) -> str:
@@ -105,6 +122,7 @@ class Fakturace:
     format_cisla: str = "RRRRNNNN"
     pocatecni_cislo: int = 1
     splatnost_dni: int = 14
+    text_dph: str = "Nejsem plátce DPH."
 
 
 @dataclass

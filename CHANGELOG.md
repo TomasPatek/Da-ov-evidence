@@ -8,6 +8,10 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 
 ### Změněno
 
+- Nové proměnné `SMTP_FROM` a `SMTP_SECURITY` v `.env`; nová položka `[fakturace] text_dph`
+  ve `firma.toml` (výchozí „Nejsem plátce DPH.“). Stávající soubory není potřeba upravovat.
+- Formát číselné řady nejde změnit, jakmile existuje vystavená faktura.
+- Docker image obsahuje knihovny pro vykreslení PDF (Pango, HarfBuzz, písma DejaVu).
 - Krok „Pošta“ v průvodci vysvětluje, proč se heslo k e-mailu zadává jen do `.env`, a obsahuje
   postup nastavení včetně doporučení použít heslo pro aplikace.
 
@@ -24,6 +28,23 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 
 ### Přidáno
 
+- Fáze 1, fakturace:
+  - Kontakty (`kontakty.csv`): odběratelé a dodavatelé, načtení a aktualizace údajů z ARES,
+    kontrola IČO a duplicit, vyhledávání.
+  - Zakázky (`zakazky.csv`, čísla `ZRRRR-NNN`): stavy od poptávky po úhradu, přehled
+    fakturace, upozornění na dokončenou zakázku bez faktury. Stav *vyfakturováno*
+    a *uhrazeno* nastavuje aplikace podle faktur.
+  - Vydané faktury (`RRRR/faktury-vydane.csv` a `RRRR/faktury-vydane-polozky.csv`): číselná
+    řada bez děr i při souběžném vystavení, číslo je zároveň variabilní symbol, položky
+    s průběžným součtem, storno s důvodem místo smazání, ruční označení úhrady.
+  - PDF faktury (WeasyPrint) s logem, barvami, údajem o zápisu v rejstříku a textem
+    „Nejsem plátce DPH.“; vlastní šablona `config/branding/faktura.html`.
+  - QR platba (SPAYD) na faktuře i v aplikaci.
+  - Export ISDOC 6.0.2, ověřený v testech proti oficiálnímu XSD.
+  - Odeslání faktury e-mailem přes SMTP s PDF a volitelně ISDOC v příloze; příklad nastavení
+    pro WEDOS v `docs/konfigurace.md`.
+  - Přehled: neuhrazené faktury a faktury po splatnosti, fakturace za rok, zakázky bez faktury.
+  - Návod `docs/fakturace.md`.
 - Fáze 0, kostra aplikace:
   - FastAPI aplikace se šablonami Jinja2 a HTMX, světlý i tmavý režim, použitelná na mobilu.
   - Přihlášení jedním uživatelem (heslo Argon2, session cookie HttpOnly/Secure/SameSite=Strict),

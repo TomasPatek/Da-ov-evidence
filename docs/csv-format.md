@@ -48,6 +48,76 @@ a částky jsou zarovnané doprava (Excel je bere jako čísla).
 
 ## Soubory
 
+### `kontakty.csv`
+
+Odběratelé a dodavatelé. Faktury, zakázky a doklady na ně odkazují přes `id`.
+
+| Sloupec | Typ | Popis |
+| --- | --- | --- |
+| `id` | text | Neměnný identifikátor, např. `K0001`. |
+| `typ` | text | `odběratel`, `dodavatel` nebo `obojí`. |
+| `ico` | text | IČO (8 číslic), u soukromé osoby prázdné. |
+| `dic` | text | DIČ, např. `CZ12345678`. |
+| `nazev` | text | Název firmy nebo jméno a příjmení. |
+| `ulice` | text | Ulice a číslo. |
+| `mesto` | text | Obec. |
+| `psc` | text | PSČ. |
+| `email` | text | E-mail pro zasílání faktur. |
+| `telefon` | text | Telefon. |
+| `poznamka` | text | Volná poznámka. |
+| `ares_aktualizovano` | datum (`RRRR-MM-DD`) | Kdy byly údaje naposledy načteny z ARES; prázdné, pokud byly zadány ručně. |
+
+### `zakazky.csv`
+
+Zakázky. Faktury, doklady a platby se k nim připojují přes `zakazka_id`.
+
+| Sloupec | Typ | Popis |
+| --- | --- | --- |
+| `id` | text | Neměnný identifikátor `ZRRRR-NNN`, např. `Z2026-001`. |
+| `kontakt_id` | text | Zákazník, odkaz na `kontakty.csv`. |
+| `nazev` | text | Krátký název zakázky. |
+| `adresa_realizace` | text | Kde se zakázka provádí. |
+| `stav` | text | `poptávka`, `rozpracováno`, `dokončeno`, `vyfakturováno` nebo `uhrazeno`. |
+| `datum_zalozeni` | datum (`RRRR-MM-DD`) | Kdy byla zakázka založena. |
+| `datum_dokonceni` | datum (`RRRR-MM-DD`) | Kdy byla dokončena; prázdné, dokud běží. |
+| `poznamka` | text | Volná poznámka. |
+
+### `RRRR/faktury-vydane.csv`
+
+Vydané faktury roku. Vystavená faktura se nemaže, jen se stornuje. Položky jsou v `faktury-vydane-polozky.csv`.
+
+| Sloupec | Typ | Popis |
+| --- | --- | --- |
+| `cislo` | text | Číslo faktury `RRRRNNNN`, řada bez děr. Je i variabilním symbolem. |
+| `kontakt_id` | text | Odběratel, odkaz na `kontakty.csv`. |
+| `zakazka_id` | text | Zakázka, odkaz na `zakazky.csv`; může být prázdné. |
+| `datum_vystaveni` | datum (`RRRR-MM-DD`) | Datum vystavení. |
+| `datum_splatnosti` | datum (`RRRR-MM-DD`) | Datum splatnosti. |
+| `vs` | text | Variabilní symbol (stejný jako číslo faktury). |
+| `castka` | částka (`1234,50`) | Celková částka k úhradě. |
+| `mena` | text | Měna, zatím vždy `CZK`. |
+| `stav` | text | `vystavena`, `odeslana`, `uhrazena` nebo `stornovana`. |
+| `datum_odeslani` | datum (`RRRR-MM-DD`) | Kdy byla faktura odeslána e-mailem. |
+| `datum_uhrady` | datum (`RRRR-MM-DD`) | Kdy byla faktura uhrazena. |
+| `duvod_storna` | text | Důvod storna; vyplněno jen u stornované faktury. |
+| `soubor_pdf` | text | PDF faktury, cesta v rámci složky roku. |
+| `poznamka` | text | Poznámka vytištěná na faktuře. |
+
+### `RRRR/faktury-vydane-polozky.csv`
+
+Položky vydaných faktur. Součet `celkem` položek je `castka` faktury.
+
+| Sloupec | Typ | Popis |
+| --- | --- | --- |
+| `id` | text | Identifikátor položky `cislo-poradi`, např. `20260001-1`. |
+| `faktura_cislo` | text | Číslo faktury, odkaz na `faktury-vydane.csv`. |
+| `poradi` | celé číslo | Pořadí položky na faktuře, od 1. |
+| `popis` | text | Text položky. |
+| `mnozstvi` | číslo (`1,5`) | Množství. |
+| `jednotka` | text | Jednotka, např. `ks`, `hod`, `m²`. |
+| `cena_jednotkova` | částka (`1234,50`) | Cena za jednotku. |
+| `celkem` | částka (`1234,50`) | Množství × cena za jednotku, zaokrouhleno na haléře. |
+
 ### `audit.csv`
 
 Záznam všech změn v datových souborech. Každý změněný sloupec má vlastní řádek. Soubor se jen doplňuje, nikdy se z něj nemaže.

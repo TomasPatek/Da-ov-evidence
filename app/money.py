@@ -85,6 +85,14 @@ def parse_user_amount(text: str) -> Decimal:
         raise ValueError(f"neplatná částka: {text!r}") from exc
 
 
+def parse_user_decimal(text: str) -> Decimal:
+    """Parse a non-money number typed by the user (quantity): ``1,5`` or ``1.5``."""
+    cleaned = text.strip().replace(" ", "").replace(_NBSP, "")
+    if not _USER_AMOUNT_RE.match(cleaned):
+        raise ValueError(f"neplatné číslo: {text!r}")
+    return Decimal(cleaned.replace(",", "."))
+
+
 def format_display_amount(value: Decimal, currency: str = "Kč") -> str:
     """Human-readable amount for UI and PDFs: ``1 234,50 Kč`` (non-breaking spaces)."""
     value = round_money(value)

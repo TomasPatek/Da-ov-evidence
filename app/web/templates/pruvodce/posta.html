@@ -1,8 +1,9 @@
 {% extends "pruvodce/_layout.html" %}
 {% block step %}
 <h2>Pošta</h2>
-<p>Pošta zatím nic nedělá. Později bude sloužit k odesílání faktur (SMTP) a ke stahování
-dokladů ze schránky (IMAP). Tento krok můžete přeskočit a nastavit ho kdykoli později.</p>
+<p>Odchozí pošta (SMTP) slouží k odesílání faktur odběratelům. Příchozí pošta (IMAP) se zatím
+nepoužívá; později bude stahovat doklady ze schránky. Krok můžete přeskočit a nastavit ho
+kdykoli později. Bez pošty si faktury stáhnete jako PDF a pošlete je sami.</p>
 <dl class="facts">
   <dt>IMAP</dt><dd>{% if s.imap_host %}{{ s.imap_host }} ({{ s.imap_user }}){% else %}nenastaveno{% endif %}</dd>
   <dt>SMTP</dt><dd>{% if s.smtp_host %}{{ s.smtp_host }} ({{ s.smtp_user }}){% else %}nenastaveno{% endif %}</dd>
@@ -15,7 +16,7 @@ heslo k poště neuvidí ani nezmění a heslo se nedostane do záloh dat.</p>
   <li>Ve schránce si vytvořte <strong>heslo pro aplikace</strong> (Gmail i Seznam ho umožňují).
     Nepoužívejte hlavní heslo ke schránce; heslo pro aplikace jde kdykoli zrušit.</li>
   <li>Na serveru otevřete soubor <code>.env</code> ve složce aplikace a vyplňte řádky
-    <code>IMAP_…</code> a <code>SMTP_…</code>:
+    <code>SMTP_…</code> (a později <code>IMAP_…</code>). Příklad pro WEDOS je v <code>docs/konfigurace.md</code>:
     <pre><code>cd ~/danova-evidence
 nano .env</code></pre></li>
   <li>Aplikaci restartujte, aby nastavení načetla:

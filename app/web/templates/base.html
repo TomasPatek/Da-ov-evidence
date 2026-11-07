@@ -19,6 +19,9 @@
     {% if logged_in %}
     <nav class="nav" aria-label="Hlavní menu">
       <a href="/">Přehled</a>
+      <a href="/faktury">Faktury</a>
+      <a href="/zakazky">Zakázky</a>
+      <a href="/kontakty">Kontakty</a>
       <a href="/nastaveni">Nastavení</a>
       <form method="post" action="/odhlaseni" class="inline">
         <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">

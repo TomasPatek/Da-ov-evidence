@@ -26,13 +26,24 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    services:
+      # SMTP test server from docker-compose.test.yml.
+      mailpit:
+        image: axllent/mailpit:v1.21
+        ports: ["1025:1025", "8025:8025"]
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
         with:
           version: "0.13.7"
+      - name: system libraries (PDF, QR reader)
+        run: >-
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends
+          libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 fonts-dejavu-core libzbar0
       - run: uv sync --frozen
       - name: unit + integration tests
+        env:
+          MAILPIT_URL: http://127.0.0.1:8025
         run: uv run pytest --cov=app --cov-report=term
       - name: coverage >= 90 % for money-critical modules
         run: >-
@@ -46,6 +57,10 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           version: "0.13.7"
+      - name: system libraries (PDF, QR reader)
+        run: >-
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends
+          libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 fonts-dejavu-core libzbar0
       - run: uv sync --frozen
       - run: uv run playwright install --with-deps chromium
       - run: uv run pytest -m e2e tests/e2e
@@ -83,6 +98,8 @@ jobs:
             echo "root filesystem is writable"; exit 1
           fi
           docker compose exec -T app touch /data/test-write /config/test-write
+          # PDF rendering needs system libraries inside the image.
+          docker compose exec -T app python -c "from weasyprint import HTML; assert HTML(string='<p>Příliš žluťoučký</p>').write_pdf().startswith(b'%PDF')"
       - name: logs on failure
         if: failure()
         run: docker compose logs

@@ -10,14 +10,14 @@ Self-hosted webová aplikace pro daňovou evidenci OSVČ, která není plátcem 
 
 ## Co aplikace umí
 
-> Aplikace je ve vývoji. Hotová je fáze 0 (kostra); ostatní body přibývají postupně, viz [CHANGELOG](CHANGELOG.md).
+> Aplikace je ve vývoji. Hotové jsou fáze 0 (kostra) a 1 (fakturace); ostatní body přibývají postupně, viz [CHANGELOG](CHANGELOG.md).
 
 - Přihlášení jedním uživatelem, průvodce prvním spuštěním, vlastní logo a barvy.
 - Data v CSV souborech, které otevřete v Excelu nebo Numbers.
 - Záznam každé změny do auditního logu.
-- Kontakty s načtením údajů z ARES *(fáze 1)*.
-- Vydané faktury s PDF, QR platbou a ISDOC, odeslání e-mailem *(fáze 1)*.
-- Zakázky a jejich ziskovost *(fáze 1–2)*.
+- Kontakty s načtením údajů z ARES.
+- Vydané faktury s PDF, QR platbou a ISDOC, odeslání e-mailem, číselná řada bez děr, storno.
+- Zakázky s přehledem fakturace a upozorněním na dokončené zakázky bez faktury; ziskovost *(fáze 2)*.
 - Peněžní deník a přijaté doklady včetně čtení ISDOC, QR a textu z PDF *(fáze 2)*.
 - Stahování dokladů z e-mailu a párování plateb z Air Bank *(fáze 3)*.
 - OCR účtenek, majetek a odpisy, roční přehledy, zálohování, instalace na iPhone *(fáze 4)*.
@@ -41,6 +41,7 @@ Podrobně: [instalace na server](docs/instalace-server.md) nebo [na vlastní po�
 
 - [Instalace na server s Linuxem](docs/instalace-server.md)
 - [Instalace na Windows a macOS](docs/instalace-lokalne.md)
+- [Fakturace: kontakty, zakázky a faktury](docs/fakturace.md)
 - [Konfigurace](docs/konfigurace.md)
 - [Zálohování a obnova](docs/zalohovani.md)
 - [Aktualizace](docs/aktualizace.md)
