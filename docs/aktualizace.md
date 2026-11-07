@@ -13,21 +13,28 @@ aktualizuje se jen program (Docker image).
 
 ## Postup
 
-1. Přečtěte si poznámky k vydání na
+1. Přečtěte si [CHANGELOG](../CHANGELOG.md) nebo poznámky k vydání na
    [stránce Releases](https://github.com/TomasPatek/Da-ov-evidence/releases).
    Nová **hlavní** verze (např. z 1.x na 2.0) mění formát dat a poznámky popisují migraci.
 2. Udělejte zálohu podle [zálohování](zalohovani.md).
-3. Přejděte do složky aplikace a stáhněte nový image:
+3. Přejděte do složky aplikace a stáhněte novou verzi.
+
+   Server s Linuxem (instalace přes `git clone`):
 
    ```sh
    cd ~/danova-evidence
-   docker compose pull
+   git pull
    ```
 
-4. Spusťte aplikaci s novým image:
+   Windows a macOS (instalace ze ZIPu): stáhněte a rozbalte ZIP stejně jako v kroku 1
+   [instalace na vlastní počítač](instalace-lokalne.md), jen místo přejmenování složky
+   zkopírujte její obsah přes stávající složku `danova-evidence`. Složky `data`, `config`
+   a soubor `.env` v ZIPu nejsou, takže se nepřepíšou.
+
+4. Sestavte a spusťte novou verzi:
 
    ```sh
-   docker compose up -d
+   docker compose up -d --build
    ```
 
 5. Smažte staré image, které už nejsou potřeba:
@@ -35,8 +42,6 @@ aktualizuje se jen program (Docker image).
    ```sh
    docker image prune -f
    ```
-
-Pokud chcete zůstat u konkrétní verze, nastavte v `.env` např. `APP_VERSION=1.2.0`.
 
 ### Migrace dat
 
@@ -48,8 +53,9 @@ V patičce aplikace je číslo nové verze a `docker compose ps` ukazuje stav `h
 
 ## Časté problémy
 
-- **`docker compose pull` nic nestáhl:** v `.env` je nastavená pevná verze `APP_VERSION`.
-  Změňte ji, nebo řádek smažte.
+- **`git pull` hlásí konflikt:** ručně jste upravili soubor z repozitáře (např.
+  `docker-compose.yml`). Vlastní nastavení patří do `.env`. Změny zahodíte příkazem
+  `git checkout -- docker-compose.yml` a `git pull` zopakujete.
 - **Po aktualizaci aplikace nenaběhne:** podívejte se do `docker compose logs app`.
-  Pro návrat ke staré verzi nastavte v `.env` `APP_VERSION=<stará verze>`
-  a spusťte `docker compose up -d`.
+  Pro návrat ke staré verzi spusťte `git checkout v<stará verze>` (např. `git checkout v0.1.0`)
+  a `docker compose up -d --build`.

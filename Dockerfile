@@ -6,8 +6,11 @@ WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
+COPY README.md ./
 COPY app ./app
-RUN uv sync --frozen --no-dev
+# Source permissions vary (e.g. 0700 dirs from an unzipped archive); the app runs as uid 1000.
+RUN chmod -R u=rwX,go=rX /app \
+    && uv sync --frozen --no-dev
 
 FROM python:3.12-slim
 RUN apt-get update \

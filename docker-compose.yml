@@ -2,10 +2,14 @@
 #
 #   docker compose up -d     # aplikace na http://<adresa-serveru>:8000, jen v lokální síti
 
+name: danova-evidence
+
 services:
   app:
-    image: ghcr.io/tomaspatek/danova-evidence:${APP_VERSION:-latest}
+    # Until the first release the image is built locally from this repository.
+    image: danova-evidence:local
     build: .
+    pull_policy: build
     restart: unless-stopped
     env_file: .env
     environment:

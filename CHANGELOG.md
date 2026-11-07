@@ -6,6 +6,22 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 
 ## [Nevydáno]
 
+### Změněno
+
+- Krok „Pošta“ v průvodci vysvětluje, proč se heslo k e-mailu zadává jen do `.env`, a obsahuje
+  postup nastavení včetně doporučení použít heslo pro aplikace.
+
+### Opraveno
+
+- Instalace podle návodu končila chybou `denied` a `open Dockerfile: no such file or directory`,
+  protože návod stahoval jen `docker-compose.yml` a počítal s image na `ghcr.io`, který zatím
+  neexistuje. Do prvního vydání se aplikace instaluje z repozitáře a image sestavuje lokálně
+  (`docker compose up -d --build`).
+- Sestavení Docker image selhalo na chybě `Readme file does not exist: README.md`; soubor se
+  teď do sestavení kopíruje.
+- Aplikace v kontejneru padala na `ModuleNotFoundError`, když zdrojové složky neměly práva
+  pro čtení ostatními (např. po rozbalení ZIPu). Práva se teď při sestavení srovnají.
+
 ### Přidáno
 
 - Fáze 0, kostra aplikace:

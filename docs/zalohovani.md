@@ -32,7 +32,7 @@ Všechna data aplikace jsou ve dvou složkách: `data` (evidence, doklady, audit
 3. Zabalte data, konfiguraci a soubor `.env`:
 
    ```sh
-   tar czf danova-evidence-$(date +%F).tar.gz data config .env docker-compose.yml
+   tar czf danova-evidence-$(date +%F).tar.gz data config .env
    ```
 
 4. Spusťte aplikaci:
@@ -46,11 +46,12 @@ Všechna data aplikace jsou ve dvou složkách: `data` (evidence, doklady, audit
 
 ### Obnova na čistém stroji
 
-1. Nainstalujte Docker podle [instalace na server](instalace-server.md), část „Co je potřeba předem“.
-2. Vytvořte složku a rozbalte do ní zálohu:
+1. Nainstalujte Docker a Git podle [instalace na server](instalace-server.md), část „Co je potřeba předem“.
+2. Stáhněte aplikaci a rozbalte do její složky zálohu:
 
    ```sh
-   mkdir -p ~/danova-evidence && cd ~/danova-evidence
+   git clone https://github.com/TomasPatek/Da-ov-evidence.git ~/danova-evidence
+   cd ~/danova-evidence
    tar xzf /cesta/k/danova-evidence-RRRR-MM-DD.tar.gz
    ```
 
@@ -61,10 +62,10 @@ Všechna data aplikace jsou ve dvou složkách: `data` (evidence, doklady, audit
    sed -i "s|^APP_UID=.*|APP_UID=$(id -u)|; s|^APP_GID=.*|APP_GID=$(id -g)|" .env
    ```
 
-4. Spusťte aplikaci:
+4. Sestavte a spusťte aplikaci:
 
    ```sh
-   docker compose up -d
+   docker compose up -d --build
    ```
 
 ## Jak ověřit, že to funguje
