@@ -10,7 +10,7 @@ psc = "54321"
 email = "fakturace@example.cz"
 telefon = "+420 600 000 000"
 web = "www.example.cz"
-zapis_rejstrik = "Fyzická osoba zapsaná v živnostenském rejstříku."
+zapis_rejstrik = "Fyzická osoba zapsaná v živnostenském rejstříku. Úřad příslušný podle § 71 odst. 2 živnostenského zákona: Městský úřad Horní Dolní."
 
 [banka]
 ucet = "1234567899/0100"

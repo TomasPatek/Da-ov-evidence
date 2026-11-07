@@ -70,7 +70,7 @@ Vytvoří ho průvodce. Vzor je `firma.example.toml`.
 | `[firma] ico`, `dic` | IČO (8 číslic) a DIČ (`CZ…`, u neplátce DPH nepovinné). |
 | `[firma] ulice`, `mesto`, `psc` | Adresa sídla. |
 | `[firma] email`, `telefon`, `web` | Kontakty na faktuře. |
-| `[firma] zapis_rejstrik` | Údaj o zápisu v živnostenském rejstříku na faktuře. |
+| `[firma] zapis_rejstrik` | Údaj o zápisu v živnostenském rejstříku a příslušném úřadu, tiskne se v patičce faktury. |
 | `[banka] ucet`, `iban` | Číslo účtu (`předčíslí-číslo/kód`) a IBAN pro QR platbu. |
 | `[fakturace] format_cisla` | `RRRRNNNN` (2026 0001) nebo `RRRRNNN` (2026 001). Po vystavení první faktury už nejde změnit. |
 | `[fakturace] pocatecni_cislo` | Pořadové číslo úplně první faktury v aplikaci (pokud jste letos už fakturovali jinde). Další roky začínají vždy od 1. |

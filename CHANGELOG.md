@@ -18,6 +18,7 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 ### Opraveno
 
 - PDF faktury: IBAN přetékal do sloupce s daty.
+- Údaj o zápisu v živnostenském rejstříku se na faktuře tiskne v patičce místo v bloku dodavatele.
 - Instalace podle návodu končila chybou `denied` a `open Dockerfile: no such file or directory`,
   protože návod stahoval jen `docker-compose.yml` a počítal s image na `ghcr.io`, který zatím
   neexistuje. Do prvního vydání se aplikace instaluje z repozitáře a image sestavuje lokálně

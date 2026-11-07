@@ -5,7 +5,7 @@
 <title>Faktura {{ inv.cislo }}</title>
 <style>
 {{ theme_css }}
-@page { size: A4; margin: 16mm 15mm 18mm; }
+@page { size: A4; margin: 16mm 15mm 22mm; }
 * { box-sizing: border-box; }
 body { font-family: "DejaVu Sans", "Liberation Sans", Arial, sans-serif; font-size: 9.5pt; color: #1c2430; line-height: 1.4; margin: 0; }
 h1 { font-size: 20pt; margin: 0; color: var(--brand-primary); }
@@ -40,11 +40,15 @@ tr { page-break-inside: avoid; }
 .notes { flex: 1; }
 .notes p { margin: 0 0 2mm; }
 .storno { color: #b42318; border: 2px solid #b42318; padding: 2mm 4mm; font-weight: bold; margin-bottom: 5mm; }
-footer { position: fixed; bottom: -10mm; left: 0; right: 0; font-size: 7.5pt; color: #5d6878; text-align: center; }
+footer { position: fixed; bottom: -14mm; left: 0; right: 0; font-size: 7.5pt; color: #5d6878; text-align: center; border-top: 1px solid #e3e7ec; padding-top: 2mm; }
+footer p { margin: 0; }
 </style>
 </head>
 <body>
-<footer>{{ firma.firma.nazev }} · IČO {{ firma.firma.ico }}{% if firma.firma.email %} · {{ firma.firma.email }}{% endif %}{% if firma.firma.telefon %} · {{ firma.firma.telefon }}{% endif %}{% if firma.firma.web %} · {{ firma.firma.web }}{% endif %}</footer>
+<footer>
+  {% if firma.firma.zapis_rejstrik %}<p>{{ firma.firma.zapis_rejstrik }}</p>{% endif %}
+  <p>{{ firma.firma.nazev }} · IČO {{ firma.firma.ico }}{% if firma.firma.email %} · {{ firma.firma.email }}{% endif %}{% if firma.firma.telefon %} · {{ firma.firma.telefon }}{% endif %}{% if firma.firma.web %} · {{ firma.firma.web }}{% endif %}</p>
+</footer>
 
 <div class="head">
   <div>{% if logo_uri %}<img class="logo" src="{{ logo_uri }}" alt="">{% endif %}</div>
@@ -64,7 +68,6 @@ footer { position: fixed; bottom: -10mm; left: 0; right: 0; font-size: 7.5pt; co
     <p>{{ firma.firma.ulice }}</p>
     <p>{{ firma.firma.psc }} {{ firma.firma.mesto }}</p>
     <p>IČO: {{ firma.firma.ico }}{% if firma.firma.dic %}, DIČ: {{ firma.firma.dic }}{% endif %}</p>
-    {% if firma.firma.zapis_rejstrik %}<p>{{ firma.firma.zapis_rejstrik }}</p>{% endif %}
   </div>
   <div class="party customer">
     <h2>Odběratel</h2>
