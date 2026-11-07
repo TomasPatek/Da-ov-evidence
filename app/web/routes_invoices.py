@@ -29,7 +29,14 @@ from app.invoices.spayd import qr_svg
 from app.invoices.totals import line_total
 from app.jobs import ZAKAZKY_SCHEMA
 from app.mail.smtp import Attachment, MailError, build_message
-from app.money import parse_user_amount, parse_user_decimal, sum_money
+from app.money import (
+    format_csv_amount,
+    format_csv_decimal,
+    parse_user_amount,
+    parse_user_decimal,
+    sum_money,
+)
+from app.storage import Record
 from app.web.forms import EMAIL_RE, parse_date
 from app.web.routes_contacts import contact_choices
 from app.web.security import verify_csrf
@@ -113,10 +120,11 @@ def _draft_from_form(form: FormData) -> tuple[InvoiceDraft | None, list[FormLine
 
 
 def _form_page(request: Request, status_code: int = 200, **ctx: Any) -> Response:
+    current = ctx.get("v", {}).get("zakazka_id", "")
     jobs = [
         j
         for j in request.app.state.storage.table(ZAKAZKY_SCHEMA).all()
-        if j["stav"] not in ("uhrazeno",)
+        if j["stav"] != "uhrazeno" or j["id"] == current
     ]
     jobs.sort(key=lambda j: j["id"], reverse=True)
     return render(
@@ -291,6 +299,82 @@ def invoice_qr(request: Request, cislo: str) -> Response:
     if not view.spayd:
         raise HTTPException(404, "Faktura nemá QR platbu.")
     return Response(qr_svg(view.spayd), media_type="image/svg+xml")
+
+
+# -- editing ------------------------------------------------------------------
+
+
+def _editable(request: Request, cislo: str) -> Record:
+    invoice = _view(request, cislo).invoice
+    if invoice["stav"] not in OPEN_STATES:
+        raise HTTPException(400, "Upravit lze jen neuhrazenou a nestornovanou fakturu.")
+    return invoice
+
+
+@router.get("/{cislo}/upravit")
+def invoice_edit_form(request: Request, cislo: str, potvrzeno: str = "") -> Response:
+    invoice = _editable(request, cislo)
+    if invoice["datum_odeslani"] and not potvrzeno:
+        return render(request, "faktury/upravit-odeslanou.html", inv=invoice)
+    draft = _service(request).draft_of(cislo)
+    values = {
+        "kontakt_id": draft.kontakt_id,
+        "zakazka_id": draft.zakazka_id,
+        "datum_vystaveni": draft.datum_vystaveni.isoformat(),
+        "datum_splatnosti": draft.datum_splatnosti.isoformat(),
+        "poznamka": draft.poznamka,
+    }
+    lines = [
+        FormLine(
+            line.popis,
+            format_csv_decimal(line.mnozstvi),
+            line.jednotka,
+            format_csv_amount(line.cena_jednotkova),
+            line.celkem,
+        )
+        for line in draft.lines
+    ]
+    lines.append(FormLine())
+    return _form_page(
+        request,
+        v=values,
+        lines=lines,
+        total=draft.total,
+        edit_cislo=cislo,
+        sent_on=invoice["datum_odeslani"],
+    )
+
+
+@router.post("/{cislo}/upravit")
+async def invoice_edit(request: Request, cislo: str) -> Response:
+    invoice = _editable(request, cislo)
+    form = await request.form()
+    if invoice["datum_odeslani"] and not form.get("potvrzeno"):
+        return render(request, "faktury/upravit-odeslanou.html", status_code=400, inv=invoice)
+    draft, lines, errors = _draft_from_form(form)
+    if draft is not None:
+        try:
+            _service(request).update(cislo, draft, render_pdf=_pdf_renderer(request))
+        except InvoiceError as exc:
+            errors = str(exc).splitlines()
+        else:
+            log.info("Invoice updated")
+            return RedirectResponse(f"/faktury/{cislo}?upraveno=1", status_code=303)
+    values = {
+        k: str(form.get(k, ""))
+        for k in ("kontakt_id", "zakazka_id", "datum_vystaveni", "datum_splatnosti", "poznamka")
+    }
+    totals = [line.celkem for line in lines if line.celkem is not None and not _is_blank(line)]
+    return _form_page(
+        request,
+        status_code=400,
+        v=values,
+        lines=lines,
+        errors=errors,
+        total=sum_money(totals) if totals else None,
+        edit_cislo=cislo,
+        sent_on=invoice["datum_odeslani"],
+    )
 
 
 # -- state changes ----------------------------------------------------------

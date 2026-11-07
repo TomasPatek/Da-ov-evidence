@@ -284,3 +284,78 @@ def test_years_and_lookup(svc: InvoiceService) -> None:
     assert svc.get("20990001") is None
     assert svc.view("20260099") is None
     assert FAKTURY_SCHEMA.per_year
+
+
+# -- editing -----------------------------------------------------------------------
+
+
+def test_update_keeps_number_and_replaces_items(svc: InvoiceService, storage: Storage) -> None:
+    inv = svc.issue(draft(day=10), render_pdf=lambda v: b"%PDF-old")
+    changed = draft(day=11, lines=[DraftLine("Jen práce", D("2"), "hod", D("500"))])
+    changed.poznamka = "Opraveno"
+    rec = svc.update(inv["cislo"], changed, render_pdf=lambda v: b"%PDF-new")
+    assert rec["cislo"] == inv["cislo"] == rec["vs"]
+    assert rec["castka"] == D("1000.00")
+    assert rec["datum_vystaveni"] == date(2026, 2, 11)
+    assert [i["popis"] for i in svc.items(inv["cislo"])] == ["Jen práce"]
+    pdf = storage.data_dir / "2026" / "doklady" / f"{inv['cislo']}.pdf"
+    assert pdf.read_bytes() == b"%PDF-new"
+    changes = [e for e in storage.audit.entries() if e["akce"] == "změna" and e["pole"] == "castka"]
+    assert changes and changes[-1]["stara_hodnota"] == "4100,00"
+
+
+def test_update_keeps_sent_state(svc: InvoiceService) -> None:
+    inv = svc.issue(draft())
+    svc.mark_sent(inv["cislo"], date(2026, 2, 10))
+    rec = svc.update(inv["cislo"], draft())
+    assert rec["stav"] == "odeslana"
+    assert rec["datum_odeslani"] == date(2026, 2, 10)
+
+
+def test_update_refused_for_paid_and_cancelled(svc: InvoiceService) -> None:
+    a, b = svc.issue(draft()), svc.issue(draft())
+    svc.mark_paid(a["cislo"], date(2026, 2, 12), today=date(2026, 3, 1))
+    svc.cancel(b["cislo"], "Omyl")
+    for cislo in (a["cislo"], b["cislo"]):
+        with pytest.raises(InvoiceError, match="neuhrazenou"):
+            svc.update(cislo, draft())
+
+
+def test_update_date_must_stay_between_neighbours_and_in_year(svc: InvoiceService) -> None:
+    svc.issue(draft(day=5))
+    mid = svc.issue(draft(day=10))
+    svc.issue(draft(day=12))
+    with pytest.raises(InvoiceError, match="předchozí"):
+        svc.update(mid["cislo"], draft(day=4))
+    with pytest.raises(InvoiceError, match="následující"):
+        svc.update(mid["cislo"], draft(day=13))
+    other_year = draft()
+    other_year.datum_vystaveni, other_year.datum_splatnosti = date(2027, 1, 5), date(2027, 1, 19)
+    with pytest.raises(InvoiceError, match="v roce 2026"):
+        svc.update(mid["cislo"], other_year)
+    assert svc.update(mid["cislo"], draft(day=12))["datum_vystaveni"] == date(2026, 2, 12)
+
+
+def test_update_validates_like_issue(svc: InvoiceService) -> None:
+    inv = svc.issue(draft())
+    with pytest.raises(InvoiceError, match="aspoň jednu"):
+        svc.update(inv["cislo"], draft(lines=[]))
+    assert len(svc.items(inv["cislo"])) == 2
+
+
+def test_update_moves_invoice_between_jobs(svc: InvoiceService, storage: Storage) -> None:
+    jobs = storage.table(ZAKAZKY_SCHEMA)
+    jobs.insert(job("Z2026-002", stav="dokončeno"))
+    inv = svc.issue(draft(zakazka="Z2026-001"))
+    svc.update(inv["cislo"], draft(zakazka="Z2026-002"))
+    assert jobs.get("Z2026-001")["stav"] == "dokončeno"  # type: ignore[index]
+    assert jobs.get("Z2026-002")["stav"] == "vyfakturováno"  # type: ignore[index]
+
+
+def test_draft_of_round_trips(svc: InvoiceService) -> None:
+    original = draft(poznamka="Pozn.")
+    inv = svc.issue(original)
+    again = svc.draft_of(inv["cislo"])
+    assert again.total == original.total
+    assert again.poznamka == "Pozn."
+    assert [line.popis for line in again.lines] == [line.popis for line in original.lines]

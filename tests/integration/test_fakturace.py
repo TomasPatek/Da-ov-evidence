@@ -497,3 +497,92 @@ def test_numbering_format_locked_after_first_invoice(ready: TestClient) -> None:
     )
     assert resp.status_code == 400
     assert "nejde změnit" in resp.text
+
+
+# -- editing ---------------------------------------------------------------------
+
+
+def edit_data(client: TestClient, kontakt: str, **extra: object) -> dict[str, object]:
+    return {
+        "csrf_token": token(client),
+        "kontakt_id": kontakt,
+        "zakazka_id": "",
+        "datum_vystaveni": TODAY.isoformat(),
+        "datum_splatnosti": (TODAY + timedelta(days=30)).isoformat(),
+        "poznamka": "Opravená faktura",
+        "popis": ["Práce na střeše", ""],
+        "mnozstvi": ["10", "1"],
+        "jednotka": ["hod", "ks"],
+        "cena": ["450", ""],
+        **extra,
+    }
+
+
+def test_edit_unsent_invoice(ready: TestClient) -> None:
+    cid = new_contact(ready)
+    cislo = issue(ready, cid)
+    assert f"/faktury/{cislo}/upravit" in ready.get(f"/faktury/{cislo}").text
+    form = ready.get(f"/faktury/{cislo}/upravit").text
+    assert "Úprava faktury" in form
+    assert 'value="333,33"' in form and 'value="1,5"' in form
+    assert "už byla odeslána" not in form
+    resp = ready.post(f"/faktury/{cislo}/upravit", data=edit_data(ready, cid))
+    assert resp.status_code == 303
+    assert resp.headers["location"] == f"/faktury/{cislo}?upraveno=1"
+    detail = ready.get(f"/faktury/{cislo}?upraveno=1").text
+    assert "4\xa0500,00" in detail
+    assert "Faktura upravena" in detail
+    with pdfplumber.open(io.BytesIO(ready.get(f"/faktury/{cislo}/pdf").content)) as pdf:
+        text = pdf.pages[0].extract_text().replace("\xa0", " ")
+    assert "4 500,00 Kč" in text and "Opravená faktura" in text
+
+
+def test_edit_sent_invoice_warns_first(ready: TestClient, fake_mailer: FakeMailer) -> None:
+    cid = new_contact(ready)
+    cislo = issue(ready, cid)
+    ready.post(
+        f"/faktury/{cislo}/odeslat",
+        data={"csrf_token": token(ready), "komu": "petr@example.cz", "predmet": "F", "text": ""},
+    )
+    warning = ready.get(f"/faktury/{cislo}/upravit").text
+    assert "Upravit odeslanou fakturu?" in warning
+    assert "už byla odeslána" in warning
+    assert 'name="popis"' not in warning
+    assert f"/faktury/{cislo}/upravit?potvrzeno=1" in warning
+
+    form = ready.get(f"/faktury/{cislo}/upravit", params={"potvrzeno": "1"}).text
+    assert 'name="potvrzeno"' in form
+    assert "Po uložení pošlete odběrateli opravenou verzi" in form
+
+    # Saving without the confirmation shows the warning again and changes nothing.
+    resp = ready.post(f"/faktury/{cislo}/upravit", data=edit_data(ready, cid))
+    assert resp.status_code == 400
+    assert "Upravit odeslanou fakturu?" in resp.text
+
+    resp = ready.post(f"/faktury/{cislo}/upravit", data=edit_data(ready, cid, potvrzeno="1"))
+    assert resp.status_code == 303
+    detail = ready.get(f"/faktury/{cislo}?upraveno=1").text
+    assert "pošlete mu opravenou" in detail
+    assert "badge-odeslana" in detail
+
+
+def test_edit_errors_keep_input(ready: TestClient) -> None:
+    cid = new_contact(ready)
+    cislo = issue(ready, cid)
+    resp = ready.post(f"/faktury/{cislo}/upravit", data=edit_data(ready, cid, cena=["abc", ""]))
+    assert resp.status_code == 400
+    assert "cena není platná" in resp.text
+    assert f'action="/faktury/{cislo}/upravit"' in resp.text
+
+
+def test_paid_invoice_cannot_be_edited(ready: TestClient) -> None:
+    cid = new_contact(ready)
+    cislo = issue(ready, cid)
+    ready.post(
+        f"/faktury/{cislo}/uhrazena",
+        data={"csrf_token": token(ready), "datum_uhrady": TODAY.isoformat()},
+    )
+    assert f"/faktury/{cislo}/upravit" not in ready.get(f"/faktury/{cislo}").text
+    assert ready.get(f"/faktury/{cislo}/upravit").status_code == 400
+    resp = ready.post(f"/faktury/{cislo}/upravit", data=edit_data(ready, cid))
+    assert resp.status_code == 400

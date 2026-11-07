@@ -214,21 +214,7 @@ class InvoiceService:
             )
             # Items first: a crash in between leaves orphan items (removed here on retry),
             # never an invoice without items.
-            for orphan in [r for r in items.all() if r["faktura_cislo"] == cislo]:
-                items.delete(orphan["id"])
-            for poradi, line in enumerate(draft.lines, start=1):
-                items.insert(
-                    {
-                        "id": f"{cislo}-{poradi}",
-                        "faktura_cislo": cislo,
-                        "poradi": poradi,
-                        "popis": line.popis.strip(),
-                        "mnozstvi": line.mnozstvi,
-                        "jednotka": line.jednotka.strip(),
-                        "cena_jednotkova": line.cena_jednotkova,
-                        "celkem": line.celkem,
-                    }
-                )
+            self._replace_items(items, cislo, draft.lines)
             record = invoices.insert(
                 {
                     "cislo": cislo,
@@ -252,6 +238,101 @@ class InvoiceService:
                 draft.zakazka_id,
                 JobState.INVOICED,
                 only_from=(JobState.INQUIRY, JobState.IN_PROGRESS, JobState.DONE),
+            )
+        if render_pdf is not None:
+            record = self.write_pdf(record, render_pdf)
+        return record
+
+    @staticmethod
+    def _replace_items(items: CsvTable, cislo: str, lines: list[DraftLine]) -> None:
+        for old in [r for r in items.all() if r["faktura_cislo"] == cislo]:
+            items.delete(old["id"])
+        for poradi, line in enumerate(lines, start=1):
+            items.insert(
+                {
+                    "id": f"{cislo}-{poradi}",
+                    "faktura_cislo": cislo,
+                    "poradi": poradi,
+                    "popis": line.popis.strip(),
+                    "mnozstvi": line.mnozstvi,
+                    "jednotka": line.jednotka.strip(),
+                    "cena_jednotkova": line.cena_jednotkova,
+                    "celkem": line.celkem,
+                }
+            )
+
+    # -- editing ---------------------------------------------------------------
+
+    def draft_of(self, cislo: str) -> InvoiceDraft:
+        """Current content of an invoice as a draft (for the edit form)."""
+        invoice = self._require(cislo)
+        return InvoiceDraft(
+            kontakt_id=invoice["kontakt_id"],
+            zakazka_id=invoice["zakazka_id"],
+            datum_vystaveni=invoice["datum_vystaveni"],
+            datum_splatnosti=invoice["datum_splatnosti"],
+            poznamka=invoice["poznamka"],
+            lines=[
+                DraftLine(i["popis"], i["mnozstvi"], i["jednotka"], i["cena_jednotkova"])
+                for i in self.items(cislo)
+            ],
+        )
+
+    def update(
+        self, cislo: str, draft: InvoiceDraft, render_pdf: PdfRenderer | None = None
+    ) -> Record:
+        """Change an issued (unpaid, not cancelled) invoice. The number stays the same."""
+        invoice = self._require(cislo)
+        if invoice["stav"] not in OPEN_STATES:
+            raise InvoiceError("Upravit lze jen neuhrazenou a nestornovanou fakturu.")
+        self._validate(draft)
+        year = invoice["datum_vystaveni"].year
+        if draft.datum_vystaveni.year != year:
+            raise InvoiceError(
+                f"Datum vystavení musí zůstat v roce {year}, ke kterému patří číslo."
+            )
+        invoices = self.storage.table(FAKTURY_SCHEMA, year)
+        items = self.storage.table(POLOZKY_SCHEMA, year)
+        with file_lock(self.storage.data_dir / str(year) / "faktury-vydane-cislovani"):
+            others = [r for r in invoices.all() if r["cislo"] != cislo]
+            before = max((r["datum_vystaveni"] for r in others if r["cislo"] < cislo), default=None)
+            after = min((r["datum_vystaveni"] for r in others if r["cislo"] > cislo), default=None)
+            if before is not None and draft.datum_vystaveni < before:
+                raise InvoiceError(
+                    "Datum vystavení nesmí být dřív než u předchozí faktury "
+                    f"({before.day}. {before.month}. {before.year})."
+                )
+            if after is not None and draft.datum_vystaveni > after:
+                raise InvoiceError(
+                    "Datum vystavení nesmí být později než u následující faktury "
+                    f"({after.day}. {after.month}. {after.year})."
+                )
+            self._replace_items(items, cislo, draft.lines)
+            record = invoices.update(
+                cislo,
+                {
+                    "kontakt_id": draft.kontakt_id,
+                    "zakazka_id": draft.zakazka_id,
+                    "datum_vystaveni": draft.datum_vystaveni,
+                    "datum_splatnosti": draft.datum_splatnosti,
+                    "castka": draft.total,
+                    "poznamka": draft.poznamka.strip(),
+                },
+            )
+        old_job = invoice["zakazka_id"]
+        if old_job and old_job != draft.zakazka_id:
+            active = [i for i in self.job_invoices(old_job) if i["stav"] != InvoiceState.CANCELLED]
+            if not active:
+                self._set_job_state(
+                    old_job, JobState.DONE, only_from=(JobState.INVOICED, JobState.PAID)
+                )
+            else:
+                self._sync_job_after_payment(old_job)
+        if draft.zakazka_id:
+            self._set_job_state(
+                draft.zakazka_id,
+                JobState.INVOICED,
+                only_from=(JobState.INQUIRY, JobState.IN_PROGRESS, JobState.DONE, JobState.PAID),
             )
         if render_pdf is not None:
             record = self.write_pdf(record, render_pdf)

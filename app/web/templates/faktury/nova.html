@@ -1,11 +1,16 @@
 {% extends "base.html" %}
-{% block title %}Nová faktura · Daňová evidence{% endblock %}
+{% block title %}{{ "Úprava faktury " ~ edit_cislo if edit_cislo else "Nová faktura" }} · Daňová evidence{% endblock %}
 {% block content %}
+{% if edit_cislo %}
+<p class="crumbs"><a href="/faktury/{{ edit_cislo }}">Faktura {{ edit_cislo }}</a></p>
+<h1>Úprava faktury {{ edit_cislo }}</h1>
+{% else %}
 <p class="crumbs"><a href="/faktury">Faktury</a></p>
 <h1>Nová faktura</h1>
+{% endif %}
 <section class="card">
   {% include "_errors.html" %}
-  <form method="post" action="/faktury/nova">
+  <form method="post" action="{{ '/faktury/' ~ edit_cislo ~ '/upravit' if edit_cislo else '/faktury/nova' }}">
     <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
     <div class="row">
       <label class="grow">Odběratel
@@ -44,8 +49,17 @@
     <label>Poznámka na faktuře <span class="muted">(nepovinné)</span>
       <textarea name="poznamka" rows="2">{{ v.poznamka }}</textarea>
     </label>
-    <p class="muted">Po vystavení už fakturu nejde upravit ani smazat, jen stornovat. Číslo faktury přidělí aplikace.</p>
+    {% if edit_cislo %}
+    {% if sent_on %}
+    <input type="hidden" name="potvrzeno" value="1">
+    <div class="alert alert-warning" role="status">Faktura už byla odeslána {{ sent_on | cz_date }}. Po uložení pošlete odběrateli opravenou verzi.</div>
+    {% endif %}
+    <p class="muted">Číslo faktury zůstane stejné. PDF se vytvoří znovu.</p>
+    <button type="submit" class="primary">Uložit změny</button>
+    {% else %}
+    <p class="muted">Číslo faktury přidělí aplikace. Fakturu půjde upravit, dokud nebude uhrazená; smazat ji nejde, jen stornovat.</p>
     <button type="submit" class="primary">Vystavit fakturu</button>
+    {% endif %}
   </form>
 </section>
 {% endblock %}

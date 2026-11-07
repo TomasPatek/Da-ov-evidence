@@ -3,7 +3,7 @@
 ## K čemu slouží
 
 Návod popisuje každodenní práci s fakturami: založení odběratele (i přes ARES), zakázky,
-vystavení faktury s QR platbou, odeslání e-mailem, označení úhrady a storno.
+vystavení a oprava faktury s QR platbou, odeslání e-mailem, označení úhrady a storno.
 
 ![Detail faktury](img/faktura-detail.png)
 
@@ -44,8 +44,19 @@ Dokončená zakázka bez faktury se zobrazí na *Přehledu* jako upozornění.
 4. Celková částka se počítá průběžně. Klikněte na *Vystavit fakturu*.
 
 Číslo faktury přidělí aplikace (řada bez děr, např. `20260001`) a je zároveň variabilním
-symbolem. Vystavenou fakturu už nejde upravit ani smazat, jen stornovat. Datum vystavení
-nesmí být dřív než u poslední faktury téhož roku, aby čísla šla popořadě.
+symbolem. Datum vystavení nesmí být dřív než u poslední faktury téhož roku, aby čísla šla
+popořadě. Smazat fakturu nejde, jen stornovat.
+
+### 3a. Opravte vystavenou fakturu
+
+1. V detailu faktury klikněte na *Upravit*. Tlačítko je jen u neuhrazené a nestornované faktury.
+2. Pokud jste fakturu už odeslali, aplikace nejdřív zobrazí upozornění, že odběratel má
+   původní verzi. Pokračujte tlačítkem *Přesto upravit*.
+3. Opravte údaje a klikněte na *Uložit změny*. Číslo faktury zůstane stejné, PDF se vytvoří znovu.
+4. Odeslanou fakturu pošlete odběrateli znovu (*Odeslat e-mailem*) a upozorněte ho na opravu.
+
+Datum vystavení musí zůstat ve stejném roce a mezi daty předchozí a následující faktury.
+Každá změna se zapíše do `audit.csv` i s původní hodnotou.
 
 ### 4. Pošlete fakturu odběrateli
 
@@ -86,3 +97,5 @@ nesmí být dřív než u poslední faktury téhož roku, aby čísla šla popo�
   Postup je v [konfiguraci](konfigurace.md#příklad-pošta-u-wedos).
 - **QR kód na faktuře chybí:** v nastavení chybí bankovní účet (IBAN), nebo je faktura stornovaná.
 - **Fakturu jsem vystavil omylem:** stornujte ji. Smazat ji nejde, řada čísel musí zůstat bez děr.
+- **U faktury chybí tlačítko Upravit:** faktura je uhrazená nebo stornovaná. U uhrazené nejdřív
+  použijte *Zrušit úhradu*.

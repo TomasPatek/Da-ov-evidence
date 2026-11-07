@@ -37,6 +37,8 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
   - Vydané faktury (`RRRR/faktury-vydane.csv` a `RRRR/faktury-vydane-polozky.csv`): číselná
     řada bez děr i při souběžném vystavení, číslo je zároveň variabilní symbol, položky
     s průběžným součtem, storno s důvodem místo smazání, ruční označení úhrady.
+  - Úprava vystavené faktury, dokud není uhrazená ani stornovaná; číslo zůstává, PDF se vytvoří
+    znovu. U již odeslané faktury se před úpravou zobrazí upozornění.
   - PDF faktury (WeasyPrint) s logem, barvami, údajem o zápisu v rejstříku a textem
     „Nejsem plátce DPH.“; vlastní šablona `config/branding/faktura.html`.
   - QR platba (SPAYD) na faktuře i v aplikaci.

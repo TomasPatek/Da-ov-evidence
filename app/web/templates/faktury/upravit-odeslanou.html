@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Úprava faktury {{ inv.cislo }} · Daňová evidence{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/faktury/{{ inv.cislo }}">Faktura {{ inv.cislo }}</a></p>
+<h1>Upravit odeslanou fakturu?</h1>
+<section class="card">
+  <div class="alert alert-warning" role="alert">
+    Faktura {{ inv.cislo }} už byla odeslána odběrateli {{ inv.datum_odeslani | cz_date }}.
+    Odběratel má u sebe původní verzi. Po úpravě mu pošlete opravenou fakturu a upozorněte ho na změnu.
+  </div>
+  <div class="actions">
+    <a class="button primary" href="/faktury/{{ inv.cislo }}/upravit?potvrzeno=1">Přesto upravit</a>
+    <a class="button" href="/faktury/{{ inv.cislo }}">Zpět na fakturu</a>
+  </div>
+</section>
+{% endblock %}
