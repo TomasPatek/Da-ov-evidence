@@ -12,6 +12,8 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
   protože návod stahoval jen `docker-compose.yml` a počítal s image na `ghcr.io`, který zatím
   neexistuje. Do prvního vydání se aplikace instaluje z repozitáře a image sestavuje lokálně
   (`docker compose up -d --build`).
+- Sestavení Docker image selhalo na chybě `Readme file does not exist: README.md`; soubor se
+  teď do sestavení kopíruje.
 
 ### Přidáno
 
