@@ -1,0 +1,41 @@
+<div id="firma-pole">
+  {% if errors is defined or info is defined %}{% include "_errors.html" %}{% endif %}
+  <div class="row">
+    <label>IČO
+      <input type="text" name="ico" value="{{ f.ico }}" inputmode="numeric" maxlength="8" required>
+    </label>
+    <button type="button" class="secondary"
+            hx-get="/pruvodce/ares" hx-include="[name=ico]"
+            hx-target="#firma-pole" hx-swap="outerHTML">Načíst z ARES</button>
+  </div>
+  <label>Název nebo jméno a příjmení
+    <input type="text" name="nazev" value="{{ f.nazev }}" required>
+  </label>
+  <label>DIČ <span class="muted">(nepovinné)</span>
+    <input type="text" name="dic" value="{{ f.dic }}">
+  </label>
+  <label>Ulice a číslo
+    <input type="text" name="ulice" value="{{ f.ulice }}" required>
+  </label>
+  <div class="row">
+    <label>PSČ
+      <input type="text" name="psc" value="{{ f.psc }}" inputmode="numeric" required>
+    </label>
+    <label class="grow">Obec
+      <input type="text" name="mesto" value="{{ f.mesto }}" required>
+    </label>
+  </div>
+  <label>E-mail
+    <input type="email" name="email" value="{{ f.email }}">
+  </label>
+  <label>Telefon
+    <input type="tel" name="telefon" value="{{ f.telefon }}">
+  </label>
+  <label>Web
+    <input type="text" name="web" value="{{ f.web }}">
+  </label>
+  <label>Údaj o zápisu v živnostenském rejstříku
+    <input type="text" name="zapis_rejstrik" value="{{ f.zapis_rejstrik }}"
+           placeholder="Fyzická osoba zapsaná v živnostenském rejstříku.">
+  </label>
+</div>

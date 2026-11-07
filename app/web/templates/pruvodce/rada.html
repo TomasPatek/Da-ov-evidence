@@ -1,0 +1,25 @@
+{% extends "pruvodce/_layout.html" %}
+{% block step %}
+<h2>Číselná řada faktur</h2>
+<p>Číslo faktury je zároveň variabilní symbol. Řada je bez děr a každý rok začíná znovu.</p>
+<form method="post" action="/pruvodce/rada">
+  <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+  <fieldset>
+    <legend>Formát</legend>
+    {% for fmt in formats %}
+    <label class="choice">
+      <input type="radio" name="format_cisla" value="{{ fmt }}" {{ 'checked' if fak.format_cisla == fmt }}>
+      {{ fmt }} <span class="muted">(např. 2026{{ "1".rjust(fmt.count("N"), "0") }})</span>
+    </label>
+    {% endfor %}
+  </fieldset>
+  <label>První číslo v letošním roce
+    <input type="number" name="pocatecni_cislo" value="{{ fak.pocatecni_cislo }}" min="1">
+  </label>
+  <p class="muted">Pokud jste letos už fakturovali jinde, zadejte následující volné pořadové číslo.</p>
+  <label>Splatnost faktur (dní)
+    <input type="number" name="splatnost_dni" value="{{ fak.splatnost_dni }}" min="0" max="365">
+  </label>
+  <button type="submit" class="primary">Dokončit nastavení</button>
+</form>
+{% endblock %}

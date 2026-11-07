@@ -1,0 +1,18 @@
+{% extends "pruvodce/_layout.html" %}
+{% block step %}
+<h2>Logo a barvy</h2>
+<p>Logo se zobrazí v aplikaci a na fakturách. Formát PNG nebo SVG, nejvýše 1 MB.</p>
+<form method="post" action="/pruvodce/vzhled" enctype="multipart/form-data">
+  <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+  {% if has_logo %}<p><img src="/branding/logo" alt="Současné logo" class="logo-preview"></p>{% endif %}
+  <label>Logo
+    <input type="file" name="logo" accept="image/png,image/svg+xml">
+  </label>
+  <div class="row">
+    <label>Hlavní barva <input type="color" name="primary" value="{{ primary }}"></label>
+    <label>Doplňková barva <input type="color" name="accent" value="{{ accent }}"></label>
+  </div>
+  <p class="muted">Uložení barev přepíše soubor <code>theme.css</code> v konfiguraci.</p>
+  <button type="submit" class="primary">Uložit a pokračovat</button>
+</form>
+{% endblock %}

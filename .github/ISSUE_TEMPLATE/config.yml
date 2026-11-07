@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Komerční podpora (instalace, úpravy na míru, roční podpora)
+    url: https://topalux.cz
+    about: Placená podpora od autora.
+  - name: Bezpečnostní chyba
+    url: https://github.com/TomasPatek/Da-ov-evidence/security/advisories/new
+    about: Zranitelnosti hlaste soukromě, ne veřejným issue.

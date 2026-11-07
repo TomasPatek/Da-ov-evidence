@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Průvodce nastavením · Daňová evidence{% endblock %}
+{% block content %}
+<h1>Průvodce nastavením</h1>
+<ol class="steps">
+  {% for key, label in steps %}
+  <li class="{{ 'current' if key == step }}">{{ label }}</li>
+  {% endfor %}
+</ol>
+<section class="card">
+  {% include "_errors.html" %}
+  {% block step %}{% endblock %}
+</section>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Přihlášení · Daňová evidence{% endblock %}
+{% block content %}
+<section class="card narrow">
+  <h1>Přihlášení</h1>
+  {% include "_errors.html" %}
+  <form method="post" action="/prihlaseni">
+    <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+    <input type="hidden" name="next" value="{{ next }}">
+    <label>Heslo
+      <input type="password" name="heslo" autocomplete="current-password" required autofocus>
+    </label>
+    <button type="submit" class="primary">Přihlásit</button>
+  </form>
+</section>
+{% endblock %}

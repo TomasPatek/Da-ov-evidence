@@ -1,0 +1,27 @@
+# Daňová evidence. Návod: docs/instalace-server.md a docs/instalace-lokalne.md
+#
+#   docker compose up -d     # aplikace na http://<adresa-serveru>:8000, jen v lokální síti
+
+services:
+  app:
+    image: ghcr.io/tomaspatek/danova-evidence:${APP_VERSION:-latest}
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+      CONFIG_DIR: /config
+    volumes:
+      - ./data:/data
+      - ./config:/config
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    user: "${APP_UID:-1000}:${APP_GID:-1000}"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+

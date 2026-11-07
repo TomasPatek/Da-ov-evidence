@@ -1,0 +1,33 @@
+{
+  "ico": "00006947",
+  "obchodniJmeno": "Ministerstvo financí",
+  "sidlo": {
+    "kodStatu": "CZ",
+    "nazevStatu": "Česká republika",
+    "kodKraje": 19,
+    "nazevKraje": "Hlavní město Praha",
+    "kodObce": 554782,
+    "nazevObce": "Praha",
+    "kodSpravnihoObvodu": 19,
+    "nazevSpravnihoObvodu": "Praha 1",
+    "kodMestskehoObvodu": 19,
+    "nazevMestskehoObvodu": "Praha 1",
+    "kodMestskeCastiObvodu": 500054,
+    "kodUlice": 454311,
+    "nazevMestskeCastiObvodu": "Praha 1",
+    "nazevUlice": "Letenská",
+    "cisloDomovni": 525,
+    "kodCastiObce": 490121,
+    "cisloOrientacni": 15,
+    "nazevCastiObce": "Malá Strana",
+    "kodAdresnihoMista": 21700184,
+    "psc": 11800,
+    "textovaAdresa": "Letenská 525/15, Malá Strana, 11800 Praha 1",
+    "standardizaceAdresy": true,
+    "typCisloDomovni": 1
+  },
+  "pravniForma": "325",
+  "datumAktualizace": "2026-03-23",
+  "dic": "CZ00006947",
+  "icoId": "00006947"
+}

@@ -1,0 +1,11 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Obviously fake values used in tests and demo data"
+regexes = [
+  '''test-secret-key''',
+  '''demo-secret-key-not-for-production''',
+  '''spravne-kone-baterie''',
+  '''demo-heslo-1234''',
+]

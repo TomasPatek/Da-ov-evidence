@@ -1,0 +1,7 @@
+{% if errors %}
+<div class="alert alert-error" role="alert">
+  <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+{% if error %}<div class="alert alert-error" role="alert">{{ error }}</div>{% endif %}
+{% if info %}<div class="alert alert-info" role="status">{{ info }}</div>{% endif %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Přehled</h1>
+<div class="grid">
+  <section class="card">
+    <h2>Fakturace</h2>
+    <p class="muted">Kontakty, zakázky a vydané faktury přibudou ve fázi 1.</p>
+  </section>
+  <section class="card">
+    <h2>Evidence</h2>
+    <p class="muted">Peněžní deník a přijaté doklady přibudou ve fázi 2.</p>
+  </section>
+  <section class="card">
+    <h2>Firma</h2>
+    <dl class="facts">
+      <dt>Název</dt><dd>{{ firma.firma.nazev }}</dd>
+      <dt>IČO</dt><dd>{{ firma.firma.ico }}</dd>
+      <dt>Účet</dt><dd>{{ firma.banka.ucet }}</dd>
+    </dl>
+    <p><a href="/nastaveni">Upravit nastavení</a></p>
+  </section>
+</div>
+{% endblock %}

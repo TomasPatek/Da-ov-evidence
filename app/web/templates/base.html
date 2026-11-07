@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="htmx-config" content='{"includeIndicatorStyles": false, "allowEval": false, "allowScriptTags": false}'>
+  <title>{% block title %}Daňová evidence{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+  <link rel="stylesheet" href="/branding/theme.css">
+  <script src="/static/vendor/htmx.min.js" defer></script>
+</head>
+<body hx-headers='{"X-CSRF-Token": "{{ csrf_token }}"}'>
+  <header class="topbar">
+    <a class="brand" href="/">
+      {% if has_logo %}<img src="/branding/logo" alt="" class="brand-logo">{% endif %}
+      <span>{{ firma.firma.nazev or "Daňová evidence" }}</span>
+    </a>
+    {% if logged_in %}
+    <nav class="nav" aria-label="Hlavní menu">
+      <a href="/">Přehled</a>
+      <a href="/nastaveni">Nastavení</a>
+      <form method="post" action="/odhlaseni" class="inline">
+        <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+        <button type="submit" class="link">Odhlásit</button>
+      </form>
+    </nav>
+    {% endif %}
+  </header>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="footer">Daňová evidence {{ app_version }} · software bez záruky, nenahrazuje daňového poradce</footer>
+</body>
+</html>
