@@ -41,17 +41,17 @@ Leží vedle `docker-compose.yml`. Do repozitáře nikdy nepatří; vzor je `.en
 
 #### Příklad: pošta u WEDOS
 
-Přesný název serveru (`wesX`, kde X je číslo) najdete v zákaznické administraci WEDOS
+Přesný název serveru (`wesX-smtp.wedos.net` a `wesX-imap.wedos.net`, kde X je číslo) najdete v zákaznické administraci WEDOS
 u služby mailhosting. Příklad pro server `wes1`:
 
 ```sh
-SMTP_HOST=wes1.smtp.wedos.net
+SMTP_HOST=wes1-smtp.wedos.net
 SMTP_PORT=465
 SMTP_USER=fakturace@vase-domena.cz
 SMTP_PASSWORD=heslo-ke-schrance
 SMTP_FROM=fakturace@vase-domena.cz
 
-IMAP_HOST=wes1.imap.wedos.net
+IMAP_HOST=wes1-imap.wedos.net
 IMAP_PORT=993
 IMAP_USER=fakturace@vase-domena.cz
 IMAP_PASSWORD=heslo-ke-schrance
