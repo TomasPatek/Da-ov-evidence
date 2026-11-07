@@ -58,8 +58,7 @@ class PasswordStore:
 class LoginThrottle:
     """Limits failed logins per client and globally within a sliding window.
 
-    The global limit matters behind a reverse proxy, where all clients may
-    share one address.
+    The global limit caps guessing even if an attacker rotates client addresses.
     """
 
     def __init__(

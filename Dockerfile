@@ -24,11 +24,10 @@ ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     DATA_DIR=/data \
     CONFIG_DIR=/config \
-    TZ=Europe/Prague \
-    FORWARDED_ALLOW_IPS=127.0.0.1
+    TZ=Europe/Prague
 USER app
 VOLUME ["/data", "/config"]
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
     CMD ["python", "-c", "import urllib.request,sys; sys.exit(urllib.request.urlopen('http://127.0.0.1:8000/zdravi').status != 200)"]
-CMD ["uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
+CMD ["uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]

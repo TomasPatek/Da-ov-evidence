@@ -52,11 +52,9 @@ Hodí se pro vyzkoušení nebo když nemáte domácí server. Aplikace běží, 
    mkdir config
    ```
 
-4. Otevřete soubor `.env` v textovém editoru (Poznámkový blok, TextEdit) a upravte:
-   - `SECRET_KEY=` doplňte dlouhý náhodný text, aspoň 40 znaků (např. z generátoru hesel),
-   - `COOKIE_SECURE=false` (na vlastním počítači běží aplikace přes `http://`).
-
-   Soubor uložte jako prostý text.
+4. Otevřete soubor `.env` v textovém editoru (Poznámkový blok, TextEdit) a za `SECRET_KEY=`
+   doplňte dlouhý náhodný text, aspoň 40 znaků (např. z generátoru hesel). Soubor uložte
+   jako prostý text.
 
 5. Spusťte aplikaci:
 
@@ -84,7 +82,7 @@ Adresa <http://localhost:8000/zdravi> zobrazí `{"stav":"ok"}`.
 - **`docker: command not found` nebo `Cannot connect to the Docker daemon`:** Docker Desktop
   neběží. Spusťte ho a počkejte, než se načte.
 - **Port 8000 je obsazený:** v `.env` změňte `APP_PORT=8001` a otevřete `http://localhost:8001`.
-- **Přihlášení se „neudrží“:** v `.env` chybí `COOKIE_SECURE=false`. Opravte a spusťte
+- **Přihlášení se „neudrží“:** v `.env` je `COOKIE_SECURE=true`. Nastavte `false` a spusťte
   `docker compose up -d` znovu.
 - **Windows: soubor se uložil jako `.env.txt`:** v Průzkumníku zapněte zobrazení přípon
   a soubor přejmenujte na `.env`.

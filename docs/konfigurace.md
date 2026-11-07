@@ -28,15 +28,13 @@ Leží vedle `docker-compose.yml`. Do repozitáře nikdy nepatří; vzor je `.en
 | Proměnná | Význam |
 | --- | --- |
 | `SECRET_KEY` | Tajný klíč pro přihlašovací cookie. Vygenerujte `openssl rand -base64 48`. Když chybí, aplikace si ho vygeneruje do `config/.secret_key`. |
-| `COOKIE_SECURE` | `true` s HTTPS proxy, `false` při přístupu přes `http://`. |
-| `APP_PORT` | Port aplikace na serveru, výchozí `8000`. `127.0.0.1:8000` zpřístupní aplikaci jen přes proxy. |
+| `COOKIE_SECURE` | `false` (výchozí) pro přístup přes `http://` v lokální síti. `true` jen pokud před aplikaci sami postavíte HTTPS. |
+| `APP_PORT` | Port aplikace na serveru, výchozí `8000`. Ve tvaru `<IP-adresa>:8000` poslouchá jen na dané adrese. |
 | `APP_UID`, `APP_GID` | Uživatel a skupina, pod kterými kontejner běží. Musí vlastnit složky `data` a `config`. |
 | `LOG_LEVEL` | `INFO` (výchozí), `DEBUG` nebo `WARNING`. Na úrovni `INFO` log neobsahuje částky ani jména klientů. |
-| `FORWARDED_ALLOW_IPS` | Adresy proxy, jejichž hlavičkám o adrese klienta aplikace věří. S Caddy v compose `*`. |
 | `SETUP_TOKEN` | Volitelně pevný kód pro první spuštění. Jinak se vygeneruje a vypíše do logu. |
 | `IMAP_HOST`, `IMAP_PORT`, `IMAP_USER`, `IMAP_PASSWORD` | Schránka, ze které se stahují doklady (fáze 3). |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` | Odesílání faktur (fáze 1). |
-| `DOMAIN`, `ACME_EMAIL`, `DNS_PROVIDER`, `DNS_API_TOKEN` | Reverzní proxy Caddy s HTTPS. |
 
 ### Soubor `config/firma.toml` (údaje o firmě)
 

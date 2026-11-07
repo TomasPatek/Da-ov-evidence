@@ -2,9 +2,9 @@
 
 ## K čemu slouží
 
-Návod nainstaluje Daňovou evidenci na domácí server s Linuxem (např. vedle Home Assistant).
-Aplikace pak běží nepřetržitě a otevřete ji z počítače i z iPhonu v lokální síti.
-Volitelně nastavíte vlastní adresu s HTTPS, např. `https://ucetnictvi.example.cz`.
+Návod nainstaluje Daňovou evidenci na domácí server s Linuxem. Aplikace pak běží nepřetržitě
+a otevřete ji z počítače i z iPhonu, ale **jen v lokální síti**. Z internetu dostupná není
+a nemá být.
 
 ## Co je potřeba předem
 
@@ -12,12 +12,10 @@ Volitelně nastavíte vlastní adresu s HTTPS, např. `https://ucetnictvi.exampl
   `docker compose version`. Pokud chybí, nainstalujte ho podle
   [docs.docker.com/engine/install](https://docs.docker.com/engine/install/).
 - Přístup na server přes terminál (SSH).
-- Pro HTTPS navíc: vlastní doména u poskytovatele DNS s API (např. Cloudflare),
-  lokální DNS server (např. Pi-hole) a API token k DNS.
+- IP adresa serveru v lokální síti (zjistíte příkazem `hostname -I`). Doporučujeme
+  serveru v routeru nastavit pevnou IP adresu, aby se neměnila.
 
 ## Postup
-
-### Základní instalace
 
 1. Vytvořte složku pro aplikaci a přejděte do ní:
 
@@ -52,61 +50,32 @@ Volitelně nastavíte vlastní adresu s HTTPS, např. `https://ucetnictvi.exampl
    sed -i "s|^APP_UID=.*|APP_UID=$(id -u)|; s|^APP_GID=.*|APP_GID=$(id -g)|" .env
    ```
 
-6. Pokud **nebudete** používat HTTPS proxy (krok níže), nastavte v `.env`
-   `COOKIE_SECURE=false`. Jinak se přes `http://` nepřihlásíte.
-
-7. Spusťte aplikaci:
+6. Spusťte aplikaci:
 
    ```sh
    docker compose up -d
    ```
 
-8. Najděte kód pro první spuštění:
+7. Najděte kód pro první spuštění:
 
    ```sh
    docker compose logs app | grep "kód pro nastavení hesla"
    ```
 
-9. Otevřete v prohlížeči `http://<adresa-serveru>:8000`, zadejte kód a projděte průvodce.
+8. Otevřete v prohlížeči `http://<IP-adresa-serveru>:8000`, zadejte kód a projděte průvodce.
 
-### HTTPS s vlastní doménou (volitelné)
+### Jak zůstat jen v lokální síti
 
-Certifikát Let's Encrypt se získá ověřením přes DNS, takže server nemusí být dostupný z internetu.
-
-1. U poskytovatele DNS vytvořte API token s právem upravovat záznamy domény.
-2. V `.env` vyplňte:
-
-   ```sh
-   DOMAIN=ucetnictvi.example.cz
-   ACME_EMAIL=vas@email.cz
-   DNS_PROVIDER=cloudflare
-   DNS_API_TOKEN=<token>
-   COOKIE_SECURE=true
-   FORWARDED_ALLOW_IPS=*
-   ```
-
-   `DNS_PROVIDER` je název modulu z [github.com/caddy-dns](https://github.com/caddy-dns).
-   Návod předpokládá poskytovatele, kterému stačí jeden token (např. Cloudflare). Jiní mohou
-   potřebovat upravit řádek `dns` v souboru `proxy/Caddyfile`.
-3. Stáhněte soubory proxy:
-
-   ```sh
-   mkdir -p proxy
-   curl -fsSL -o proxy/Dockerfile $BASE/proxy/Dockerfile
-   curl -fsSL -o proxy/Caddyfile $BASE/proxy/Caddyfile
-   ```
-
-4. V lokálním DNS (Pi-hole: *Local DNS → DNS Records*) nasměrujte doménu na IP adresu serveru.
-5. Spusťte aplikaci i proxy:
-
-   ```sh
-   docker compose --profile proxy up -d
-   ```
-
-6. Aby aplikace nebyla dostupná i bez HTTPS, v `.env` nastavte `APP_PORT=127.0.0.1:8000`
-   a spusťte znovu příkaz z bodu 5.
+- **Na routeru nepřesměrovávejte port 8000** (ani jiný port na server) do internetu.
+  Zkontrolujte v nastavení routeru sekci *Port forwarding / Přesměrování portů* a *UPnP*.
+- Nevystavujte aplikaci přes tunelovací služby ani vzdálený přístup typu „cloud“.
+- Pokud je server připojený k více sítím (např. VPN), můžete aplikaci navázat jen na lokální
+  adresu: v `.env` nastavte `APP_PORT=<IP-adresa-serveru>:8000` a spusťte znovu
+  `docker compose up -d`.
 
 ## Jak ověřit, že to funguje
+
+Na serveru:
 
 ```sh
 docker compose ps
@@ -114,17 +83,17 @@ curl -fsS http://127.0.0.1:8000/zdravi
 ```
 
 Služba `app` má stav `healthy` a druhý příkaz vypíše `{"stav":"ok"}`.
-S proxy otevřete `https://<vaše-doména>`: prohlížeč neukazuje varování o certifikátu.
+Z iPhonu připojeného k domácí Wi-Fi otevřete `http://<IP-adresa-serveru>:8000`: zobrazí se
+přihlašovací stránka. Po přepnutí iPhonu na mobilní data se stránka **nesmí** načíst.
 
 ## Časté problémy
 
 - **`permission denied` v logu při zápisu do `/data` nebo `/config`:** složky patří jinému
   uživateli. Opravíte příkazem `sudo chown -R $(id -u):$(id -g) data config`.
-- **Přihlášení se „neudrží“, stále se vrací přihlašovací stránka:** používáte `http://`
-  a v `.env` je `COOKIE_SECURE=true`. Nastavte `false`, nebo použijte HTTPS proxy.
+- **Přihlášení se „neudrží“, stále se vrací přihlašovací stránka:** v `.env` je
+  `COOKIE_SECURE=true`. Při přístupu přes `http://` musí být `false`.
 - **Kód pro první spuštění není v logu:** heslo už je nastavené. Pokud ho neznáte, smažte
   `config/auth.json` a restartujte aplikaci (`docker compose restart app`).
-- **Caddy nezíská certifikát:** zkontrolujte `docker compose logs caddy`. Nejčastěji je
-  chybný `DNS_API_TOKEN` nebo token nemá právo upravovat DNS záznamy.
-- **Doména nefunguje z iPhonu:** iPhone musí používat lokální DNS (Pi-hole). Zkontrolujte
-  nastavení DNS v routeru nebo Wi-Fi.
+- **Z jiného zařízení se stránka nenačte:** zkontrolujte, že je zařízení ve stejné síti
+  a že firewall serveru povoluje port 8000 (např. `sudo ufw allow from 192.168.0.0/16 to any port 8000`,
+  rozsah upravte podle své sítě).

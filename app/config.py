@@ -28,7 +28,7 @@ class Settings:
     data_dir: Path
     config_dir: Path
     secret_key: str
-    cookie_secure: bool = True
+    cookie_secure: bool = False
     session_max_age: int = 12 * 3600
     setup_token: str | None = None
     log_level: str = "INFO"
@@ -58,7 +58,7 @@ class Settings:
             data_dir=Path(os.environ.get("DATA_DIR", "/data")),
             config_dir=config_dir,
             secret_key=os.environ.get("SECRET_KEY") or _persisted_secret(config_dir),
-            cookie_secure=_env_bool("COOKIE_SECURE", True),
+            cookie_secure=_env_bool("COOKIE_SECURE", False),
             session_max_age=int(os.environ.get("SESSION_MAX_AGE", 12 * 3600)),
             setup_token=os.environ.get("SETUP_TOKEN") or None,
             log_level=os.environ.get("LOG_LEVEL", "INFO").upper(),

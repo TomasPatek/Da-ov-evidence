@@ -1,7 +1,6 @@
 # Daňová evidence. Návod: docs/instalace-server.md a docs/instalace-lokalne.md
 #
-#   docker compose up -d                    # aplikace na http://<server>:8000
-#   docker compose --profile proxy up -d    # navíc reverzní proxy Caddy s HTTPS
+#   docker compose up -d     # aplikace na http://<adresa-serveru>:8000, jen v lokální síti
 
 services:
   app:
@@ -26,23 +25,3 @@ services:
     security_opt:
       - no-new-privileges:true
 
-  caddy:
-    profiles: ["proxy"]
-    build:
-      context: ./proxy
-      args:
-        DNS_PROVIDER: ${DNS_PROVIDER:-cloudflare}
-    restart: unless-stopped
-    env_file: .env
-    ports:
-      - "443:443"
-    volumes:
-      - ./proxy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy-data:/data
-      - caddy-config:/config
-    depends_on:
-      - app
-
-volumes:
-  caddy-data:
-  caddy-config:

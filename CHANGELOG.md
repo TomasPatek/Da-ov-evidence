@@ -20,7 +20,7 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
   - Klient ARES za rozhraním, validace IČO a českých čísel účtů.
   - Branding mimo repozitář (`/config/branding`), neutrální výchozí vzhled.
   - Dockerfile (neprivilegovaný uživatel, read-only kořenový souborový systém), docker-compose
-    s volitelnou reverzní proxy Caddy, testovací docker-compose s Mailpit a GreenMail.
+    pro provoz jen v lokální síti, testovací docker-compose s Mailpit a GreenMail.
   - CI: ruff, mypy, pytest s kontrolou pokrytí, Playwright E2E (desktop a iPhone), gitleaks,
     build image a smoke test `docker compose up`. Workflow pro vydání do ghcr.io.
   - Pre-commit hook odmítající soubory z `data/`, `config/` a `.env`.
