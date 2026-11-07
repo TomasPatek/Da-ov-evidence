@@ -31,9 +31,9 @@ Self-hosted webová aplikace pro daňovou evidenci OSVČ, která není plátcem 
 
 ## Rychlý start
 
-1. Stáhněte soubory `docker-compose.yml` a `.env.example` a vytvořte složky `data` a `config`.
+1. Stáhněte repozitář (`git clone` nebo ZIP) a vytvořte v něm složky `data` a `config`.
 2. Zkopírujte `.env.example` na `.env` a vyplňte `SECRET_KEY`.
-3. Spusťte `docker compose up -d` a otevřete `http://<adresa-serveru>:8000`. Průvodce vás provede nastavením.
+3. Spusťte `docker compose up -d --build` a otevřete `http://<adresa-serveru>:8000`. Průvodce vás provede nastavením.
 
 Podrobně: [instalace na server](docs/instalace-server.md) nebo [na vlastní počítač](docs/instalace-lokalne.md).
 

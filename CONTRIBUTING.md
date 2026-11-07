@@ -79,6 +79,9 @@ Podrobný postup pro banky bude v `docs/banky.md` (vznikne ve fázi 3 spolu s pa
 2. Commitněte a vytvořte tag: `git tag vX.Y.Z && git push --tags`.
 3. Workflow *Release* sestaví image pro amd64 i arm64, publikuje ho do `ghcr.io`
    a vytvoří GitHub Release s poznámkami z CHANGELOGu.
+4. Po prvním vydání nastavte v GitHubu balíček `danova-evidence` jako veřejný
+   (*Packages → Package settings → Change visibility*). Jinak stažení image skončí chybou
+   `denied`. Do té doby se image sestavuje lokálně (`docker compose up -d --build`).
 
 Změna formátu CSV, která vyžaduje migraci, je vždy nová hlavní verze. Release notes pak
 popisují postup migrace a zálohu před ní.

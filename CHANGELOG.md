@@ -6,6 +6,13 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 
 ## [Nevydáno]
 
+### Opraveno
+
+- Instalace podle návodu končila chybou `denied` a `open Dockerfile: no such file or directory`,
+  protože návod stahoval jen `docker-compose.yml` a počítal s image na `ghcr.io`, který zatím
+  neexistuje. Do prvního vydání se aplikace instaluje z repozitáře a image sestavuje lokálně
+  (`docker compose up -d --build`).
+
 ### Přidáno
 
 - Fáze 0, kostra aplikace:

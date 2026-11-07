@@ -13,36 +13,41 @@ Hodí se pro vyzkoušení nebo když nemáte domácí server. Aplikace běží, 
 
 ## Postup
 
-1. Vytvořte složku pro aplikaci a přejděte do ní.
+1. Stáhněte aplikaci jako ZIP, rozbalte ji do složky `danova-evidence` ve své domovské
+   složce a přejděte do ní.
 
    Windows (PowerShell):
 
    ```powershell
-   mkdir $HOME\danova-evidence; cd $HOME\danova-evidence
+   cd $HOME
+   Invoke-WebRequest "https://github.com/TomasPatek/Da-ov-evidence/archive/refs/heads/main.zip" -OutFile danova-evidence.zip
+   Expand-Archive danova-evidence.zip -DestinationPath .
+   Rename-Item Da-ov-evidence-main danova-evidence
+   Remove-Item danova-evidence.zip
+   cd danova-evidence
    ```
 
    macOS:
 
    ```sh
-   mkdir -p ~/danova-evidence && cd ~/danova-evidence
+   cd ~
+   curl -fsSL -o danova-evidence.zip https://github.com/TomasPatek/Da-ov-evidence/archive/refs/heads/main.zip
+   unzip -q danova-evidence.zip && mv Da-ov-evidence-main danova-evidence && rm danova-evidence.zip
+   cd danova-evidence
    ```
 
-2. Stáhněte konfigurační soubory.
+2. Vytvořte soubor s nastavením ze vzoru.
 
    Windows (PowerShell):
 
    ```powershell
-   $BASE = "https://raw.githubusercontent.com/TomasPatek/Da-ov-evidence/main"
-   Invoke-WebRequest "$BASE/docker-compose.yml" -OutFile docker-compose.yml
-   Invoke-WebRequest "$BASE/.env.example" -OutFile .env
+   Copy-Item .env.example .env
    ```
 
    macOS:
 
    ```sh
-   BASE=https://raw.githubusercontent.com/TomasPatek/Da-ov-evidence/main
-   curl -fsSLO $BASE/docker-compose.yml
-   curl -fsSL -o .env $BASE/.env.example
+   cp .env.example .env
    ```
 
 3. Vytvořte složky pro data a konfiguraci:
@@ -56,10 +61,10 @@ Hodí se pro vyzkoušení nebo když nemáte domácí server. Aplikace běží, 
    doplňte dlouhý náhodný text, aspoň 40 znaků (např. z generátoru hesel). Soubor uložte
    jako prostý text.
 
-5. Spusťte aplikaci:
+5. Sestavte a spusťte aplikaci. Poprvé to trvá několik minut:
 
    ```sh
-   docker compose up -d
+   docker compose up -d --build
    ```
 
 6. Najděte kód pro první spuštění:
@@ -78,6 +83,9 @@ V Docker Desktop v sekci *Containers* běží kontejner `app` se stavem *healthy
 Adresa <http://localhost:8000/zdravi> zobrazí `{"stav":"ok"}`.
 
 ## Časté problémy
+
+- **`failed to read dockerfile: open Dockerfile: no such file or directory`:** ve složce
+  chybí zdrojové kódy. Postupujte od kroku 1 a stáhněte celý ZIP.
 
 - **`docker: command not found` nebo `Cannot connect to the Docker daemon`:** Docker Desktop
   neběží. Spusťte ho a počkejte, než se načte.

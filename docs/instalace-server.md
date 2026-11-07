@@ -11,24 +11,24 @@ a nemá být.
 - Server s Linuxem a nainstalovaným Dockerem s Docker Compose. Ověříte příkazem
   `docker compose version`. Pokud chybí, nainstalujte ho podle
   [docs.docker.com/engine/install](https://docs.docker.com/engine/install/).
+- Git. Ověříte příkazem `git --version`, chybí-li: `sudo apt install git`.
 - Přístup na server přes terminál (SSH).
 - IP adresa serveru v lokální síti (zjistíte příkazem `hostname -I`). Doporučujeme
   serveru v routeru nastavit pevnou IP adresu, aby se neměnila.
 
 ## Postup
 
-1. Vytvořte složku pro aplikaci a přejděte do ní:
+1. Stáhněte aplikaci a přejděte do její složky:
 
    ```sh
-   mkdir -p ~/danova-evidence && cd ~/danova-evidence
+   git clone https://github.com/TomasPatek/Da-ov-evidence.git ~/danova-evidence
+   cd ~/danova-evidence
    ```
 
-2. Stáhněte konfigurační soubory:
+2. Vytvořte soubor s nastavením ze vzoru:
 
    ```sh
-   BASE=https://raw.githubusercontent.com/TomasPatek/Da-ov-evidence/main
-   curl -fsSLO $BASE/docker-compose.yml
-   curl -fsSL -o .env $BASE/.env.example
+   cp .env.example .env
    ```
 
 3. Vytvořte složky pro data a konfiguraci. Musí existovat dřív, než Docker poprvé
@@ -50,10 +50,10 @@ a nemá být.
    sed -i "s|^APP_UID=.*|APP_UID=$(id -u)|; s|^APP_GID=.*|APP_GID=$(id -g)|" .env
    ```
 
-6. Spusťte aplikaci:
+6. Sestavte a spusťte aplikaci. Poprvé to trvá několik minut:
 
    ```sh
-   docker compose up -d
+   docker compose up -d --build
    ```
 
 7. Najděte kód pro první spuštění:
@@ -87,6 +87,13 @@ Z iPhonu připojeného k domácí Wi-Fi otevřete `http://<IP-adresa-serveru>:80
 přihlašovací stránka. Po přepnutí iPhonu na mobilní data se stránka **nesmí** načíst.
 
 ## Časté problémy
+
+- **`failed to read dockerfile: open Dockerfile: no such file or directory`:** ve složce
+  chybí zdrojové kódy (stáhli jste jen `docker-compose.yml`). Postupujte od kroku 1
+  s `git clone`.
+- **Varování `Docker Compose is configured to build using Bake, but buildx isn't installed`:**
+  sestavení proběhne i tak. Varování odstraníte instalací `sudo apt install docker-buildx`
+  (balíček z Ubuntu) nebo `docker-buildx-plugin` (z repozitáře Dockeru).
 
 - **`permission denied` v logu při zápisu do `/data` nebo `/config`:** složky patří jinému
   uživateli. Opravíte příkazem `sudo chown -R $(id -u):$(id -g) data config`.
