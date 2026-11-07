@@ -1,0 +1,13 @@
+{% extends "pruvodce/_layout.html" %}
+{% block step %}
+<h2>Bankovní účet</h2>
+<p>Účet se tiskne na faktury a použije se pro QR platbu. IBAN se dopočítá.</p>
+<form method="post" action="/pruvodce/banka">
+  <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+  <label>Číslo účtu
+    <input type="text" name="ucet" value="{{ ucet }}" placeholder="123456789/0800" required>
+  </label>
+  {% if firma.banka.iban %}<p class="muted">Uložený IBAN: {{ firma.banka.iban }}</p>{% endif %}
+  <button type="submit" class="primary">Uložit a pokračovat</button>
+</form>
+{% endblock %}

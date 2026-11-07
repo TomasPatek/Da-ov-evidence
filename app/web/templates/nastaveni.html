@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Nastavení · Daňová evidence{% endblock %}
+{% block content %}
+<h1>Nastavení</h1>
+<div class="grid">
+  <section class="card">
+    <h2>Firma</h2>
+    <dl class="facts">
+      <dt>Název</dt><dd>{{ firma.firma.nazev }}</dd>
+      <dt>IČO</dt><dd>{{ firma.firma.ico }}</dd>
+      <dt>DIČ</dt><dd>{{ firma.firma.dic or "—" }}</dd>
+      <dt>Adresa</dt><dd>{{ firma.firma.ulice }}, {{ firma.firma.psc }} {{ firma.firma.mesto }}</dd>
+      <dt>E-mail</dt><dd>{{ firma.firma.email or "—" }}</dd>
+      <dt>Zápis</dt><dd>{{ firma.firma.zapis_rejstrik or "—" }}</dd>
+    </dl>
+    <a class="button" href="/pruvodce/firma">Upravit</a>
+  </section>
+  <section class="card">
+    <h2>Bankovní účet</h2>
+    <dl class="facts">
+      <dt>Účet</dt><dd>{{ firma.banka.ucet or "—" }}</dd>
+      <dt>IBAN</dt><dd>{{ firma.banka.iban | iban or "—" }}</dd>
+    </dl>
+    <a class="button" href="/pruvodce/banka">Upravit</a>
+  </section>
+  <section class="card">
+    <h2>Vzhled</h2>
+    <p class="swatches"><span class="swatch swatch-primary"></span> <span class="swatch swatch-accent"></span></p>
+    <a class="button" href="/pruvodce/vzhled">Upravit</a>
+  </section>
+  <section class="card">
+    <h2>Fakturace</h2>
+    <dl class="facts">
+      <dt>Číselná řada</dt><dd>{{ firma.fakturace.format_cisla }}</dd>
+      <dt>Splatnost</dt><dd>{{ firma.fakturace.splatnost_dni }} dní</dd>
+    </dl>
+    <a class="button" href="/pruvodce/rada">Upravit</a>
+  </section>
+</div>
+{% endblock %}

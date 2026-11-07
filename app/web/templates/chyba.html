@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Chyba · Daňová evidence{% endblock %}
+{% block content %}
+<section class="card narrow">
+  <h1>Chyba {{ code }}</h1>
+  <p>{{ message }}</p>
+  <p><a href="/">Zpět na přehled</a></p>
+</section>
+{% endblock %}

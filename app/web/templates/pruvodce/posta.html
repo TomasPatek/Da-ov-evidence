@@ -1,0 +1,15 @@
+{% extends "pruvodce/_layout.html" %}
+{% block step %}
+<h2>Pošta</h2>
+<p>Přístupy k e-mailu (IMAP pro stahování dokladů, SMTP pro odesílání faktur) se z bezpečnostních
+důvodů nastavují jen v souboru <code>.env</code>, ne v aplikaci. Postup je v <code>docs/konfigurace.md</code>.</p>
+<dl class="facts">
+  <dt>IMAP</dt><dd>{% if s.imap_host %}{{ s.imap_host }} ({{ s.imap_user }}){% else %}nenastaveno{% endif %}</dd>
+  <dt>SMTP</dt><dd>{% if s.smtp_host %}{{ s.smtp_host }} ({{ s.smtp_user }}){% else %}nenastaveno{% endif %}</dd>
+</dl>
+<p class="muted">Pošta se začne používat ve fázi 1 (odesílání) a 3 (stahování). Krok můžete přeskočit.</p>
+<form method="post" action="/pruvodce/posta">
+  <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+  <button type="submit" class="primary">Pokračovat</button>
+</form>
+{% endblock %}

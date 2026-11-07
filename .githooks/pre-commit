@@ -1,0 +1,17 @@
+#!/bin/sh
+# Refuses commits containing real data, configuration or secrets.
+# Enable once per clone:  git config core.hooksPath .githooks
+
+blocked=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^(data|config)/|(^|/)\.env$|^demo-run/' || true)
+if [ -n "$blocked" ]; then
+    echo "Commit odmítnut: tyto soubory nepatří do repozitáře (skutečná data nebo tajné údaje):" >&2
+    echo "$blocked" | sed 's/^/  /' >&2
+    exit 1
+fi
+
+if command -v gitleaks >/dev/null 2>&1; then
+    gitleaks git --staged --redact --no-banner || {
+        echo "Commit odmítnut: gitleaks našel možný tajný údaj." >&2
+        exit 1
+    }
+fi

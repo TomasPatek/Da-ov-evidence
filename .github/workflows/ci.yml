@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.13.7"
+      - run: uv sync --frozen
+      - name: ruff
+        run: uv run ruff check . && uv run ruff format --check .
+      - name: mypy
+        run: uv run mypy
+      - name: docs/csv-format.md up to date
+        run: uv run python -m app.storage.docs --check
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.13.7"
+      - run: uv sync --frozen
+      - name: unit + integration tests
+        run: uv run pytest --cov=app --cov-report=term
+      - name: coverage >= 90 % for money-critical modules
+        run: >-
+          uv run coverage report --fail-under=90
+          --include='app/money.py,app/storage/*,app/banks/*,app/tax/*,app/invoices/*'
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.13.7"
+      - run: uv sync --frozen
+      - run: uv run playwright install --with-deps chromium
+      - run: uv run pytest -m e2e tests/e2e
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: build image
+        run: docker build -t ghcr.io/tomaspatek/danova-evidence:ci .
+      - name: smoke test (steps from docs/instalace-server.md)
+        env:
+          APP_VERSION: ci
+        run: |
+          mkdir -p data config
+          cp .env.example .env
+          sed -i "s|^SECRET_KEY=.*|SECRET_KEY=$(openssl rand -base64 48)|" .env
+          sed -i "s|^APP_UID=.*|APP_UID=$(id -u)|; s|^APP_GID=.*|APP_GID=$(id -g)|" .env
+          docker compose up -d --no-build
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8000/zdravi && break
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8000/zdravi
+          curl -fsS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8000/ | grep -q 303
+          docker compose logs app | grep -q "kód pro nastavení hesla"
+          # The container must not be able to write outside /data and /config.
+          if docker compose exec -T app touch /app/test-write; then
+            echo "root filesystem is writable"; exit 1
+          fi
+          docker compose exec -T app touch /data/test-write /config/test-write
+      - name: logs on failure
+        if: failure()
+        run: docker compose logs
+      - name: tear down
+        if: always()
+        run: docker compose down -v

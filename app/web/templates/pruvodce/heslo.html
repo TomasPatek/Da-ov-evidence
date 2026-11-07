@@ -1,0 +1,19 @@
+{% extends "pruvodce/_layout.html" %}
+{% block step %}
+<h2>Heslo</h2>
+<p>Aplikaci používá jeden uživatel. Zvolte heslo alespoň o 12 znacích.</p>
+<p class="muted">Kód pro první spuštění najdete ve výpisu kontejneru: <code>docker compose logs app</code>.</p>
+<form method="post" action="/pruvodce/heslo">
+  <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+  <label>Kód pro první spuštění
+    <input type="text" name="kod" autocomplete="off" required autofocus>
+  </label>
+  <label>Nové heslo
+    <input type="password" name="heslo" autocomplete="new-password" minlength="12" required>
+  </label>
+  <label>Heslo znovu
+    <input type="password" name="heslo2" autocomplete="new-password" minlength="12" required>
+  </label>
+  <button type="submit" class="primary">Uložit a pokračovat</button>
+</form>
+{% endblock %}

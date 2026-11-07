@@ -1,0 +1,25 @@
+# Smyšlená firma pro demo, screenshoty a E2E testy. IČO 99999994 v ARES neexistuje.
+
+[firma]
+nazev = "Jana Vzorová"
+ico = "99999994"
+dic = ""
+ulice = "Ukázková 12"
+mesto = "Horní Dolní"
+psc = "54321"
+email = "fakturace@example.cz"
+telefon = "+420 600 000 000"
+web = "www.example.cz"
+zapis_rejstrik = "Fyzická osoba zapsaná v živnostenském rejstříku."
+
+[banka]
+ucet = "1234567899/0100"
+iban = "CZ9501000000001234567899"
+
+[fakturace]
+format_cisla = "RRRRNNNN"
+pocatecni_cislo = 1
+splatnost_dni = 14
+
+[aplikace]
+pruvodce_dokoncen = true

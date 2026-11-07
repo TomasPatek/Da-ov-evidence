@@ -1,0 +1,10 @@
+{% extends "pruvodce/_layout.html" %}
+{% block step %}
+<h2>Firma</h2>
+<p>Zadejte IČO a údaje načtěte z ARES. Zbytek doplňte ručně.</p>
+<form method="post" action="/pruvodce/firma">
+  <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+  {% with errors=None, info=None %}{% include "pruvodce/_firma_pole.html" %}{% endwith %}
+  <button type="submit" class="primary">Uložit a pokračovat</button>
+</form>
+{% endblock %}

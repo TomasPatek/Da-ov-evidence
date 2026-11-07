@@ -1,0 +1,11 @@
+/*
+ * Neutral default theme. Copy to /config/branding/theme.css and change the values.
+ * Brand colours are used for buttons, links, the top bar and invoice accents.
+ * Any variable from app.css (e.g. --surface, --text) can be overridden here too.
+ */
+:root {
+  --brand-primary: #2f5d8a;
+  --brand-primary-contrast: #ffffff;
+  --brand-accent: #d98e04;
+  --brand-accent-contrast: #000000;
+}

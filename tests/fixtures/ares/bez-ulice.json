@@ -1,0 +1,14 @@
+{
+  "ico": "99999994",
+  "obchodniJmeno": "Testovací Řemesla s.r.o.",
+  "sidlo": {
+    "kodStatu": "CZ",
+    "nazevObce": "Horní Dolní",
+    "nazevCastiObce": "Horní Dolní",
+    "cisloDomovni": 42,
+    "psc": 54321,
+    "textovaAdresa": "Horní Dolní č.p. 42, 54321 Horní Dolní"
+  },
+  "pravniForma": "112",
+  "datumAktualizace": "2025-01-15"
+}
