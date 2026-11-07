@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
+from datetime import date
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Form, Request, UploadFile
@@ -15,7 +16,10 @@ from app.auth import MIN_PASSWORD_LENGTH, tokens_equal
 from app.banks.ucet import AccountError, parse_cz_account
 from app.config import INVOICE_NUMBER_FORMATS, Firma, FirmaConfig
 from app.invoices.service import InvoiceService
+from app.journal import Journal
+from app.money import ZERO, format_csv_amount, parse_user_amount
 from app.web.branding import MAX_LOGO_BYTES, BrandingError, current_colors, save_logo, write_theme
+from app.web.forms import parse_date
 from app.web.routes_auth import log_in
 from app.web.security import verify_csrf
 from app.web.templating import render
@@ -27,6 +31,7 @@ STEPS = (
     ("heslo", "Heslo"),
     ("firma", "Firma"),
     ("banka", "Bankovní účet"),
+    ("evidence", "Začátek evidence"),
     ("posta", "Pošta"),
     ("vzhled", "Logo a barvy"),
     ("rada", "Číselná řada"),
@@ -216,6 +221,79 @@ def bank_save(request: Request, ucet: Annotated[str, Form()] = "") -> Response:
     cfg.banka.iban = account.iban
     _save(request, cfg)
     return _next("banka")
+
+
+# -- start of the cash book and opening balances ---------------------------
+
+
+@router.get("/evidence")
+def evidence_form(request: Request) -> Response:
+    ev = _load(request).evidence
+    default_start = date(date.today().year, 1, 1).isoformat()
+    return _page(
+        request,
+        "evidence",
+        zacatek=ev.zacatek or default_start,
+        hotovost=ev.pocatecni_hotovost,
+        banka=ev.pocatecni_banka,
+        locked=_first_entry(request),
+    )
+
+
+def _first_entry(request: Request) -> date | None:
+    cfg = _load(request)
+    journal = Journal(request.app.state.storage, cfg)
+    for year in journal.years():
+        rows = journal.entries(year)
+        if rows:
+            return rows[0]["datum_uhrady"]  # type: ignore[no-any-return]
+    return None
+
+
+@router.post("/evidence")
+def evidence_save(
+    request: Request,
+    zacatek: Annotated[str, Form()] = "",
+    hotovost: Annotated[str, Form()] = "0",
+    banka: Annotated[str, Form()] = "0",
+) -> Response:
+    errors: list[str] = []
+    start = parse_date(zacatek, "datum začátku evidence", errors)
+    amounts = {}
+    for name, text in (("hotovosti", hotovost), ("účtu", banka)):
+        try:
+            amounts[name] = parse_user_amount(text or "0")
+        except ValueError:
+            errors.append(f"Počáteční stav {name} není platná částka.")
+    if amounts.get("hotovosti", ZERO) < ZERO:
+        errors.append("Počáteční stav hotovosti nesmí být záporný.")
+    first = _first_entry(request)
+    if start and first and start > first:
+        errors.append(
+            f"V deníku už jsou zápisy od {first.day}. {first.month}. {first.year}; "
+            "začátek evidence nemůže být později."
+        )
+    if errors:
+        return _page(
+            request,
+            "evidence",
+            status_code=400,
+            errors=errors,
+            zacatek=zacatek,
+            hotovost=hotovost,
+            banka=banka,
+            locked=first,
+        )
+    cfg = _load(request)
+    if start is None:  # pragma: no cover - parse_date reported it above
+        return _page(request, "evidence", status_code=400, errors=errors)
+    cfg.evidence.zacatek = start.isoformat()
+    cfg.evidence.pocatecni_hotovost = format_csv_amount(amounts["hotovosti"])
+    cfg.evidence.pocatecni_banka = format_csv_amount(amounts["účtu"])
+    _save(request, cfg)
+    if cfg.aplikace.pruvodce_dokoncen:
+        return RedirectResponse("/nastaveni?ulozeno=1", status_code=303)
+    return _next("evidence")
 
 
 # -- mail (read-only overview, secrets live in .env) -----------------------

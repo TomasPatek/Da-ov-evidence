@@ -8,6 +8,8 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 
 ### Změněno
 
+- Nová sekce `[evidence]` ve `firma.toml`; u existující instalace ji vyplníte v *Nastavení →
+  Peněžní deník*. Docker image obsahuje knihovnu `libzbar0` pro čtení QR kódů.
 - Nové proměnné `SMTP_FROM` a `SMTP_SECURITY` v `.env`; nová položka `[fakturace] text_dph`
   ve `firma.toml` (výchozí „Nejsem plátce DPH.“). Stávající soubory není potřeba upravovat.
 - Formát číselné řady nejde změnit, jakmile existuje vystavená faktura.
@@ -30,6 +32,23 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 
 ### Přidáno
 
+- Fáze 2, evidence:
+  - Peněžní deník (`RRRR/denik.csv`) ve sloupcích tiskopisu ET 328: pokladna a účet se
+    zůstatky, průběžné položky pro převody, kontrolní součty, tabulka ET 328 k tisku,
+    orientační rozdíl příjmů a výdajů. Kategorie a daňová uznatelnost jsou v `app/tax`
+    s odkazy na zákon č. 586/1992 Sb.
+  - Začátek evidence a počáteční stavy pokladny a účtu v průvodci a v nastavení.
+  - Úhrada vydané faktury se zapíše do deníku (převodem, hotově, kartou, QR na místě).
+  - Přijaté doklady (`RRRR/doklady-prijate.csv`, soubory v `RRRR/doklady/`): nahrání PDF,
+    fotky nebo ISDOC, čtení ISDOC (i jako přílohy PDF), QR platby a textové vrstvy PDF,
+    šablony dodavatelů (`sablony-dodavatelu.json`), fronta Ke kontrole s náhledem a
+    zvýrazněním nejistých polí, ověření dodavatele v ARES, návrh zakázky, ruční zadání,
+    úhrada a její zrušení.
+  - Zakázky: přímé náklady z přijatých dokladů, rozdíl, upozornění na materiál nakoupený
+    po poslední faktuře.
+  - Smyšlené vzorky dokladů s očekávanými výsledky (`tests/fixtures/doklady`) a skript
+    `scripts/make_ingest_fixtures.py`.
+  - Návody `docs/doklady.md` a `docs/denik.md`.
 - Fáze 1, fakturace:
   - Kontakty (`kontakty.csv`): odběratelé a dodavatelé, načtení a aktualizace údajů z ARES,
     kontrola IČO a duplicit, vyhledávání.

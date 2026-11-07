@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}ET 328 {{ year }} · Daňová evidence{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/denik?rok={{ year }}">Peněžní deník</a></p>
+<div class="page-head">
+  <h1>Peněžní deník {{ year }} ve sloupcích ET 328</h1>
+</div>
+<p class="muted">Stejné členění jako tiskopis Baloušek ET 328. Tabulku vytisknete z prohlížeče (na šířku).
+{% if report.checks_ok %}Kontrolní součty sedí.{% else %}<strong class="warn">Kontrolní součty nesedí.</strong>{% endif %}</p>
+<div class="table-wrap et-wrap">
+<table class="et">
+  <thead>
+    <tr>
+      <th rowspan="2">Datum</th><th rowspan="2">Doklad</th><th rowspan="2">Text</th>
+      <th colspan="3">Hotovost</th><th colspan="2">Bankovní účet</th><th colspan="2">Průběžné</th>
+      <th rowspan="2">Příjmy celkem</th><th colspan="2">Příjmy ovliv. ZD</th><th colspan="3">Příjmy neovliv. ZD</th>
+      <th rowspan="2">Výdaje celkem</th><th colspan="5">Výdaje ovlivňující ZD</th><th colspan="4">Výdaje neovlivňující ZD</th>
+    </tr>
+    <tr>
+      <th>příjmy</th><th>výdaje</th><th>zůstatek</th><th>příjmy</th><th>výdaje</th><th>příjmy</th><th>výdaje</th>
+      <th>prodej zboží, služeb</th><th>ostatní</th><th>zdaněné srážkou</th><th>úvěry, dotace, vklad</th><th>ostatní</th>
+      <th>materiál</th><th>zboží</th><th>mzdy</th><th>pojistné zaměstn.</th><th>provozní režie</th>
+      <th>DHM, DNM</th><th>daň, pojistné OSVČ</th><th>dary, splátky</th><th>osobní spotřeba</th>
+    </tr>
+    <tr class="colnum"><th>a</th><th>b</th><th>c</th>{% for c in range(1, 24) %}<th>{{ c }}</th>{% endfor %}</tr>
+  </thead>
+  <tbody>
+    <tr class="carry"><td></td><td></td><td>převedeno</td><td class="num">{{ report.opening_cash | czk("") }}</td><td></td><td class="num">{{ report.opening_cash | czk("") }}</td><td class="num">{{ report.opening_bank | czk("") }}</td>{% for c in range(5, 24) %}<td></td>{% endfor %}</tr>
+    {% set ns = namespace(month=0) %}
+    {% for r in report.rows %}{% set m = r.entry.datum_uhrady.month %}
+      {% if ns.month and m != ns.month %}{% set t = report.month_totals[ns.month] %}
+      <tr class="subtotal"><td colspan="3">Součet {{ months[ns.month - 1] }}</td>{% for c in range(1, 24) %}<td class="num">{% if c != 3 and t[c] %}{{ t[c] | czk("") }}{% endif %}</td>{% endfor %}</tr>
+      {% endif %}{% set ns.month = m %}
+      <tr>
+        <td>{{ r.entry.datum_uhrady.day }}. {{ r.entry.datum_uhrady.month }}.</td><td>{{ r.entry.cislo_dokladu }}</td><td>{{ r.entry.popis }}</td>
+        {% for c in range(1, 24) %}<td class="num">{% if c == 3 %}{% if r.entry.ucet == "hotovost" %}{{ r.cash_balance | czk("") }}{% endif %}{% elif r.columns[c] %}{{ r.columns[c] | czk("") }}{% endif %}</td>{% endfor %}
+      </tr>
+    {% endfor %}
+    {% if ns.month %}{% set t = report.month_totals[ns.month] %}
+    <tr class="subtotal"><td colspan="3">Součet {{ months[ns.month - 1] }}</td>{% for c in range(1, 24) %}<td class="num">{% if c != 3 and t[c] %}{{ t[c] | czk("") }}{% endif %}</td>{% endfor %}</tr>
+    {% endif %}
+  </tbody>
+  <tfoot>
+    <tr class="total"><td colspan="3">Celkem za rok (bez převedených stavů)</td>{% for c in range(1, 24) %}<td class="num">{{ report.totals[c] | czk("") }}</td>{% endfor %}</tr>
+    <tr><td colspan="3">Konečný stav</td><td colspan="3" class="num">pokladna {{ report.closing_cash | czk }}</td><td colspan="2" class="num">účet {{ report.closing_bank | czk }}</td><td colspan="18"></td></tr>
+  </tfoot>
+</table>
+</div>
+{% endblock %}

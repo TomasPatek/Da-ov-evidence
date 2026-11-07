@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Nový zápis · Daňová evidence{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/denik">Peněžní deník</a></p>
+<h1>Nový zápis do deníku</h1>
+<section class="card">
+  {% include "_errors.html" %}
+  <p class="muted">Pro platby bez dokladu v aplikaci: tržba v hotovosti, vklad, pojistné OSVČ, osobní spotřeba…
+  Faktury a přijaté doklady se do deníku zapisují samy při úhradě.</p>
+  <form method="post" action="/denik/novy">
+    <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+    <div class="row">
+      <fieldset class="choices">
+        <legend>Směr</legend>
+        <label class="choice"><input type="radio" name="smer" value="příjem" {{ 'checked' if v.smer == 'příjem' }}> příjem</label>
+        <label class="choice"><input type="radio" name="smer" value="výdaj" {{ 'checked' if v.smer == 'výdaj' }}> výdaj</label>
+      </fieldset>
+      <fieldset class="choices">
+        <legend>Kde</legend>
+        <label class="choice"><input type="radio" name="ucet" value="hotovost" {{ 'checked' if v.ucet == 'hotovost' }}> pokladna (hotově)</label>
+        <label class="choice"><input type="radio" name="ucet" value="banka" {{ 'checked' if v.ucet == 'banka' }}> účet</label>
+      </fieldset>
+    </div>
+    <div class="row">
+      <label>Datum úhrady
+        <input type="date" name="datum" value="{{ v.datum }}" max="{{ today.isoformat() }}" required>
+      </label>
+      <label>Částka (Kč)
+        <input type="text" name="castka" value="{{ v.castka }}" inputmode="decimal" required>
+      </label>
+      <label>Platba z účtu
+        <select name="zpusob_uhrady">{% for m in methods %}<option value="{{ m.value }}" {{ 'selected' if v.zpusob_uhrady == m.value }}>{{ m.value }}</option>{% endfor %}</select>
+      </label>
+    </div>
+    <label>Kategorie (sloupec ET 328)
+      <select name="kategorie" required>
+        <option value="">— vyberte —</option>
+        <optgroup label="Příjmy">{% for c in incomes %}<option value="{{ c.column }}" {{ 'selected' if v.kategorie == c.column|string }}>{{ c.column }} – {{ c.label }}</option>{% endfor %}</optgroup>
+        <optgroup label="Výdaje">{% for c in expenses %}<option value="{{ c.column }}" {{ 'selected' if v.kategorie == c.column|string }}>{{ c.column }} – {{ c.label }}</option>{% endfor %}</optgroup>
+      </select>
+    </label>
+    <label>Text
+      <input type="text" name="popis" value="{{ v.popis }}" required placeholder="např. Záloha na sociální pojištění">
+    </label>
+    <label>Zakázka <span class="muted">(nepovinné)</span>
+      <select name="zakazka_id"><option value="">— bez zakázky —</option>{% for j in jobs %}<option value="{{ j.id }}" {{ 'selected' if v.zakazka_id == j.id }}>{{ j.id }} {{ j.nazev }}</option>{% endfor %}</select>
+    </label>
+    <label>Poznámka <input type="text" name="poznamka" value="{{ v.poznamka }}"></label>
+    <button type="submit" class="primary">Zapsat</button>
+  </form>
+</section>
+{% endblock %}

@@ -78,7 +78,7 @@ def complete(ex: Extraction, contacts: list[Record], jobs: list[Record]) -> None
 
 
 def _suggest_job(ex: Extraction, jobs: list[Record]) -> None:
-    active = [j for j in jobs if j["stav"] in ("poptávka", "rozpracováno", "dokončeno")]
+    active = [j for j in jobs if j["stav"] != "uhrazeno"]
     text = ex.text.lower()
     if text:
         for job in active:

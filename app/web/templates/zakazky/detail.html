@@ -16,8 +16,18 @@
       <dl class="facts">
         <dt>Fakturováno</dt><dd>{{ totals.fakturovano | czk }}</dd>
         <dt>Uhrazeno</dt><dd>{{ totals.uhrazeno | czk }}</dd>
-        <dt>Přímé náklady</dt><dd>{{ totals.naklady | czk }} <span class="muted">(z přijatých dokladů, zatím se neevidují)</span></dd>
+        <dt>Přímé náklady</dt><dd>{{ totals.naklady | czk }}</dd>
+        <dt>Rozdíl</dt><dd><strong class="{{ 'warn' if totals.rozdil < 0 }}">{{ totals.rozdil | czk }}</strong></dd>
       </dl>
+      <p class="muted">Rozdíl = vyfakturováno bez storen minus přijaté doklady přiřazené k zakázce.</p>
+    </section>
+    <section class="card">
+      <h2>Náklady</h2>
+      {% if docs %}
+      <ul class="plain">
+        {% for d in docs %}<li><a href="/doklady/{{ d.id }}">{{ d.id }}</a> · {{ d.dodavatel_nazev }} · {{ d.castka | czk }}{% if d.popis %} <span class="muted">{{ d.popis }}</span>{% endif %}</li>{% endfor %}
+      </ul>
+      {% else %}<p class="muted">Žádné přijaté doklady. Přiřadíte je ve frontě Ke kontrole.</p>{% endif %}
     </section>
     <section class="card">
       <h2>Faktury</h2>

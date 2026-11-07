@@ -40,8 +40,28 @@
     <p><a href="/zakazky">Všechny zakázky</a></p>
   </section>
   <section class="card">
-    <h2>Evidence</h2>
-    <p class="muted">Peněžní deník a přijaté doklady připravujeme.</p>
+    <h2>Přijaté doklady</h2>
+    {% if queue_count %}<p><a class="button primary" href="/doklady?filtr=kontrola">Ke kontrole: {{ queue_count }}</a></p>{% else %}<p class="muted">Ve frontě Ke kontrole nic nečeká.</p>{% endif %}
+    {% if unpaid_docs %}
+    <p class="warn">Nezaplacené:</p>
+    <ul class="plain">{% for d in unpaid_docs %}<li><a href="/doklady/{{ d.id }}">{{ d.dodavatel_nazev }}</a> · {{ d.castka | czk }}{% if d.datum_splatnosti %} · splatné {{ d.datum_splatnosti | cz_date }}{% endif %}</li>{% endfor %}</ul>
+    {% endif %}
+    <p><a href="/doklady">Nahrát doklady</a></p>
+  </section>
+  <section class="card">
+    <h2>Peněžní deník {{ year }}</h2>
+    {% if journal_report %}
+    <dl class="facts">
+      <dt>Pokladna</dt><dd>{{ journal_report.closing_cash | czk }}</dd>
+      <dt>Účet</dt><dd>{{ journal_report.closing_bank | czk }}</dd>
+      <dt>Příjmy − výdaje</dt><dd>{{ journal_report.profit | czk }}</dd>
+    </dl>
+    {% for w in journal_report.warnings %}<p class="warn">{{ w }}</p>{% endfor %}
+    <p><a href="/denik">Otevřít deník</a></p>
+    {% else %}
+    <p class="warn">Nastavte začátek evidence a počáteční stavy pokladny a účtu.</p>
+    <p><a class="button" href="/pruvodce/evidence">Nastavit</a></p>
+    {% endif %}
   </section>
 </div>
 {% endblock %}

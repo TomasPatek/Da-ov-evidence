@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Převod pokladna ↔ účet · Daňová evidence{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/denik">Peněžní deník</a></p>
+<h1>Převod mezi pokladnou a účtem</h1>
+<section class="card">
+  {% include "_errors.html" %}
+  <p class="muted">Zapíše se jako průběžná položka (sloupce 6 a 7 ET 328) a neovlivní příjmy ani výdaje.</p>
+  <form method="post" action="/denik/prevod">
+    <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+    <fieldset class="choices">
+      <legend>Směr</legend>
+      <label class="choice"><input type="radio" name="smer" value="do-pokladny" {{ 'checked' if v.smer == 'do-pokladny' }}> výběr z účtu do pokladny</label>
+      <label class="choice"><input type="radio" name="smer" value="na-ucet" {{ 'checked' if v.smer == 'na-ucet' }}> vklad z pokladny na účet</label>
+    </fieldset>
+    <div class="row">
+      <label>Datum <input type="date" name="datum" value="{{ v.datum }}" max="{{ today.isoformat() }}" required></label>
+      <label>Částka (Kč) <input type="text" name="castka" value="{{ v.castka }}" inputmode="decimal" required></label>
+    </div>
+    <label>Text <span class="muted">(nepovinné)</span> <input type="text" name="popis" value="{{ v.popis }}"></label>
+    <button type="submit" class="primary">Zapsat převod</button>
+  </form>
+</section>
+{% endblock %}

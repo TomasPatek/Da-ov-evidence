@@ -24,7 +24,7 @@ templates.env.globals["csrf_field"] = CSRF_FIELD
 
 
 def _czk(value: Decimal, currency: str = "Kč") -> str:
-    return format_display_amount(value, currency)
+    return format_display_amount(value, currency).rstrip().rstrip("\u00a0")
 
 
 def _cz_date(value: date | None) -> str:

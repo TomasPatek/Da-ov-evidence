@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Peněžní deník {{ year }} · Daňová evidence{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Peněžní deník {{ year }}</h1>
+  <div class="actions">
+    <a class="button" href="/denik/et328?rok={{ year }}">Tabulka ET 328</a>
+    <a class="button" href="/denik/prevod">Převod pokladna ↔ účet</a>
+    <a class="button primary" href="/denik/novy">Nový zápis</a>
+  </div>
+</div>
+{% if request.query_params.get("ulozeno") %}<div class="alert alert-info" role="status">Zapsáno.</div>{% endif %}
+{% for w in report.warnings %}<div class="alert alert-warning" role="status">{{ w }}</div>{% endfor %}
+{% if not report.checks_ok %}<div class="alert alert-error" role="alert">Kontrolní součty ET 328 nesedí. Zkontrolujte ruční úpravy souboru denik.csv.</div>{% endif %}
+<div class="grid stats">
+  <section class="card">
+    <h2>Pokladna</h2>
+    <p class="big">{{ report.closing_cash | czk }}</p>
+    <p class="muted">Na začátku roku {{ report.opening_cash | czk }}</p>
+  </section>
+  <section class="card">
+    <h2>Účet</h2>
+    <p class="big">{{ report.closing_bank | czk }}</p>
+    <p class="muted">Na začátku roku {{ report.opening_bank | czk }}</p>
+  </section>
+  <section class="card">
+    <h2>Základ daně (orientačně)</h2>
+    <dl class="facts">
+      <dt>Příjmy (9 + 10)</dt><dd>{{ report.taxable_income | czk }}</dd>
+      <dt>Výdaje (15–19)</dt><dd>{{ report.deductible_expenses | czk }}</dd>
+      <dt>Rozdíl</dt><dd><strong>{{ report.profit | czk }}</strong></dd>
+    </dl>
+    <p class="muted">Bez odpisů a dalších úprav. Nenahrazuje daňové přiznání.</p>
+  </section>
+</div>
+<form method="get" action="/denik" class="filters">
+  {% if years|length > 1 %}<select name="rok" aria-label="Rok">{% for y in years %}<option value="{{ y }}" {{ 'selected' if y == year }}>{{ y }}</option>{% endfor %}</select>{% else %}<input type="hidden" name="rok" value="{{ year }}">{% endif %}
+  <select name="mesic" aria-label="Měsíc">
+    <option value="">Celý rok</option>
+    {% for m in months %}<option value="{{ loop.index }}" {{ 'selected' if month == loop.index }}>{{ m }}</option>{% endfor %}
+  </select>
+  <button type="submit">Zobrazit</button>
+</form>
+{% if rows %}
+<div class="table-wrap">
+<table class="list">
+  <thead><tr><th>Datum</th><th>Doklad</th><th>Text</th><th class="hide-mobile">Sloupec</th><th class="num">Příjem</th><th class="num">Výdaj</th><th class="hide-mobile"></th></tr></thead>
+  <tbody>
+  {% for r in rows %}{% set e = r.entry %}
+    <tr>
+      <td class="nowrap">{{ e.datum_uhrady | cz_date }}</td>
+      <td class="nowrap">{% if e.doklad_id and e.doklad_id.startswith("PD") %}<a href="/doklady/{{ e.doklad_id }}">{{ e.cislo_dokladu }}</a>{% elif e.doklad_id %}<a href="/faktury/{{ e.doklad_id }}">{{ e.cislo_dokladu }}</a>{% else %}{{ e.cislo_dokladu }}{% endif %}</td>
+      <td>{{ e.popis }}<br><span class="muted">{{ e.ucet }}{% if e.zpusob_uhrady not in ("převod", "hotovost") %} · {{ e.zpusob_uhrady }}{% endif %}{% if e.zakazka_id %} · <a href="/zakazky/{{ e.zakazka_id }}">{{ e.zakazka_id }}</a>{% endif %}</span></td>
+      <td class="hide-mobile">{{ column_label(e.kategorie) }}</td>
+      <td class="num">{% if e.smer == "příjem" %}{{ e.castka | czk }}{% endif %}</td>
+      <td class="num">{% if e.smer == "výdaj" %}{{ e.castka | czk }}{% endif %}</td>
+      <td class="hide-mobile">{% if not e.doklad_id %}
+        <form method="post" action="/denik/{{ e.id }}/smazat" class="inline"><input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}"><button type="submit" class="link danger-link" aria-label="Smazat zápis {{ e.cislo_dokladu }}">Smazat</button></form>
+      {% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="empty">Zatím žádné zápisy. Vznikají z úhrad faktur a přijatých dokladů, nebo tlačítkem „Nový zápis“.</p>
+{% endif %}
+{% endblock %}

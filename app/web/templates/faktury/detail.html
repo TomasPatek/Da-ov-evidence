@@ -59,9 +59,15 @@
     <h2>Úhrada</h2>
     <form method="post" action="/faktury/{{ inv.cislo }}/uhrazena">
       <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
-      <label>Datum úhrady
-        <input type="date" name="datum_uhrady" value="{{ today.isoformat() }}" max="{{ today.isoformat() }}" required>
-      </label>
+      <div class="row">
+        <label>Datum úhrady
+          <input type="date" name="datum_uhrady" value="{{ today.isoformat() }}" max="{{ today.isoformat() }}" required>
+        </label>
+        <label>Způsob úhrady
+          <select name="zpusob_uhrady">{% for m in methods %}<option value="{{ m.value }}">{{ m.value }}</option>{% endfor %}</select>
+        </label>
+      </div>
+      <p class="muted">Úhrada se zapíše do peněžního deníku: hotově do pokladny, jinak na účet.</p>
       <button type="submit" class="primary">Označit jako uhrazenou</button>
     </form>
   </section>
@@ -81,7 +87,8 @@
     <h2>Úhrada</h2>
     <form method="post" action="/faktury/{{ inv.cislo }}/neuhrazena">
       <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
-      <p>Úhradu jste zadali omylem?</p>
+      {% for r in journal_rows %}<p>V deníku: <a href="/denik?rok={{ r.datum_uhrady.year }}">{{ r.cislo_dokladu }}</a> ({{ r.ucet }}, {{ r.datum_uhrady | cz_date }})</p>{% endfor %}
+      <p>Úhradu jste zadali omylem? Zrušením se odstraní i zápis v deníku.</p>
       <button type="submit">Zrušit úhradu</button>
     </form>
   </section>
