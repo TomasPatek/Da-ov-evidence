@@ -1,23 +1,47 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Přehled</h1>
+<div class="page-head">
+  <h1>Přehled</h1>
+  <div class="actions">
+    <a class="button" href="/zakazky/nova">Nová zakázka</a>
+    <a class="button primary" href="/faktury/nova">Nová faktura</a>
+  </div>
+</div>
 <div class="grid">
   <section class="card">
-    <h2>Fakturace</h2>
-    <p class="muted">Kontakty, zakázky a vydané faktury přibudou ve fázi 1.</p>
+    <h2>Neuhrazené faktury</h2>
+    <p class="big">{{ unpaid_sum | czk }}</p>
+    <p class="muted">{{ unpaid_count }} {{ "faktura" if unpaid_count == 1 else ("faktury" if 2 <= unpaid_count <= 4 else "faktur") }}</p>
+    {% if overdue %}
+    <p class="warn">Po splatnosti:</p>
+    <ul class="plain">
+      {% for i in overdue %}<li><a href="/faktury/{{ i.cislo }}">{{ i.cislo }}</a> · {{ i.castka | czk }} · splatná {{ i.datum_splatnosti | cz_date }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    <p><a href="/faktury?stav=neuhrazene">Zobrazit neuhrazené</a></p>
+  </section>
+  <section class="card">
+    <h2>Fakturace {{ year }}</h2>
+    <dl class="facts">
+      <dt>Vyfakturováno</dt><dd>{{ invoiced_year | czk }}</dd>
+      <dt>Uhrazeno</dt><dd>{{ paid_year | czk }}</dd>
+    </dl>
+    <p><a href="/faktury">Všechny faktury</a></p>
+  </section>
+  <section class="card">
+    <h2>Zakázky</h2>
+    <p>Rozběhnuté: <strong>{{ running_jobs }}</strong></p>
+    {% if warn_jobs %}
+    <p class="warn">Dokončené bez faktury:</p>
+    <ul class="plain">
+      {% for j in warn_jobs %}<li><a href="/zakazky/{{ j.id }}">{{ j.id }} {{ j.nazev }}</a></li>{% endfor %}
+    </ul>
+    {% endif %}
+    <p><a href="/zakazky">Všechny zakázky</a></p>
   </section>
   <section class="card">
     <h2>Evidence</h2>
-    <p class="muted">Peněžní deník a přijaté doklady přibudou ve fázi 2.</p>
-  </section>
-  <section class="card">
-    <h2>Firma</h2>
-    <dl class="facts">
-      <dt>Název</dt><dd>{{ firma.firma.nazev }}</dd>
-      <dt>IČO</dt><dd>{{ firma.firma.ico }}</dd>
-      <dt>Účet</dt><dd>{{ firma.banka.ucet }}</dd>
-    </dl>
-    <p><a href="/nastaveni">Upravit nastavení</a></p>
+    <p class="muted">Peněžní deník a přijaté doklady připravujeme.</p>
   </section>
 </div>
 {% endblock %}

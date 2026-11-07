@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Odeslat fakturu {{ inv.cislo }} · Daňová evidence{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/faktury/{{ inv.cislo }}">Faktura {{ inv.cislo }}</a></p>
+<h1>Odeslat fakturu {{ inv.cislo }}</h1>
+<section class="card">
+  {% include "_errors.html" %}
+  {% if not mail_ready %}
+  <div class="alert alert-warning" role="status">
+    Odesílání e-mailů není nastavené. Doplňte řádky <code>SMTP_…</code> v souboru <code>.env</code>
+    na serveru a restartujte aplikaci (<code>docker compose up -d</code>). Postup je v kroku
+    <a href="/pruvodce/posta">Pošta</a>. Do té doby můžete
+    <a href="/faktury/{{ inv.cislo }}/pdf">stáhnout PDF</a> a poslat ho z vlastní pošty.
+  </div>
+  {% else %}
+  <form method="post" action="/faktury/{{ inv.cislo }}/odeslat">
+    <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+    <p class="muted">Odesílatel: {{ sender }}</p>
+    <label>Komu
+      <input type="email" name="komu" value="{{ m.komu }}" required>
+    </label>
+    <label>Předmět
+      <input type="text" name="predmet" value="{{ m.predmet }}" required>
+    </label>
+    <label>Text
+      <textarea name="text" rows="9">{{ m.text }}</textarea>
+    </label>
+    <p>Příloha: faktura-{{ inv.cislo }}.pdf</p>
+    <label class="choice"><input type="checkbox" name="isdoc" value="1" {{ 'checked' if m.isdoc }}> Přiložit i ISDOC (pro účetní programy odběratele)</label>
+    <button type="submit" class="primary">Odeslat</button>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

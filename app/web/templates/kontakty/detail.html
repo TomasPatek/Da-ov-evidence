@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ c.nazev }} · Daňová evidence{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/kontakty">Kontakty</a></p>
+<div class="page-head">
+  <h1>{{ c.nazev }}</h1>
+  <div class="actions">
+    <a class="button" href="/zakazky/nova?kontakt={{ c.id }}">Nová zakázka</a>
+    <a class="button primary" href="/faktury/nova?kontakt={{ c.id }}">Vystavit fakturu</a>
+  </div>
+</div>
+{% include "_errors.html" %}
+{% if request.query_params.get("ulozeno") %}<div class="alert alert-info" role="status">Uloženo.</div>{% endif %}
+<div class="grid">
+  <section class="card">
+    <h2>Údaje</h2>
+    <form method="post" action="/kontakty/{{ c.id }}">
+      <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+      {% with errors=None, info=None, warning=None %}{% include "kontakty/_pole.html" %}{% endwith %}
+      <button type="submit" class="primary">Uložit změny</button>
+    </form>
+    {% if c.ico %}
+    <form method="post" action="/kontakty/{{ c.id }}/ares" class="inline-form">
+      <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+      <button type="submit">Aktualizovat z ARES</button>
+      <span class="muted">{% if c.ares_aktualizovano %}Naposledy {{ c.ares_aktualizovano | cz_date }}.{% else %}Zadáno ručně.{% endif %}</span>
+    </form>
+    {% endif %}
+  </section>
+  <div class="stack">
+    <section class="card">
+      <h2>Zakázky</h2>
+      {% if jobs %}
+      <ul class="plain">
+        {% for j in jobs %}<li><a href="/zakazky/{{ j.id }}">{{ j.id }} {{ j.nazev }}</a> <span class="badge">{{ j.stav }}</span></li>{% endfor %}
+      </ul>
+      {% else %}<p class="muted">Žádné zakázky.</p>{% endif %}
+    </section>
+    <section class="card">
+      <h2>Faktury</h2>
+      {% if invoices %}
+      <ul class="plain">
+        {% for i in invoices %}<li><a href="/faktury/{{ i.cislo }}">{{ i.cislo }}</a> · {{ i.castka | czk }} <span class="badge badge-{{ i.stav }}">{{ i.stav }}</span></li>{% endfor %}
+      </ul>
+      {% else %}<p class="muted">Žádné faktury.</p>{% endif %}
+    </section>
+    {% if not jobs and not invoices %}
+    <form method="post" action="/kontakty/{{ c.id }}/smazat" class="inline-form">
+      <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+      <button type="submit" class="danger">Smazat kontakt</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

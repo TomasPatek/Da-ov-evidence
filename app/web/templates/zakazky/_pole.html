@@ -1,0 +1,29 @@
+<label>Zákazník
+  <select name="kontakt_id" required>
+    <option value="">— vyberte —</option>
+    {% for c in contacts %}<option value="{{ c.id }}" {{ 'selected' if c.id == j.kontakt_id }}>{{ c.nazev }}{% if c.ico %} ({{ c.ico }}){% endif %}</option>{% endfor %}
+  </select>
+</label>
+<p class="hint"><a href="/kontakty/novy?typ=odběratel">Zákazník chybí? Založte ho.</a></p>
+<label>Název zakázky
+  <input type="text" name="nazev" value="{{ j.nazev }}" required placeholder="např. Oprava střechy">
+</label>
+<label>Adresa realizace
+  <input type="text" name="adresa_realizace" value="{{ j.adresa_realizace }}">
+</label>
+<div class="row">
+  <label>Stav
+    <select name="stav">
+      {% for s in states %}<option value="{{ s.value }}" {{ 'selected' if j.stav == s.value }}>{{ s.value }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Založeno
+    <input type="date" name="datum_zalozeni" value="{{ j.datum_zalozeni or '' }}" required>
+  </label>
+  <label>Dokončeno
+    <input type="date" name="datum_dokonceni" value="{{ j.datum_dokonceni or '' }}">
+  </label>
+</div>
+<label>Poznámka
+  <textarea name="poznamka" rows="2">{{ j.poznamka }}</textarea>
+</label>

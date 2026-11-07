@@ -15,6 +15,7 @@ RUN chmod -R u=rwX,go=rX /app \
 FROM python:3.12-slim
 RUN apt-get update \
     && apt-get install -y --no-install-recommends tzdata \
+        libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --gid 1000 app \
     && useradd --uid 1000 --gid app --no-create-home --shell /usr/sbin/nologin app \
@@ -27,7 +28,8 @@ ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
     DATA_DIR=/data \
     CONFIG_DIR=/config \
-    TZ=Europe/Prague
+    TZ=Europe/Prague \
+    XDG_CACHE_HOME=/tmp/.cache
 USER app
 VOLUME ["/data", "/config"]
 EXPOSE 8000

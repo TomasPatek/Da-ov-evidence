@@ -14,7 +14,7 @@ from starlette.responses import Response
 from app import __version__
 from app.banks.ucet import format_iban
 from app.config import FirmaConfig
-from app.money import format_display_amount
+from app.money import format_csv_decimal, format_display_amount
 from app.web.branding import logo_path
 from app.web.security import CSRF_FIELD, csrf_token, is_logged_in
 
@@ -34,6 +34,10 @@ def _cz_date(value: date | None) -> str:
 templates.env.filters["czk"] = _czk
 templates.env.filters["cz_date"] = _cz_date
 templates.env.filters["iban"] = format_iban
+templates.env.filters["qty"] = lambda v: format_csv_decimal(v) if isinstance(v, Decimal) else v
+templates.env.filters["amount_input"] = lambda v: (
+    f"{v:.2f}".replace(".", ",") if v is not None else ""
+)
 
 
 def render(request: Request, name: str, status_code: int = 200, **context: Any) -> Response:

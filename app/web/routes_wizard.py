@@ -14,6 +14,7 @@ from app.ares.ico import normalize_ico, validate_ico
 from app.auth import MIN_PASSWORD_LENGTH, tokens_equal
 from app.banks.ucet import AccountError, parse_cz_account
 from app.config import INVOICE_NUMBER_FORMATS, Firma, FirmaConfig
+from app.invoices.service import InvoiceService
 from app.web.branding import MAX_LOGO_BYTES, BrandingError, current_colors, save_logo, write_theme
 from app.web.routes_auth import log_in
 from app.web.security import verify_csrf
@@ -275,11 +276,19 @@ def numbering_save(
     format_cisla: Annotated[str, Form()] = "RRRRNNNN",
     pocatecni_cislo: Annotated[str, Form()] = "1",
     splatnost_dni: Annotated[str, Form()] = "14",
+    text_dph: Annotated[str, Form()] = "",
 ) -> Response:
     cfg = _load(request)
     errors = []
     if format_cisla not in INVOICE_NUMBER_FORMATS:
         errors.append("Neznámý formát číselné řady.")
+    elif (
+        format_cisla != cfg.fakturace.format_cisla
+        and InvoiceService(request.app.state.storage, cfg).years()
+    ):
+        errors.append("Formát číselné řady nejde změnit, když už existují vystavené faktury.")
+    if not text_dph.strip():
+        errors.append("Vyplňte text o tom, že nejste plátce DPH.")
     max_seq = 10 ** format_cisla.count("N") - 1
     try:
         start = int(pocatecni_cislo)
@@ -298,6 +307,7 @@ def numbering_save(
     cfg.fakturace.format_cisla = format_cisla
     cfg.fakturace.pocatecni_cislo = start
     cfg.fakturace.splatnost_dni = due
+    cfg.fakturace.text_dph = text_dph.strip() or cfg.fakturace.text_dph
     if errors:
         return _page(
             request,

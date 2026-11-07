@@ -1,0 +1,50 @@
+<div id="kontakt-pole" class="form-fields">
+  {% if errors is defined or info is defined %}{% include "_errors.html" %}{% endif %}
+  {% if warning is defined and warning %}
+  <div class="alert alert-warning" role="status">Kontakt s tímto IČO už máte:
+    <a href="/kontakty/{{ warning.id }}">{{ warning.nazev }}</a>.</div>
+  {% endif %}
+  <fieldset class="choices">
+    <legend>Typ</legend>
+    {% for t in types %}
+    <label class="choice"><input type="radio" name="typ" value="{{ t.value }}" {{ 'checked' if c.typ == t.value }}> {{ t.value }}</label>
+    {% endfor %}
+  </fieldset>
+  <div class="row">
+    <label>IČO <span class="muted">(u soukromé osoby nechte prázdné)</span>
+      <input type="text" name="ico" value="{{ c.ico }}" inputmode="numeric" maxlength="8">
+    </label>
+    <button type="button" class="secondary"
+            hx-get="/kontakty/ares" hx-include="closest form"
+            hx-target="#kontakt-pole" hx-swap="outerHTML">Načíst z ARES</button>
+  </div>
+  {% if c.ares_aktualizovano %}<input type="hidden" name="ares_aktualizovano" value="{{ c.ares_aktualizovano }}">{% endif %}
+  <label>Název nebo jméno a příjmení
+    <input type="text" name="nazev" value="{{ c.nazev }}" required>
+  </label>
+  <label>DIČ <span class="muted">(nepovinné)</span>
+    <input type="text" name="dic" value="{{ c.dic }}">
+  </label>
+  <label>Ulice a číslo
+    <input type="text" name="ulice" value="{{ c.ulice }}">
+  </label>
+  <div class="row">
+    <label>PSČ
+      <input type="text" name="psc" value="{{ c.psc }}" inputmode="numeric">
+    </label>
+    <label class="grow">Obec
+      <input type="text" name="mesto" value="{{ c.mesto }}">
+    </label>
+  </div>
+  <div class="row">
+    <label class="grow">E-mail pro faktury
+      <input type="email" name="email" value="{{ c.email }}">
+    </label>
+    <label>Telefon
+      <input type="tel" name="telefon" value="{{ c.telefon }}">
+    </label>
+  </div>
+  <label>Poznámka
+    <textarea name="poznamka" rows="2">{{ c.poznamka }}</textarea>
+  </label>
+</div>

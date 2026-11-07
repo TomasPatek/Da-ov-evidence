@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Kontakty · Daňová evidence{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Kontakty</h1>
+  <a class="button primary" href="/kontakty/novy">Nový kontakt</a>
+</div>
+<form method="get" action="/kontakty" class="filters">
+  <input type="search" name="q" value="{{ q }}" placeholder="Hledat podle názvu, IČO nebo e-mailu" aria-label="Hledat">
+  <select name="typ" aria-label="Typ">
+    <option value="">Všechny typy</option>
+    <option value="odběratel" {{ 'selected' if typ == 'odběratel' }}>Odběratelé</option>
+    <option value="dodavatel" {{ 'selected' if typ == 'dodavatel' }}>Dodavatelé</option>
+  </select>
+  <button type="submit">Hledat</button>
+</form>
+{% if rows %}
+<div class="table-wrap">
+<table class="list">
+  <thead><tr><th>Název</th><th>IČO</th><th class="hide-mobile">Obec</th><th class="hide-mobile">Typ</th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr>
+      <td><a href="/kontakty/{{ r.id }}">{{ r.nazev }}</a></td>
+      <td>{{ r.ico or "—" }}</td>
+      <td class="hide-mobile">{{ r.mesto }}</td>
+      <td class="hide-mobile">{{ r.typ }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="empty">{% if q or typ %}Nic nenalezeno.{% else %}Zatím nemáte žádné kontakty. Začněte tlačítkem „Nový kontakt“.{% endif %}</p>
+{% endif %}
+{% endblock %}

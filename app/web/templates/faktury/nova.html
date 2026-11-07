@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{{ "Úprava faktury " ~ edit_cislo if edit_cislo else "Nová faktura" }} · Daňová evidence{% endblock %}
+{% block content %}
+{% if edit_cislo %}
+<p class="crumbs"><a href="/faktury/{{ edit_cislo }}">Faktura {{ edit_cislo }}</a></p>
+<h1>Úprava faktury {{ edit_cislo }}</h1>
+{% else %}
+<p class="crumbs"><a href="/faktury">Faktury</a></p>
+<h1>Nová faktura</h1>
+{% endif %}
+<section class="card">
+  {% include "_errors.html" %}
+  <form method="post" action="{{ '/faktury/' ~ edit_cislo ~ '/upravit' if edit_cislo else '/faktury/nova' }}">
+    <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+    <div class="row">
+      <label class="grow">Odběratel
+        <select name="kontakt_id" required>
+          <option value="">— vyberte —</option>
+          {% for c in contacts %}<option value="{{ c.id }}" {{ 'selected' if c.id == v.kontakt_id }}>{{ c.nazev }}{% if c.ico %} ({{ c.ico }}){% endif %}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="grow">Zakázka <span class="muted">(nepovinné)</span>
+        <select name="zakazka_id">
+          <option value="">— bez zakázky —</option>
+          {% for j in jobs %}<option value="{{ j.id }}" {{ 'selected' if j.id == v.zakazka_id }}>{{ j.id }} {{ j.nazev }}</option>{% endfor %}
+        </select>
+      </label>
+    </div>
+    <p class="hint"><a href="/kontakty/novy?typ=odběratel">Odběratel chybí? Založte ho.</a></p>
+    <div class="row">
+      <label>Datum vystavení
+        <input type="date" name="datum_vystaveni" value="{{ v.datum_vystaveni }}" required>
+      </label>
+      <label>Datum splatnosti
+        <input type="date" name="datum_splatnosti" value="{{ v.datum_splatnosti }}" required>
+      </label>
+    </div>
+    <fieldset>
+      <legend>Položky</legend>
+      <div id="polozky" class="lines" hx-post="/faktury/soucet" hx-trigger="input delay:400ms"
+           hx-include="closest form" hx-target="#soucet" hx-swap="outerHTML">
+        {% for line in lines %}{% include "faktury/_radek.html" %}{% endfor %}
+      </div>
+      <datalist id="jednotky"><option value="ks"><option value="hod"><option value="m"><option value="m²"><option value="kg"><option value="km"><option value="paušál"></datalist>
+      <button type="button" hx-get="/faktury/radek" hx-target="#polozky" hx-swap="beforeend">Přidat řádek</button>
+      <p class="muted">Prázdné řádky se ignorují. Slevu zadejte jako řádek se zápornou cenou.</p>
+    </fieldset>
+    {% include "faktury/_soucet.html" %}
+    <label>Poznámka na faktuře <span class="muted">(nepovinné)</span>
+      <textarea name="poznamka" rows="2">{{ v.poznamka }}</textarea>
+    </label>
+    {% if edit_cislo %}
+    {% if sent_on %}
+    <input type="hidden" name="potvrzeno" value="1">
+    <div class="alert alert-warning" role="status">Faktura už byla odeslána {{ sent_on | cz_date }}. Po uložení pošlete odběrateli opravenou verzi.</div>
+    {% endif %}
+    <p class="muted">Číslo faktury zůstane stejné. PDF se vytvoří znovu.</p>
+    <button type="submit" class="primary">Uložit změny</button>
+    {% else %}
+    <p class="muted">Číslo faktury přidělí aplikace. Fakturu půjde upravit, dokud nebude uhrazená; smazat ji nejde, jen stornovat.</p>
+    <button type="submit" class="primary">Vystavit fakturu</button>
+    {% endif %}
+  </form>
+</section>
+{% endblock %}

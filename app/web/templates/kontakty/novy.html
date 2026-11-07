@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Nový kontakt · Daňová evidence{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/kontakty">Kontakty</a></p>
+<h1>Nový kontakt</h1>
+<section class="card">
+  {% if errors %}{% include "_errors.html" %}{% endif %}
+  <form method="post" action="/kontakty/novy">
+    <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+    {% with errors=None, info=None %}{% include "kontakty/_pole.html" %}{% endwith %}
+    <div class="actions">
+      <button type="submit" class="primary">Uložit kontakt</button>
+      <button type="submit" name="dal" value="zakazka">Uložit a založit zakázku</button>
+      <button type="submit" name="dal" value="faktura">Uložit a vystavit fakturu</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

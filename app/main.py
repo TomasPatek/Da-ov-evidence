@@ -16,8 +16,16 @@ from app import __version__
 from app.ares.client import AresClient, HttpAresClient
 from app.auth import LoginThrottle, PasswordStore
 from app.config import Settings
+from app.mail.smtp import MailSender, SmtpSender
 from app.storage import Storage
-from app.web import routes_auth, routes_main, routes_wizard
+from app.web import (
+    routes_auth,
+    routes_contacts,
+    routes_invoices,
+    routes_jobs,
+    routes_main,
+    routes_wizard,
+)
 from app.web.security import AuthGateMiddleware, SecurityHeadersMiddleware
 from app.web.templating import render
 
@@ -26,7 +34,11 @@ log = logging.getLogger("app")
 STATIC_DIR = Path(__file__).parent / "web" / "static"
 
 
-def create_app(settings: Settings | None = None, ares: AresClient | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    ares: AresClient | None = None,
+    mailer: MailSender | None = None,
+) -> FastAPI:
     settings = settings or Settings.from_env()
     logging.basicConfig(
         level=settings.log_level, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
@@ -44,6 +56,7 @@ def create_app(settings: Settings | None = None, ares: AresClient | None = None)
     app.state.passwords = PasswordStore(settings.auth_path)
     app.state.throttle = LoginThrottle()
     app.state.ares = ares or HttpAresClient()
+    app.state.mailer = mailer or SmtpSender(settings)
     app.state.setup_token = settings.setup_token or secrets.token_hex(4).upper()
 
     settings.config_dir.mkdir(parents=True, exist_ok=True)
@@ -69,6 +82,9 @@ def create_app(settings: Settings | None = None, ares: AresClient | None = None)
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     app.include_router(routes_auth.router)
     app.include_router(routes_wizard.router)
+    app.include_router(routes_contacts.router)
+    app.include_router(routes_jobs.router)
+    app.include_router(routes_invoices.router)
     app.include_router(routes_main.router)
 
     @app.exception_handler(HTTPException)

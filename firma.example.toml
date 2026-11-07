@@ -21,6 +21,7 @@ iban = "CZ9501000000001234567899"
 format_cisla = "RRRRNNNN"
 pocatecni_cislo = 1
 splatnost_dni = 14
+text_dph = "Nejsem plátce DPH."
 
 [aplikace]
 pruvodce_dokoncen = true

@@ -1,0 +1,14 @@
+<div class="line">
+  <label class="line-desc">Popis
+    <input type="text" name="popis" value="{{ line.popis }}">
+  </label>
+  <label class="line-qty">Množství
+    <input type="text" name="mnozstvi" value="{{ line.mnozstvi }}" inputmode="decimal">
+  </label>
+  <label class="line-unit">Jednotka
+    <input type="text" name="jednotka" value="{{ line.jednotka }}" list="jednotky">
+  </label>
+  <label class="line-price">Cena za jednotku (Kč)
+    <input type="text" name="cena" value="{{ line.cena }}" inputmode="decimal">
+  </label>
+</div>

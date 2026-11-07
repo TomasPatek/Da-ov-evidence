@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Faktura {{ inv.cislo }} · Daňová evidence{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/faktury?rok={{ view.year }}">Faktury</a></p>
+<div class="page-head">
+  <h1>Faktura {{ inv.cislo }} <span class="badge badge-{{ inv.stav }}">{{ inv.stav }}</span></h1>
+  <div class="actions">
+    <a class="button" href="/faktury/{{ inv.cislo }}/pdf" target="_blank" rel="noopener">PDF</a>
+    <a class="button" href="/faktury/{{ inv.cislo }}/isdoc">ISDOC</a>
+    {% if inv.stav in open_states %}<a class="button" href="/faktury/{{ inv.cislo }}/upravit">Upravit</a>{% endif %}
+    {% if inv.stav != "stornovana" %}<a class="button primary" href="/faktury/{{ inv.cislo }}/odeslat">Odeslat e-mailem</a>{% endif %}
+  </div>
+</div>
+{% include "_errors.html" %}
+{% if request.query_params.get("nova") %}<div class="alert alert-info" role="status">Faktura vystavena. Zkontrolujte PDF a pošlete ji odběrateli.</div>{% endif %}
+{% if request.query_params.get("upraveno") %}<div class="alert alert-info" role="status">Faktura upravena a PDF vytvořeno znovu.{% if inv.datum_odeslani %} Odběrateli už byla odeslána původní verze, <a href="/faktury/{{ inv.cislo }}/odeslat">pošlete mu opravenou</a>.{% endif %}</div>{% endif %}
+{% if request.query_params.get("odeslano") %}<div class="alert alert-info" role="status">Faktura odeslána.</div>{% endif %}
+{% if inv.stav == "stornovana" %}<div class="alert alert-warning" role="status">Stornováno: {{ inv.duvod_storna }}</div>{% endif %}
+<div class="grid">
+  <section class="card">
+    <h2>Údaje</h2>
+    <dl class="facts">
+      <dt>Odběratel</dt><dd><a href="/kontakty/{{ view.customer.id }}">{{ view.customer.nazev }}</a></dd>
+      {% if view.job %}<dt>Zakázka</dt><dd><a href="/zakazky/{{ view.job.id }}">{{ view.job.id }} {{ view.job.nazev }}</a></dd>{% endif %}
+      <dt>Vystaveno</dt><dd>{{ inv.datum_vystaveni | cz_date }}</dd>
+      <dt>Splatnost</dt><dd>{{ inv.datum_splatnosti | cz_date }}{% if inv.stav in open_states and inv.datum_splatnosti < today %} <span class="warn">po splatnosti</span>{% endif %}</dd>
+      <dt>Variabilní symbol</dt><dd>{{ inv.vs }}</dd>
+      <dt>Částka</dt><dd><strong>{{ inv.castka | czk }}</strong></dd>
+      {% if inv.datum_odeslani %}<dt>Odesláno</dt><dd>{{ inv.datum_odeslani | cz_date }}</dd>{% endif %}
+      {% if inv.datum_uhrady %}<dt>Uhrazeno</dt><dd>{{ inv.datum_uhrady | cz_date }}</dd>{% endif %}
+      {% if inv.poznamka %}<dt>Poznámka</dt><dd>{{ inv.poznamka }}</dd>{% endif %}
+    </dl>
+  </section>
+  {% if view.spayd %}
+  <section class="card qr-card">
+    <h2>QR platba</h2>
+    <img src="/faktury/{{ inv.cislo }}/qr.svg" alt="QR kód pro platbu faktury {{ inv.cislo }}" class="qr">
+  </section>
+  {% endif %}
+</div>
+
+<section class="card">
+  <h2>Položky</h2>
+  <div class="table-wrap">
+  <table class="list">
+    <thead><tr><th>Popis</th><th class="num">Množství</th><th class="num hide-mobile">Cena/j.</th><th class="num">Celkem</th></tr></thead>
+    <tbody>
+    {% for it in view.items %}
+      <tr><td>{{ it.popis }}</td><td class="num">{{ it.mnozstvi | qty }} {{ it.jednotka }}</td><td class="num hide-mobile">{{ it.cena_jednotkova | czk }}</td><td class="num">{{ it.celkem | czk }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<div class="grid">
+  {% if inv.stav in open_states %}
+  <section class="card">
+    <h2>Úhrada</h2>
+    <form method="post" action="/faktury/{{ inv.cislo }}/uhrazena">
+      <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+      <label>Datum úhrady
+        <input type="date" name="datum_uhrady" value="{{ today.isoformat() }}" max="{{ today.isoformat() }}" required>
+      </label>
+      <button type="submit" class="primary">Označit jako uhrazenou</button>
+    </form>
+  </section>
+  <section class="card">
+    <h2>Storno</h2>
+    <form method="post" action="/faktury/{{ inv.cislo }}/storno">
+      <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+      <label>Důvod storna
+        <input type="text" name="duvod" required>
+      </label>
+      <p class="muted">Faktura zůstane v evidenci i s číslem, jen bude označená jako stornovaná.</p>
+      <button type="submit" class="danger">Stornovat fakturu</button>
+    </form>
+  </section>
+  {% elif inv.stav == "uhrazena" %}
+  <section class="card">
+    <h2>Úhrada</h2>
+    <form method="post" action="/faktury/{{ inv.cislo }}/neuhrazena">
+      <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+      <p>Úhradu jste zadali omylem?</p>
+      <button type="submit">Zrušit úhradu</button>
+    </form>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
