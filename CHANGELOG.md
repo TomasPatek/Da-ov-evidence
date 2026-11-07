@@ -14,6 +14,8 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
   (`docker compose up -d --build`).
 - Sestavení Docker image selhalo na chybě `Readme file does not exist: README.md`; soubor se
   teď do sestavení kopíruje.
+- Aplikace v kontejneru padala na `ModuleNotFoundError`, když zdrojové složky neměly práva
+  pro čtení ostatními (např. po rozbalení ZIPu). Práva se teď při sestavení srovnají.
 
 ### Přidáno
 
