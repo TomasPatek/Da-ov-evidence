@@ -131,6 +131,8 @@ button.link { border: 0; background: none; padding: 0; color: inherit; }
 .alert-info { background: var(--info-bg); color: var(--info-text); }
 .muted { color: var(--muted); }
 code { font-size: .9em; }
+pre { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: .5rem .75rem; overflow-x: auto; }
+pre code { font-size: .85em; }
 
 .facts { display: grid; grid-template-columns: max-content 1fr; gap: .3rem 1rem; margin: 0 0 1rem; }
 .facts dt { color: var(--muted); }

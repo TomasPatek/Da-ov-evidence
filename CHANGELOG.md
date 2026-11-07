@@ -6,6 +6,11 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 
 ## [Nevydáno]
 
+### Změněno
+
+- Krok „Pošta“ v průvodci vysvětluje, proč se heslo k e-mailu zadává jen do `.env`, a obsahuje
+  postup nastavení včetně doporučení použít heslo pro aplikace.
+
 ### Opraveno
 
 - Instalace podle návodu končila chybou `denied` a `open Dockerfile: no such file or directory`,
