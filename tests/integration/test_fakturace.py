@@ -586,3 +586,17 @@ def test_paid_invoice_cannot_be_edited(ready: TestClient) -> None:
     assert ready.get(f"/faktury/{cislo}/upravit").status_code == 400
     resp = ready.post(f"/faktury/{cislo}/upravit", data=edit_data(ready, cid))
     assert resp.status_code == 400
+
+
+def test_pdf_payment_details_do_not_overlap_dates(ready: TestClient) -> None:
+    # Regression: a non-wrapping IBAN used to run into the "Data" column.
+    cid = new_contact(ready)
+    cislo = issue(ready, cid)
+    with pdfplumber.open(io.BytesIO(ready.get(f"/faktury/{cislo}/pdf").content)) as pdf:
+        words = pdf.pages[0].extract_words()
+    start = next(i for i, w in enumerate(words) if w["text"] == "IBAN") + 1
+    iban = words[start : start + 6]  # "CZ65 0800 0000 1920 0014 5399"
+    assert "".join(w["text"] for w in iban) == "CZ6508000000192000145399"
+    iban_end = max(w["x1"] for w in iban)
+    dates_start = min(w["x0"] for w in words if w["text"] == "Datum")
+    assert iban_end + 10 < dates_start, (iban_end, dates_start)

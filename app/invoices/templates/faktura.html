@@ -20,7 +20,8 @@ h1 { font-size: 20pt; margin: 0; color: var(--brand-primary); }
 .party p { margin: 0; }
 .customer { border: 1px solid #d8dde4; border-radius: 2mm; padding: 3mm 4mm; }
 .info { display: flex; gap: 8mm; margin-bottom: 6mm; }
-.box { flex: 1; }
+.box { flex: 1; min-width: 0; }
+.box.pay-info { flex: 1.45; }
 dl { display: grid; grid-template-columns: max-content 1fr; gap: 1mm 4mm; margin: 0; }
 dt { color: #5d6878; }
 dd { margin: 0; font-weight: bold; }
@@ -75,7 +76,7 @@ footer { position: fixed; bottom: -10mm; left: 0; right: 0; font-size: 7.5pt; co
 </div>
 
 <div class="info">
-  <div class="box">
+  <div class="box pay-info">
     <h2>Platební údaje</h2>
     <dl>
       <dt>Bankovní účet</dt><dd>{{ firma.banka.ucet }}</dd>
