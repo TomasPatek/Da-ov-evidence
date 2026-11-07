@@ -1,0 +1,33 @@
+{
+  "values": {
+    "typ": "faktura",
+    "dodavatel_ico": "99990041",
+    "dodavatel_dic": "CZ99990041",
+    "dodavatel_nazev": "Spotřebiče Pokus s.r.o.",
+    "cislo_dodavatele": "7700451",
+    "datum_vystaveni": "2027-02-14",
+    "datum_splatnosti": "2027-02-14",
+    "castka": "829.00",
+    "mena": "CZK",
+    "vs": "660123",
+    "ucet": "2000145399/0800",
+    "zpusob_uhrady": "karta",
+    "uhrazeno_predem": true,
+    "kategorie": 15,
+    "popis": "Nákup – Spotřebiče Pokus s.r.o."
+  },
+  "uncertain": [
+    "datum_splatnosti",
+    "datum_vystaveni",
+    "dodavatel_ico",
+    "dodavatel_nazev",
+    "kategorie",
+    "popis",
+    "uhrazeno_predem",
+    "vs",
+    "zpusob_uhrady"
+  ],
+  "steps": [
+    "text PDF"
+  ]
+}

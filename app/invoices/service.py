@@ -16,8 +16,10 @@ from app.invoices.schemas import FAKTURY_SCHEMA, POLOZKY_SCHEMA, InvoiceState
 from app.invoices.spayd import SpaydError, build_spayd
 from app.invoices.totals import invoice_total, line_total
 from app.jobs import ZAKAZKY_SCHEMA, JobState
+from app.journal import Account, EntryDraft, Journal, JournalError, PaymentMethod
 from app.storage import CsvTable, Record, Storage
 from app.storage.atomic import atomic_write_bytes, file_lock
+from app.tax.categories import Direction, default_category
 
 CURRENCY = "CZK"
 _YEAR_DIR_RE = re.compile(r"^\d{4}$")
@@ -374,12 +376,39 @@ class InvoiceService:
             changes["stav"] = InvoiceState.SENT.value
         return self._table_for(cislo).update(cislo, changes)
 
-    def mark_paid(self, cislo: str, when: date, today: date | None = None) -> Record:
+    def mark_paid(
+        self,
+        cislo: str,
+        when: date,
+        today: date | None = None,
+        method: PaymentMethod = PaymentMethod.TRANSFER,
+    ) -> Record:
+        """Mark as paid and write the income into the cash book (from its start date on)."""
         invoice = self._require(cislo)
         if invoice["stav"] not in OPEN_STATES:
             raise InvoiceError("Uhradit lze jen vystavenou nebo odeslanou fakturu.")
         if when > (today or date.today()):
             raise InvoiceError("Datum úhrady nesmí být v budoucnosti.")
+        journal = Journal(self.storage, self.firma)
+        start = journal.start
+        if start is not None and when >= start:
+            customer = self.storage.table(KONTAKTY_SCHEMA).get(invoice["kontakt_id"]) or {}
+            try:
+                journal.add(
+                    EntryDraft(
+                        datum=when,
+                        ucet=Account.CASH if method is PaymentMethod.CASH else Account.BANK,
+                        smer=Direction.INCOME.value,
+                        castka=invoice["castka"],
+                        kategorie=default_category(Direction.INCOME).column,
+                        popis=f"Úhrada faktury {cislo} – {customer.get('nazev', '')}".strip(" –"),
+                        zpusob_uhrady=method,
+                        doklad_id=cislo,
+                        zakazka_id=invoice["zakazka_id"],
+                    )
+                )
+            except JournalError as exc:
+                raise InvoiceError(str(exc)) from exc
         record = self._table_for(cislo).update(
             cislo, {"stav": InvoiceState.PAID.value, "datum_uhrady": when}
         )
@@ -392,6 +421,7 @@ class InvoiceService:
         if invoice["stav"] != InvoiceState.PAID:
             raise InvoiceError("Faktura není uhrazená.")
         state = InvoiceState.SENT if invoice["datum_odeslani"] else InvoiceState.ISSUED
+        Journal(self.storage, self.firma).remove_for_document(cislo)
         record = self._table_for(cislo).update(cislo, {"stav": state.value, "datum_uhrady": None})
         if record["zakazka_id"]:
             self._set_job_state(record["zakazka_id"], JobState.INVOICED, only_from=(JobState.PAID,))

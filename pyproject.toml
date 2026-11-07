@@ -16,6 +16,10 @@ dependencies = [
     "tomli-w>=1.0",
     "weasyprint>=70.0",
     "segno>=1.6.6",
+    "pyzbar>=0.1.9",
+    "pillow>=13.0.0",
+    "pypdfium2>=5.15.1",
+    "defusedxml>=0.7.1",
 ]
 
 [dependency-groups]
@@ -26,10 +30,9 @@ dev = [
     "mypy>=1.11",
     "playwright>=1.47",
     "pytest-playwright>=0.5",
-    "pyzbar>=0.1.9",
-    "pillow>=13.0.0",
     "pdfplumber>=0.11.10",
     "lxml>=6.1.3",
+    "types-defusedxml>=0.7.0.20260504",
 ]
 
 [build-system]
@@ -50,6 +53,7 @@ ignore = ["RUF001", "RUF002", "RUF003"]  # Czech text contains look-alike charac
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S105", "S106", "S108"]
 "scripts/**" = ["S105", "S106"]
+"scripts/make_ingest_fixtures.py" = ["E501", "S105", "S106"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -57,7 +61,7 @@ strict = true
 packages = ["app"]
 
 [[tool.mypy.overrides]]
-module = ["argon2.*", "weasyprint.*"]
+module = ["argon2.*", "weasyprint.*", "pypdfium2.*", "pyzbar.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

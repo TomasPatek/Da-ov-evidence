@@ -1,0 +1,28 @@
+{
+  "values": {
+    "typ": "faktura",
+    "dodavatel_ico": "99990024",
+    "dodavatel_dic": "CZ99990024",
+    "dodavatel_nazev": "Servis Ukazka",
+    "cislo_dodavatele": "2027-0042",
+    "datum_vystaveni": "2027-03-03",
+    "datum_splatnosti": "2027-03-17",
+    "castka": "2420.00",
+    "mena": "CZK",
+    "vs": "270042",
+    "ucet": "CZ6508000000192000145399",
+    "zpusob_uhrady": "převod",
+    "kategorie": 15,
+    "popis": "Nákup – Servis Ukazka"
+  },
+  "uncertain": [
+    "dodavatel_nazev",
+    "kategorie",
+    "popis",
+    "zpusob_uhrady"
+  ],
+  "steps": [
+    "QR platba",
+    "text PDF"
+  ]
+}

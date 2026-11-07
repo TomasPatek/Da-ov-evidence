@@ -359,3 +359,38 @@ def test_draft_of_round_trips(svc: InvoiceService) -> None:
     assert again.total == original.total
     assert again.poznamka == "Pozn."
     assert [line.popis for line in again.lines] == [line.popis for line in original.lines]
+
+
+# -- cash book -----------------------------------------------------------------------
+
+
+def test_payment_goes_to_cash_book_from_start(storage: Storage, firma: FirmaConfig) -> None:
+    from app.journal import Journal, PaymentMethod
+
+    firma.evidence.zacatek = "2026-02-15"
+    svc = InvoiceService(storage, firma)
+    early, late, cash = svc.issue(draft(day=1)), svc.issue(draft(day=2)), svc.issue(draft(day=3))
+    svc.mark_paid(early["cislo"], date(2026, 2, 14), today=date(2026, 3, 1))
+    svc.mark_paid(late["cislo"], date(2026, 2, 20), today=date(2026, 3, 1))
+    svc.mark_paid(
+        cash["cislo"], date(2026, 2, 21), today=date(2026, 3, 1), method=PaymentMethod.CASH
+    )
+    journal = Journal(storage, firma)
+    rows = journal.entries(2026)
+    assert [r["doklad_id"] for r in rows] == [late["cislo"], cash["cislo"]]
+    bank, kasa = rows
+    assert (bank["ucet"], bank["smer"], bank["kategorie"], bank["castka"]) == (
+        "banka",
+        "příjem",
+        9,
+        D("4100.00"),
+    )
+    assert bank["cislo_dokladu"] == late["cislo"]
+    assert bank["popis"] == f"Úhrada faktury {late['cislo']} – Petr Zákazník"
+    assert (kasa["ucet"], kasa["cislo_dokladu"], kasa["zpusob_uhrady"]) == (
+        "hotovost",
+        "P1",
+        "hotovost",
+    )
+    svc.mark_unpaid(late["cislo"])
+    assert [r["doklad_id"] for r in journal.entries(2026)] == [cash["cislo"]]

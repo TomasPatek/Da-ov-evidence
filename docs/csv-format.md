@@ -118,6 +118,55 @@ Položky vydaných faktur. Součet `celkem` položek je `castka` faktury.
 | `cena_jednotkova` | částka (`1234,50`) | Cena za jednotku. |
 | `celkem` | částka (`1234,50`) | Množství × cena za jednotku, zaokrouhleno na haléře. |
 
+### `RRRR/doklady-prijate.csv`
+
+Přijaté doklady (faktury a účtenky od dodavatelů). Soubory leží ve složce `doklady/` roku a jmenují se podle `id`. Výdaj se do deníku zapíše při úhradě.
+
+| Sloupec | Typ | Popis |
+| --- | --- | --- |
+| `id` | text | Neměnný identifikátor `PDRRRR-NNN`, např. `PD2027-001`. |
+| `typ` | text | `faktura`, `účtenka` nebo `jiný`. |
+| `kontakt_id` | text | Dodavatel, odkaz na `kontakty.csv` (po potvrzení). |
+| `dodavatel_ico` | text | IČO dodavatele, jak bylo na dokladu. |
+| `dodavatel_nazev` | text | Název dodavatele, jak byl na dokladu. |
+| `cislo_dodavatele` | text | Číslo dokladu u dodavatele. |
+| `datum_vystaveni` | datum (`RRRR-MM-DD`) | Datum vystavení. |
+| `datum_splatnosti` | datum (`RRRR-MM-DD`) | Datum splatnosti. |
+| `castka` | částka (`1234,50`) | Celková částka včetně DPH (neplátce DPH ji uplatní celou). |
+| `mena` | text | Měna, zatím jen `CZK`. |
+| `vs` | text | Variabilní symbol pro úhradu. |
+| `ucet` | text | Účet dodavatele (číslo/kód banky nebo IBAN). |
+| `popis` | text | Co bylo nakoupeno. |
+| `kategorie` | celé číslo | Sloupec výdajů ET 328 (15–23). |
+| `zakazka_id` | text | Zakázka, na kterou byl nákup; prázdné = režie. |
+| `soubor` | text | Soubor dokladu, cesta v rámci složky roku. |
+| `zdroj` | text | `e-mail`, `foto`, `upload` nebo `ručně`. |
+| `stav` | text | `ke kontrole`, `potvrzen` nebo `uhrazen`. |
+| `datum_uhrady` | datum (`RRRR-MM-DD`) | Kdy byl doklad zaplacen. |
+| `zpusob_uhrady` | text | `převod`, `hotovost`, `karta` nebo `QR na místě`. |
+| `nejista_pole` | text | Pole, která aplikace přečetla nejistě (oddělená čárkou); po kontrole prázdné. |
+| `poznamka` | text | Volná poznámka. |
+
+### `RRRR/denik.csv`
+
+Peněžní deník roku. Každý řádek je jeden pohyb peněz v pokladně nebo na účtu, s datem skutečné úhrady. Sloupec `kategorie` je číslo sloupce tiskopisu ET 328.
+
+| Sloupec | Typ | Popis |
+| --- | --- | --- |
+| `id` | text | Neměnný identifikátor `DRRRR-NNNN`. |
+| `datum_uhrady` | datum (`RRRR-MM-DD`) | Datum skutečné úhrady (ne datum vystavení). |
+| `cislo_dokladu` | text | Číslo dokladu ve sloupci *b* ET 328: číslo faktury nebo přijatého dokladu, u hotovosti příjmový `P1…` nebo výdajový `V1…` pokladní doklad, u bankovního pohybu bez dokladu `B1…`. |
+| `doklad_id` | text | Vazba na vydanou fakturu nebo přijatý doklad. |
+| `popis` | text | Text zápisu (sloupec *c* ET 328). |
+| `smer` | text | `příjem` nebo `výdaj` (z pohledu pokladny nebo účtu). |
+| `castka` | částka (`1234,50`) | Částka, vždy kladná. |
+| `ucet` | text | `hotovost` (sloupce 1–3) nebo `banka` (sloupce 4–5). |
+| `zpusob_uhrady` | text | `převod`, `hotovost`, `karta` nebo `QR na místě` (pro případné EET). |
+| `kategorie` | celé číslo | Sloupec ET 328: příjmy 9–13, výdaje 15–23, převod mezi pokladnou a účtem 6 nebo 7. |
+| `danove_uznatelny` | `ano` / `ne` | `ano`, pokud zápis ovlivňuje základ daně (sloupce 9, 10 a 15–19). |
+| `zakazka_id` | text | Zakázka, ke které zápis patří; prázdné = režie. |
+| `poznamka` | text | Volná poznámka. |
+
 ### `audit.csv`
 
 Záznam všech změn v datových souborech. Každý změněný sloupec má vlastní řádek. Soubor se jen doplňuje, nikdy se z něj nemaže.
