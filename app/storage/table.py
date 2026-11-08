@@ -20,6 +20,8 @@ from app.storage.csvformat import (
 
 Record = dict[str, Any]
 RecordFactory = Callable[[list[Record]], Record]
+# Called before every write with the operation and the changed columns (None = all).
+WriteGuard = Callable[[str, "set[str] | None"], None]
 
 _Stamp = tuple[int, int, int]
 
@@ -38,7 +40,9 @@ class CsvTable:
         schema: TableSchema,
         audit: AuditLog | None = None,
         rel_name: str | None = None,
+        guard: WriteGuard | None = None,
     ) -> None:
+        self.guard = guard
         self.path = path
         self.schema = schema
         self.audit = audit
@@ -146,8 +150,13 @@ class CsvTable:
                 return i
         raise KeyError(f"{self.rel_name}: záznam {key!r} neexistuje")
 
+    def _check(self, operation: str, columns: set[str] | None = None) -> None:
+        if self.guard is not None:
+            self.guard(operation, columns)
+
     def insert(self, record: Record | RecordFactory) -> Record:
         """Append a record. A factory receives current rows under the lock (for ids)."""
+        self._check("insert")
         with file_lock(self.path):
             records = self._fresh()
             new = dict(record(records) if callable(record) else record)
@@ -173,12 +182,14 @@ class CsvTable:
             old_enc, new_enc = self._encode(old), self._encode(new)
             if old_enc == new_enc:
                 return dict(old)
+            self._check("update", {k for k in new_enc if new_enc[k] != old_enc[k]})
             records[i] = new
             self._write(records)
             self._audit(AuditAction.UPDATE, key, old_enc, new_enc)
         return dict(new)
 
     def delete(self, key: str) -> None:
+        self._check("delete")
         with file_lock(self.path):
             records = self._fresh()
             i = self._index(records, key)

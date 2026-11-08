@@ -6,34 +6,30 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 
 ## [Nevydáno]
 
-### Změněno
+## [1.0.0] - 2026-11-08
 
-- Nová sekce `[evidence]` ve `firma.toml`; u existující instalace ji vyplníte v *Nastavení →
-  Peněžní deník*. Docker image obsahuje knihovnu `libzbar0` pro čtení QR kódů.
-- Nové proměnné `SMTP_FROM` a `SMTP_SECURITY` v `.env`; nová položka `[fakturace] text_dph`
-  ve `firma.toml` (výchozí „Nejsem plátce DPH.“). Stávající soubory není potřeba upravovat.
-- Formát číselné řady nejde změnit, jakmile existuje vystavená faktura.
-- Docker image obsahuje knihovny pro vykreslení PDF (Pango, HarfBuzz, písma DejaVu).
-- Krok „Pošta“ v průvodci vysvětluje, proč se heslo k e-mailu zadává jen do `.env`, a obsahuje
-  postup nastavení včetně doporučení použít heslo pro aplikace.
+První veřejné vydání. Aplikace pokrývá běžný rok OSVČ, která není plátcem DPH: fakturaci,
+přijaté doklady, peněžní deník ve sloupcích ET 328, banku a párování plateb, majetek,
+roční přehledy a zálohování.
 
-### Opraveno
-
-- Formulář *Zadat ručně* u přijatých dokladů se neotevřel (chyba při zobrazení prázdné částky).
-- Nový zápis do deníku nabízí jen kategorie zvoleného směru (příjmy nebo výdaje).
-- PDF faktury: IBAN přetékal do sloupce s daty.
-- Údaj o zápisu v živnostenském rejstříku se na faktuře tiskne v patičce místo v bloku dodavatele.
-- Instalace podle návodu končila chybou `denied` a `open Dockerfile: no such file or directory`,
-  protože návod stahoval jen `docker-compose.yml` a počítal s image na `ghcr.io`, který zatím
-  neexistuje. Do prvního vydání se aplikace instaluje z repozitáře a image sestavuje lokálně
-  (`docker compose up -d --build`).
-- Sestavení Docker image selhalo na chybě `Readme file does not exist: README.md`; soubor se
-  teď do sestavení kopíruje.
-- Aplikace v kontejneru padala na `ModuleNotFoundError`, když zdrojové složky neměly práva
-  pro čtení ostatními (např. po rozbalení ZIPu). Práva se teď při sestavení srovnají.
+Daňová pravidla (kategorie, odpisy, vyměřovací základy) mají odkazy na zákon č. 586/1992 Sb.
+a jsou označená k ověření s daňovým poradcem. Načítání měsíčního výpisu Air Bank a položek
+faktur s více řádky z Air Bank přibude v další verzi.
 
 ### Přidáno
 
+- Fáze 4, dokončení:
+  - Evidence majetku (`majetek.csv`) s rovnoměrnými (§ 31) a zrychlenými (§ 32) odpisy,
+    přerušením a polovičním odpisem v roce vyřazení; pravidla v `app/tax/depreciation.py`.
+  - Roční přehled: příjmy, výdaje, odpisy, dílčí základ daně, orientační vyměřovací základy
+    ČSSZ a ZP, pohledávky a závazky k 31. 12., majetek, zakázky; export do PDF a Markdownu.
+  - Uzamčení roku proti změnám (úhrady faktur a dokladů z uzamčeného roku dál možné),
+    zápis do auditního logu.
+  - OCR skenů a fotek (Tesseract, čeština), focení účtenek z mobilu, otočení fotek podle EXIF.
+  - Ikona na ploše iPhonu (manifest, ikony), stránka pro uzamčení a zálohu v nastavení.
+  - Noční šifrovaná záloha (restic, cloud přes rclone nebo složka) s retencí, stránka
+    *Záloha*, obnova `python -m app.backup obnovit` ověřená testem.
+  - Návody `docs/rocni-prehled.md`, `docs/mobil.md`, přepracovaný `docs/zalohovani.md`.
 - Fáze 3, automatizace:
   - Stahování pošty přes IMAP každých 15 minut (APScheduler v aplikaci) a tlačítkem;
     zpracované zprávy se přesouvají do složky *Zpracováno*, ostatní zůstávají a čtou se jen jednou.
@@ -103,3 +99,6 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
   - Pre-commit hook odmítající soubory z `data/`, `config/` a `.env`.
   - Dokumentace: instalace, konfigurace, zálohování, aktualizace, formát CSV (generovaný z kódu),
     CONTRIBUTING, SECURITY, šablony issues a pull requestů.
+
+[Nevydáno]: https://github.com/TomasPatek/Da-ov-evidence/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/TomasPatek/Da-ov-evidence/releases/tag/v1.0.0

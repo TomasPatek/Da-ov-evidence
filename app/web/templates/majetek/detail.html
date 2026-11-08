@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ a.nazev }} · Daňová evidence{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/majetek">Majetek</a></p>
+<h1>{{ a.id }} {{ a.nazev }}</h1>
+{% include "_errors.html" %}
+{% if request.query_params.get("ulozeno") %}<div class="alert alert-info" role="status">Uloženo.</div>{% endif %}
+<div class="grid">
+  <section class="card">
+    <h2>Odpisový plán</h2>
+    <div class="table-wrap">
+    <table class="list">
+      <thead><tr><th>Rok</th><th class="num">Odpis</th><th class="num">Zůstatková cena</th><th></th></tr></thead>
+      <tbody>
+      {% for r in schedule %}
+        <tr><td>{{ r.rok }}</td><td class="num">{{ r.odpis | czk }}</td><td class="num">{{ r.zustatkova_cena | czk }}</td>
+          <td>{% if r.vyrazeno %}<span class="badge">vyřazení (½)</span>{% elif not a.datum_vyrazeni %}
+            <form method="post" action="/majetek/{{ a.id }}/prerusit/{{ r.rok }}" class="inline"><input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+              <button type="submit" class="link">{{ "Obnovit odpisování" if r.preruseno else "Přerušit" }}</button></form>{% endif %}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    <p class="muted">Odpisy se zaokrouhlují na celé koruny nahoru. V roce vyřazení se uplatní polovina ročního odpisu. Pravidla ověřte s daňovým poradcem.</p>
+  </section>
+  <section class="card">
+    <h2>Údaje</h2>
+    <form method="post" action="/majetek/{{ a.id }}">
+      <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+      {% include "majetek/_pole.html" %}
+      <button type="submit" class="primary">Uložit</button>
+    </form>
+    <form method="post" action="/majetek/{{ a.id }}/vyradit" class="inline-form">
+      <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+      <label>Datum vyřazení <input type="date" name="datum_vyrazeni" value="{{ v.datum_vyrazeni or '' }}"></label>
+      <button type="submit">{{ "Změnit vyřazení" if a.datum_vyrazeni else "Vyřadit" }}</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

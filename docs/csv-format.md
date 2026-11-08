@@ -192,6 +192,23 @@ Pohyby na podnikatelském účtu z notifikací a výpisů banky. Stejná transak
 | `denik_id` | text | Zápisy v deníku vytvořené z pohybu (oddělené čárkou). |
 | `poznamka` | text | Volná poznámka, u ignorovaného pohybu důvod. |
 
+### `majetek.csv`
+
+Karty hmotného majetku nad 80 000 Kč. Odpisy se počítají podle odpisové skupiny a způsobu a do základu daně se připočítávají v ročním přehledu.
+
+| Sloupec | Typ | Popis |
+| --- | --- | --- |
+| `id` | text | Neměnný identifikátor `M0001`. |
+| `nazev` | text | Název majetku. |
+| `datum_porizeni` | datum (`RRRR-MM-DD`) | Datum pořízení a uvedení do užívání. |
+| `vstupni_cena` | částka (`1234,50`) | Vstupní cena včetně DPH (neplátce). |
+| `odpisova_skupina` | celé číslo | Odpisová skupina 1–6 (§ 30 ZDP). |
+| `zpusob_odpisu` | text | `rovnoměrný` (§ 31) nebo `zrychlený` (§ 32). |
+| `datum_vyrazeni` | datum (`RRRR-MM-DD`) | Datum vyřazení (prodej, likvidace); jinak prázdné. |
+| `doklad_id` | text | Přijatý doklad o pořízení, např. `PD2027-005`. |
+| `preruseno` | text | Roky, ve kterých se neodpisuje, oddělené čárkou. |
+| `poznamka` | text | Volná poznámka. |
+
 ### `audit.csv`
 
 Záznam všech změn v datových souborech. Každý změněný sloupec má vlastní řádek. Soubor se jen doplňuje, nikdy se z něj nemaže.

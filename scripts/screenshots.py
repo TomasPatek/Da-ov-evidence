@@ -36,6 +36,8 @@ SHOTS = [
     ("doklad-kontrola.png", "/doklady/{doc}", {"width": 1280, "height": 900}, "light"),
     ("et328.png", "/denik/et328", {"width": 1280, "height": 700}, "light"),
     ("banka.png", "/banka", {"width": 1280, "height": 900}, "light"),
+    ("rocni-prehled.png", "/prehledy", {"width": 1280, "height": 900}, "light"),
+    ("doklady-mobil.png", "/doklady", {"width": 390, "height": 844}, "light"),
 ]
 
 

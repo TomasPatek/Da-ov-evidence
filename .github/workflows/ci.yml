@@ -48,6 +48,7 @@ jobs:
         run: >-
           sudo apt-get update && sudo apt-get install -y --no-install-recommends
           libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 fonts-dejavu-core libzbar0
+          tesseract-ocr tesseract-ocr-ces restic
       - run: uv sync --frozen
       - name: unit + integration tests
         env:
@@ -70,6 +71,7 @@ jobs:
         run: >-
           sudo apt-get update && sudo apt-get install -y --no-install-recommends
           libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 fonts-dejavu-core libzbar0
+          tesseract-ocr tesseract-ocr-ces
       - run: uv sync --frozen
       - run: uv run playwright install --with-deps chromium
       - run: uv run pytest -m e2e tests/e2e
@@ -111,6 +113,11 @@ jobs:
           docker compose exec -T app python -c "from weasyprint import HTML; assert HTML(string='<p>Příliš žluťoučký</p>').write_pdf().startswith(b'%PDF')"
           # QR reading of received documents needs libzbar inside the image.
           docker compose exec -T app python -c "from pyzbar.pyzbar import decode; print('zbar ok')"
+          # OCR of receipts needs Tesseract with Czech.
+          docker compose exec -T app tesseract --list-langs | grep -q ces
+          # Backups: restic and rclone inside the image.
+          docker compose exec -T app restic version
+          docker compose exec -T app rclone version
       - name: logs on failure
         if: failure()
         run: docker compose logs

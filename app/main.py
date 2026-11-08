@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import mimetypes
 import secrets
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -21,9 +22,10 @@ from app.config import Settings
 from app.mail.imap import ImapMailbox
 from app.mail.scheduler import MailboxFactory, start_scheduler
 from app.mail.smtp import MailSender, SmtpSender
-from app.storage import Storage
+from app.storage import LockedYearError, Storage
 from app.web import (
     routes_auth,
+    routes_backup,
     routes_bank,
     routes_contacts,
     routes_invoices,
@@ -31,12 +33,14 @@ from app.web import (
     routes_journal,
     routes_main,
     routes_received,
+    routes_reports,
     routes_wizard,
 )
 from app.web.security import AuthGateMiddleware, SecurityHeadersMiddleware
 from app.web.templating import render
 
 log = logging.getLogger("app")
+mimetypes.add_type("application/manifest+json", ".webmanifest")
 
 STATIC_DIR = Path(__file__).parent / "web" / "static"
 
@@ -109,7 +113,13 @@ def create_app(
     app.include_router(routes_received.router)
     app.include_router(routes_journal.router)
     app.include_router(routes_bank.router)
+    app.include_router(routes_reports.router)
+    app.include_router(routes_backup.router)
     app.include_router(routes_main.router)
+
+    @app.exception_handler(LockedYearError)
+    async def locked_year(request: Request, exc: LockedYearError) -> Response:
+        return render(request, "chyba.html", status_code=409, message=str(exc), code=409)
 
     @app.exception_handler(HTTPException)
     async def http_error(request: Request, exc: HTTPException) -> Response:

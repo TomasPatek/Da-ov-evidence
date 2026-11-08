@@ -64,6 +64,28 @@ a nemá být.
 
 8. Otevřete v prohlížeči `http://<IP-adresa-serveru>:8000`, zadejte kód a projděte průvodce.
 
+### Varianta: hotový image místo sestavení
+
+Od verze 1.0.0 je na GitHubu hotový image pro běžné servery (amd64) i Raspberry Pi
+a podobné (arm64). Nemusíte ho pak sestavovat, což ušetří čas a místo na disku.
+
+1. Postupujte podle kroků 1–5 výše.
+2. Do `.env` přidejte:
+
+   ```sh
+   APP_IMAGE=ghcr.io/tomaspatek/danova-evidence:1.0.0
+   APP_PULL_POLICY=missing
+   ```
+
+3. Místo kroku 6 stáhněte image a spusťte aplikaci:
+
+   ```sh
+   docker compose pull
+   docker compose up -d
+   ```
+
+Při aktualizaci pak jen přepíšete číslo verze v `APP_IMAGE` (viz [aktualizace](aktualizace.md)).
+
 ### Jak zůstat jen v lokální síti
 
 - **Na routeru nepřesměrovávejte port 8000** (ani jiný port na server) do internetu.

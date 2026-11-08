@@ -183,7 +183,7 @@ input[type=date], input[type=search] {
   font: inherit; padding: .5rem .7rem; border: 1px solid var(--border); border-radius: 6px;
   background: var(--bg); color: var(--text); width: 100%;
 }
-a.button.primary { background: var(--brand-primary); border-color: var(--brand-primary); color: var(--brand-primary-contrast); font-weight: 600; }
+a.button.primary, label.button.primary { background: var(--brand-primary); border-color: var(--brand-primary); color: var(--brand-primary-contrast); font-weight: 600; }
 button.danger { border-color: var(--danger); color: var(--danger); }
 
 .table-wrap { overflow-x: auto; }
@@ -264,3 +264,15 @@ details > summary { cursor: pointer; color: var(--brand-primary); margin: .25rem
 details[open] > form { margin-top: .75rem; }
 section.card.movement + section.card.movement, .tabs + section.card { margin-top: .75rem; }
 form.match fieldset { display: flex; flex-direction: column; gap: .35rem; }
+
+/* Reports. */
+table.summary { max-width: 640px; }
+table.summary tr.total td { font-weight: 700; border-top: 2px solid var(--border); }
+.report h2 { margin-top: 1.25rem; }
+
+/* Taking a photo of a receipt. */
+label.camera { position: relative; display: inline-flex; align-items: center; justify-content: center; min-height: 3rem; font-weight: 600; }
+label.camera input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.photo { display: flex; flex-direction: column; gap: .5rem; }
+.card.photo + .card.upload { margin-top: 1rem; }
+@media (max-width: 640px) { label.camera { width: 100%; } }

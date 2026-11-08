@@ -190,10 +190,21 @@ def _labelled_number(lines: list[str], label: str) -> tuple[str, bool] | None:
 
 
 def extract_text_fields(
-    text: str, ex: Extraction, own_ico: str = "", own_account: str = ""
+    text: str, ex: Extraction, own_ico: str = "", own_account: str = "", source: str = SOURCE
 ) -> None:
     if not text.strip():
         return
+    before = set(ex.values)
+    _extract(text, ex, own_ico, own_account)
+    if source != SOURCE:
+        # Values read by OCR are never certain.
+        for name in set(ex.values) - before:
+            ex.sources[name] = source
+            ex.uncertain.add(name)
+        ex.steps[ex.steps.index(SOURCE)] = source
+
+
+def _extract(text: str, ex: Extraction, own_ico: str, own_account: str) -> None:
     ex.steps.append(SOURCE)
     ex.text = text
     lines = [line for line in text.split("\n") if line]

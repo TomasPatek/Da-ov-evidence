@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import date
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
@@ -23,6 +24,13 @@ from app.web.security import verify_csrf
 from app.web.templating import render
 
 router = APIRouter(dependencies=[Depends(verify_csrf)])
+
+
+@router.get("/favicon.ico")
+def favicon() -> Response:
+    return FileResponse(
+        Path(__file__).parent / "static" / "icons" / "icon-192.png", media_type="image/png"
+    )
 
 
 @router.get("/zdravi")
@@ -85,7 +93,13 @@ def svc_job(invoices: list[Record], job_id: str) -> list[Record]:
 
 @router.get("/nastaveni")
 def settings_page(request: Request) -> Response:
-    return render(request, "nastaveni.html")
+    storage = request.app.state.storage
+    return render(
+        request,
+        "nastaveni.html",
+        locked_years=storage.locked_years(),
+        lock_default=date.today().year - 1,
+    )
 
 
 @router.get("/branding/theme.css")

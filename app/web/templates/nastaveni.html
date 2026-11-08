@@ -36,6 +36,30 @@
     <a class="button" href="/pruvodce/evidence">{{ "Upravit" if firma.evidence.zacatek else "Nastavit" }}</a>
   </section>
   <section class="card">
+    <h2>Záloha a pošta</h2>
+    <p><a href="/zaloha">Noční záloha</a> · <a href="/posta">Stahování pošty</a> · <a href="/majetek">Majetek</a></p>
+  </section>
+  <section class="card" id="zamek">
+    <h2>Uzamčení roku</h2>
+    <p class="muted">Uzamčený rok nejde měnit (deník, banka, vystavení a úpravy faktur a dokladů).
+    Faktury a doklady z něj jde dál označit jako uhrazené.</p>
+    {% if request.query_params.get("zamek_chyba") %}<p class="warn">Pro odemčení napište do pole rok {{ request.query_params.get("zamek_chyba") }}.</p>{% endif %}
+    {% for y in locked_years %}
+    <form method="post" action="/nastaveni/zamek" class="inline-form">
+      <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+      <input type="hidden" name="rok" value="{{ y }}"><input type="hidden" name="akce" value="odemknout">
+      <span>Rok {{ y }} je uzamčený.</span>
+      <input type="text" name="potvrzeni" placeholder="pro odemčení napište {{ y }}" aria-label="Potvrzení odemčení roku {{ y }}" inputmode="numeric">
+      <button type="submit" class="danger">Odemknout</button>
+    </form>
+    {% endfor %}
+    <form method="post" action="/nastaveni/zamek" class="inline-form">
+      <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+      <label>Uzamknout rok <input type="number" name="rok" value="{{ lock_default }}" min="2000" max="2100"></label>
+      <button type="submit">Uzamknout</button>
+    </form>
+  </section>
+  <section class="card">
     <h2>Vzhled</h2>
     <p class="swatches"><span class="swatch swatch-primary"></span> <span class="swatch swatch-accent"></span></p>
     <a class="button" href="/pruvodce/vzhled">Upravit</a>

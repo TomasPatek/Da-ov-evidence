@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Nový majetek · Daňová evidence{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/majetek">Majetek</a></p>
+<h1>Nová karta majetku</h1>
+<section class="card">
+  {% include "_errors.html" %}
+  <form method="post" action="/majetek/novy">
+    <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+    {% include "majetek/_pole.html" %}
+    <button type="submit" class="primary">Založit kartu</button>
+  </form>
+</section>
+{% endblock %}
