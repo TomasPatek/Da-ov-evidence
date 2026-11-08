@@ -16,5 +16,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # One branch for all action updates instead of one per action.
+    groups:
+      actions:
+        patterns: ["*"]
     commit-message:
       prefix: "chore"

@@ -6,6 +6,14 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 
 ## [Nevydáno]
 
+### Změněno
+
+- CI a sestavení vydání používají nové verze akcí GitHubu (Node 24).
+
+### Opraveno
+
+- Kontrola dokumentace CSV v CI už nepotřebuje knihovnu zbar.
+
 ## [1.0.0] - 2026-11-08
 
 První veřejné vydání. Aplikace pokrývá běžný rok OSVČ, která není plátcem DPH: fakturaci,
