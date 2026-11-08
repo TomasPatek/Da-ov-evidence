@@ -23,7 +23,7 @@ Ze zálohy obnovíte celou evidenci na jiném počítači.
    ```sh
    cd ~/danova-evidence
    mkdir -p config/rclone
-   docker compose run --rm --entrypoint rclone app config --config /config/rclone/rclone.conf
+   docker compose run --rm --entrypoint rclone app config
    ```
 
 2. Zvolte `n` (nové úložiště), jméno zadejte `zaloha` a vyberte poskytovatele.
@@ -33,7 +33,7 @@ Ze zálohy obnovíte celou evidenci na jiném počítači.
 3. Ověřte připojení:
 
    ```sh
-   docker compose run --rm --entrypoint rclone app lsd zaloha: --config /config/rclone/rclone.conf
+   docker compose run --rm --entrypoint rclone app lsd zaloha:
    ```
 
 ### 2. Doplňte `.env` a restartujte aplikaci
@@ -76,12 +76,11 @@ Uchovává se 7 denních, 5 týdenních, 12 měsíčních a 10 ročních záloh.
 
    ```sh
    docker compose build
-   docker compose run --rm --entrypoint sh -v "$PWD:/obnova" app -c \
-     'restic restore latest --target /tmp/obnova && cp -a /tmp/obnova/data/. /obnova/data/ && cp -a /tmp/obnova/config/. /obnova/config/'
+   docker compose run --rm app python -m app.backup obnovit
    ```
 
-   Starší zálohu obnovíte místo `latest` jejím číslem ze seznamu (*Nastavení → Noční záloha →
-   Zobrazit uložené zálohy*, nebo `restic snapshots`).
+   Starší zálohu obnovíte, když za `obnovit` napíšete její číslo ze seznamu
+   (*Nastavení → Noční záloha → Zobrazit uložené zálohy*).
 5. Spusťte aplikaci:
 
    ```sh
@@ -89,6 +88,7 @@ Uchovává se 7 denních, 5 týdenních, 12 měsíčních a 10 ročních záloh.
    ```
 
 Postup zálohy a obnovy ověřuje automatický test `test_restore_on_a_clean_machine`.
+Zálohu lze spustit i ručně: `docker compose exec app python -m app.backup`.
 
 ### Ruční záloha (bez restic)
 

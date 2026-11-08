@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from app.backup import Backup, CommandResult, configured, restore
+from app.backup import Backup, CommandResult, configured, restore_into
 from app.config import Settings
 
 SECRET = "velmi-tajne-heslo-zalohy"
@@ -123,10 +123,28 @@ def test_restore_on_a_clean_machine(settings: Settings, tmp_path: Path) -> None:
         for p in (tmp_path / "data").rglob("*")
         if p.is_file() and not p.name.endswith(".lock") and p.name != "zaloha.json"
     }
-    target = tmp_path / "obnova"
-    assert restore(settings, target).returncode == 0
-    restored_root = target / tmp_path.relative_to("/")
+    original[Path("config/firma.toml")] = (tmp_path / "config" / "firma.toml").read_bytes()
+    # A clean machine: empty data and config folders, same repository and password.
+    clean = replace(
+        settings, data_dir=tmp_path / "novy" / "data", config_dir=tmp_path / "novy" / "config"
+    )
+    restored = replace(clean, data_dir=settings.data_dir, config_dir=settings.config_dir)
+    shutil.rmtree(settings.data_dir)
+    shutil.rmtree(settings.config_dir)
+    assert restore_into(restored).returncode == 0
     for rel, content in original.items():
-        assert (restored_root / rel).read_bytes() == content
-    assert (restored_root / "config" / "firma.toml").exists()
-    assert not list(restored_root.rglob("*.lock"))
+        assert (tmp_path / rel).read_bytes() == content, rel
+    assert not list((tmp_path / "data").rglob("*.lock"))
+    assert clean.data_dir != settings.data_dir
+
+
+def test_restore_copies_into_folders_with_fake(settings: Settings, tmp_path: Path) -> None:
+    def fake(args: Sequence[str], env: dict[str, str]) -> CommandResult:
+        target = Path(args[args.index("--target") + 1])
+        restored = target / settings.data_dir.relative_to("/") / "2027"
+        restored.mkdir(parents=True)
+        (restored / "denik.csv").write_text("obnoveno", "utf-8")
+        return CommandResult(0)
+
+    assert restore_into(settings, fake).returncode == 0
+    assert (settings.data_dir / "2027" / "denik.csv").read_text("utf-8") == "obnoveno"

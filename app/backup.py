@@ -194,10 +194,49 @@ class Backup:
         ]
 
 
-def restore(
-    settings: Settings, target: Path, runner: Runner = run_command, snapshot: str = "latest"
+def restore_into(
+    settings: Settings, runner: Runner = run_command, snapshot: str = "latest"
 ) -> CommandResult:
-    """Restore a snapshot into ``target`` (paths inside keep their absolute layout)."""
-    return runner(
-        ["restic", "restore", snapshot, "--target", str(target)], Backup(settings, runner).env()
-    )
+    """Restore a snapshot into the data and config folders of ``settings``.
+
+    This is the procedure of docs/zalohovani.md:
+    ``docker compose run --rm app python -m app.backup obnovit``.
+    """
+    with tempfile.TemporaryDirectory(prefix="obnova-") as tmp:
+        result = runner(
+            ["restic", "restore", snapshot, "--target", tmp], Backup(settings, runner).env()
+        )
+        if result.returncode != 0:
+            return result
+        restored = Path(tmp)
+        for folder in (settings.data_dir, settings.config_dir):
+            source = restored / folder.relative_to(folder.anchor)
+            if source.is_dir():
+                folder.mkdir(parents=True, exist_ok=True)
+                shutil.copytree(source, folder, dirs_exist_ok=True)
+    return result
+
+
+def main(argv: Sequence[str]) -> int:
+    """``python -m app.backup [zalohovat|obnovit [snapshot]]``"""
+    settings = Settings.from_env()
+    if not configured(settings):
+        print("Záloha není nastavená: doplňte BACKUP_REPOSITORY a RESTIC_PASSWORD v .env.")
+        return 2
+    if argv and argv[0] == "obnovit":
+        snapshot = argv[1] if len(argv) > 1 else "latest"
+        result = restore_into(settings, snapshot=snapshot)
+        if result.returncode != 0:
+            print("Obnova selhala:", (result.stderr or result.stdout).strip().splitlines()[:1])
+            return 1
+        print(f"Obnoveno ze zálohy {snapshot} do {settings.data_dir} a {settings.config_dir}.")
+        return 0
+    backup = Backup(settings).backup()
+    print(backup.message)
+    return 0 if backup.ok else 1
+
+
+if __name__ == "__main__":
+    import sys
+
+    raise SystemExit(main(sys.argv[1:]))

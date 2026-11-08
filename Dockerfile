@@ -30,6 +30,8 @@ ENV PATH="/app/.venv/bin:$PATH" \
     DATA_DIR=/data \
     CONFIG_DIR=/config \
     TZ=Europe/Prague \
+    RCLONE_CONFIG=/config/rclone/rclone.conf \
+    RESTIC_CACHE_DIR=/tmp/restic-cache \
     XDG_CACHE_HOME=/tmp/.cache
 USER app
 VOLUME ["/data", "/config"]
