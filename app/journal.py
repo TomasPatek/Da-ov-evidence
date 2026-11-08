@@ -13,11 +13,13 @@ from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
 from enum import StrEnum
+from pathlib import Path
 
 from app.config import FirmaConfig
+from app.ingest.files import FileKind, UploadError, detect
 from app.money import ZERO, parse_csv_amount, round_money, sum_money
 from app.storage import Record, Storage
-from app.storage.atomic import file_lock
+from app.storage.atomic import atomic_write_bytes, file_lock
 from app.storage.csvformat import Column, ColumnKind, TableSchema
 from app.tax.categories import Direction, categories, category
 
@@ -79,8 +81,31 @@ DENIK_SCHEMA = TableSchema(
         ),
         Column("zakazka_id", description="Zakázka, ke které zápis patří; prázdné = režie."),
         Column("poznamka", description="Volná poznámka."),
+        Column(
+            "priloha",
+            description=(
+                "Fotka nebo sken dokladu k zápisu (hlavně pokladní doklad), "
+                "např. `pokladna/D2027-0004.jpg` ve složce roku; jinak prázdné."
+            ),
+        ),
     ),
 )
+
+ATTACHMENT_DIR = "pokladna"
+_ENTRY_ID_RE = re.compile(r"^D(\d{4})-\d+$")
+
+
+def attachment_kind(data: bytes) -> FileKind:
+    """PDF or a photo (JPEG, PNG), detected from the content; Czech error otherwise."""
+    try:
+        kind = detect(data)
+    except UploadError as exc:
+        if not data:
+            raise JournalError(str(exc)) from exc
+        kind = None
+    if kind is None or not (kind.is_pdf or kind.is_image):
+        raise JournalError("Přiložte PDF nebo fotku dokladu (JPEG, PNG).")
+    return kind
 
 
 class JournalError(ValueError):
@@ -279,6 +304,7 @@ class Journal:
             "danove_uznatelny": False if transit else category(d.kategorie).affects_tax_base,
             "zakazka_id": d.zakazka_id,
             "poznamka": d.poznamka.strip(),
+            "priloha": "",
         }
 
     def add(self, d: EntryDraft) -> Record:
@@ -340,7 +366,65 @@ class Journal:
         m = re.match(r"^D(\d{4})-\d+$", entry_id)
         if not m:
             raise JournalError("Neplatný zápis.")
-        self.storage.table(DENIK_SCHEMA, int(m.group(1))).delete(entry_id)
+        table = self.storage.table(DENIK_SCHEMA, int(m.group(1)))
+        row = table.get(entry_id)
+        table.delete(entry_id)
+        path = self.attachment_path(row) if row else None
+        if path is not None:
+            path.unlink(missing_ok=True)
+
+    # -- attachments (photo of a cash document) ------------------------------------
+
+    def get(self, entry_id: str) -> Record:
+        m = _ENTRY_ID_RE.match(entry_id)
+        row = self.storage.table(DENIK_SCHEMA, int(m.group(1))).get(entry_id) if m else None
+        if row is None:
+            raise JournalError("Zápis v deníku neexistuje.")
+        return row
+
+    def _attachment_dir(self, entry_id: str) -> Path:
+        return self.storage.data_dir / entry_id[1:5] / ATTACHMENT_DIR
+
+    def attachment_path(self, entry: Record) -> Path | None:
+        """File attached to ``entry``; never anything outside the year's attachment folder."""
+        name = entry.get("priloha") or ""
+        if not name or not _ENTRY_ID_RE.match(str(entry.get("id", ""))):
+            return None
+        base = self._attachment_dir(entry["id"]).resolve()
+        path = (base.parent / name).resolve()
+        if path.parent != base:
+            return None
+        return path if path.is_file() else None
+
+    def attach(self, entry_id: str, data: bytes) -> Record:
+        """Attach (or replace) the photo or scan of the document of an entry."""
+        kind = attachment_kind(data)
+        entry = self.get(entry_id)
+        old = self.attachment_path(entry)
+        name = f"{ATTACHMENT_DIR}/{entry_id}.{kind.ext}"
+        table = self.storage.table(DENIK_SCHEMA, int(entry_id[1:5]))
+        # The row first: a locked year refuses the change before any file is written.
+        record = table.update(entry_id, {"priloha": name})
+        target = self._attachment_dir(entry_id) / f"{entry_id}.{kind.ext}"
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            atomic_write_bytes(target, data)
+        except OSError:
+            table.update(entry_id, {"priloha": entry["priloha"]})
+            raise
+        if old is not None and old != target.resolve():
+            old.unlink(missing_ok=True)
+        return record
+
+    def remove_attachment(self, entry_id: str) -> Record:
+        entry = self.get(entry_id)
+        path = self.attachment_path(entry)
+        record = self.storage.table(DENIK_SCHEMA, int(entry_id[1:5])).update(
+            entry_id, {"priloha": ""}
+        )
+        if path is not None:
+            path.unlink(missing_ok=True)
+        return record
 
     def remove_for_document(self, doklad_id: str) -> None:
         for r in self.for_document(doklad_id):

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Doklad nenahrán · Daňová evidence{% endblock %}
+{% block content %}
+<h1>Doklad se nepodařilo nahrát</h1>
+<section class="card">
+  {% include "_errors.html" %}
+  <p><a class="button" href="{{ back }}">Zpět</a></p>
+</section>
+{% endblock %}

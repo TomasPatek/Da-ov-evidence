@@ -6,6 +6,12 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 
 ## [Nevydáno]
 
+### Přidáno
+
+- Fotka nebo PDF dokladu u zápisu v pokladně: při úhradě faktury, u nového zápisu a dodatečně
+  v deníku. Soubory jsou v `data/RRRR/pokladna/`, `denik.csv` má nový sloupec `priloha`
+  (starší soubory se načtou beze změny).
+
 ### Změněno
 
 - CI a sestavení vydání používají nové verze akcí GitHubu (Node 24).

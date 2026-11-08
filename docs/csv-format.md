@@ -167,6 +167,7 @@ Peněžní deník roku. Každý řádek je jeden pohyb peněz v pokladně nebo n
 | `danove_uznatelny` | `ano` / `ne` | `ano`, pokud zápis ovlivňuje základ daně (sloupce 9, 10 a 15–19). |
 | `zakazka_id` | text | Zakázka, ke které zápis patří; prázdné = režie. |
 | `poznamka` | text | Volná poznámka. |
+| `priloha` | text | Fotka nebo sken dokladu k zápisu (hlavně pokladní doklad), např. `pokladna/D2027-0004.jpg` ve složce roku; jinak prázdné. |
 
 ### `RRRR/banka.csv`
 

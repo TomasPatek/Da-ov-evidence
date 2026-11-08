@@ -1,0 +1,32 @@
+{# Photo of the document of one cash book entry: link, replace/remove, or add. Needs `e` and `back`. #}
+{% if e.priloha %}
+<a href="/denik/{{ e.id }}/priloha" target="_blank" rel="noopener">{{ label or "📎 Doklad " ~ e.cislo_dokladu }}</a>
+<details class="inline-details">
+  <summary>Změnit</summary>
+  <form method="post" action="/denik/{{ e.id }}/priloha" enctype="multipart/form-data">
+    <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+    <input type="hidden" name="zpet" value="{{ back }}">
+    <label>Nová fotka nebo PDF
+      <input type="file" name="priloha" accept="image/jpeg,image/png,application/pdf" required>
+    </label>
+    <button type="submit">Nahrát</button>
+  </form>
+  <form method="post" action="/denik/{{ e.id }}/priloha/smazat" class="inline">
+    <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+    <input type="hidden" name="zpet" value="{{ back }}">
+    <button type="submit" class="link danger-link">Odebrat doklad</button>
+  </form>
+</details>
+{% else %}
+<details class="inline-details">
+  <summary>Přidat fotku dokladu</summary>
+  <form method="post" action="/denik/{{ e.id }}/priloha" enctype="multipart/form-data">
+    <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+    <input type="hidden" name="zpet" value="{{ back }}">
+    <label>Fotka nebo PDF dokladu {{ e.cislo_dokladu }}
+      <input type="file" name="priloha" accept="image/jpeg,image/png,application/pdf" required>
+    </label>
+    <button type="submit" class="primary">Nahrát</button>
+  </form>
+</details>
+{% endif %}

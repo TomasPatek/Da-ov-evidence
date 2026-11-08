@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import date
 from typing import Any
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from starlette.responses import RedirectResponse, Response
 
 from app.config import FirmaConfig
@@ -18,13 +19,15 @@ from app.journal import (
     Journal,
     JournalError,
     PaymentMethod,
+    attachment_kind,
 )
 from app.money import parse_user_amount
 from app.tax.categories import EXPENSE_COLUMNS, INCOME_COLUMNS, category
-from app.web.forms import parse_date
+from app.web.forms import parse_date, read_upload, safe_return_path
 from app.web.security import verify_csrf
 from app.web.templating import render
 
+log = logging.getLogger(__name__)
 router = APIRouter(prefix="/denik", dependencies=[Depends(verify_csrf)])
 
 MONTHS = (
@@ -179,6 +182,12 @@ async def entry_create(request: Request) -> Response:
         errors.append("Vyberte pokladnu nebo účet.")
     if when and when > date.today():
         errors.append("Datum úhrady nesmí být v budoucnosti.")
+    photo = await read_upload(form, "priloha", request.app.state.settings.max_upload_bytes, errors)
+    if photo is not None:
+        try:
+            attachment_kind(photo)
+        except JournalError as exc:
+            errors.append(str(exc))
     if not errors and when and amount is not None:
         account = Account(v["ucet"])
         method = (
@@ -188,8 +197,9 @@ async def entry_create(request: Request) -> Response:
             if v["zpusob_uhrady"] in {m.value for m in PaymentMethod}
             else PaymentMethod.TRANSFER
         )
+        journal = _journal(request)
         try:
-            _journal(request).add(
+            entry = journal.add(
                 EntryDraft(
                     datum=when,
                     ucet=account,
@@ -203,6 +213,8 @@ async def entry_create(request: Request) -> Response:
                     kod_transakce=v["kod_transakce"],
                 )
             )
+            if photo is not None:
+                journal.attach(entry["id"], photo)
         except JournalError as exc:
             errors.append(str(exc))
         else:
@@ -267,3 +279,62 @@ def entry_delete(request: Request, entry_id: str) -> Response:
         return RedirectResponse(f"/denik?rok={year}", status_code=303)
     journal.delete(entry_id)
     return RedirectResponse(f"/denik?rok={year}&smazano=1", status_code=303)
+
+
+# -- photo or scan of the document of an entry ----------------------------------------
+
+
+@router.get("/{entry_id}/priloha")
+def attachment_file(request: Request, entry_id: str) -> Response:
+    journal = _journal(request)
+    try:
+        entry = journal.get(entry_id)
+    except JournalError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    path = journal.attachment_path(entry)
+    if path is None:
+        raise HTTPException(404, "Zápis nemá přiložený doklad.")
+    data = path.read_bytes()
+    kind = attachment_kind(data)
+    # Photos open in the browser; a PDF is downloaded (nothing from it runs in the app).
+    disposition = "inline" if kind.is_image else "attachment"
+    return Response(
+        data,
+        media_type=kind.mime,
+        headers={
+            "Content-Disposition": f'{disposition}; filename="{entry_id}.{kind.ext}"',
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
+
+
+@router.post("/{entry_id}/priloha")
+async def attachment_upload(request: Request, entry_id: str) -> Response:
+    form = await request.form()
+    back = safe_return_path(str(form.get("zpet", "")), f"/denik?rok={entry_id[1:5]}")
+    errors: list[str] = []
+    data = await read_upload(form, "priloha", request.app.state.settings.max_upload_bytes, errors)
+    if data is None and not errors:
+        errors.append("Vyberte fotku nebo PDF dokladu.")
+    if data is not None:
+        try:
+            _journal(request).attach(entry_id, data)
+        except JournalError as exc:
+            errors.append(str(exc))
+    if errors:
+        return render(
+            request, "denik/priloha-chyba.html", status_code=400, errors=errors, back=back
+        )
+    log.info("Attachment added to a cash book entry")
+    return RedirectResponse(back, status_code=303)
+
+
+@router.post("/{entry_id}/priloha/smazat")
+async def attachment_delete(request: Request, entry_id: str) -> Response:
+    form = await request.form()
+    back = safe_return_path(str(form.get("zpet", "")), f"/denik?rok={entry_id[1:5]}")
+    try:
+        _journal(request).remove_attachment(entry_id)
+    except JournalError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    return RedirectResponse(back, status_code=303)

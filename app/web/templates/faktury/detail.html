@@ -59,7 +59,7 @@
   {% if inv.stav in open_states %}
   <section class="card">
     <h2>Úhrada</h2>
-    <form method="post" action="/faktury/{{ inv.cislo }}/uhrazena">
+    <form method="post" action="/faktury/{{ inv.cislo }}/uhrazena" enctype="multipart/form-data">
       <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
       <div class="row">
         <label>Datum úhrady
@@ -71,6 +71,9 @@
       </div>
       <label>Kód transakce <span class="muted">(z notifikace banky, nepovinné; u platby na účet je číslem dokladu v deníku)</span>
         <input type="text" name="kod_transakce" maxlength="40" autocomplete="off">
+      </label>
+      <label>Fotka dokladu <span class="muted">(nepovinné; např. příjmový pokladní doklad u platby v hotovosti)</span>
+        <input type="file" name="priloha" accept="image/jpeg,image/png,application/pdf">
       </label>
       <p class="muted">Úhrada se zapíše do peněžního deníku: hotově do pokladny, jinak na účet.</p>
       <button type="submit" class="primary">Označit jako uhrazenou</button>
@@ -92,10 +95,15 @@
     <h2>Úhrada</h2>
     <form method="post" action="/faktury/{{ inv.cislo }}/neuhrazena">
       <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
-      {% for r in journal_rows %}<p>V deníku: <a href="/denik?rok={{ r.datum_uhrady.year }}">{{ r.cislo_dokladu }}</a> ({{ r.ucet }}, {{ r.datum_uhrady | cz_date }})</p>{% endfor %}
       <p>Úhradu jste zadali omylem? Zrušením se odstraní i zápis v deníku.</p>
       <button type="submit">Zrušit úhradu</button>
     </form>
+    {% for e in journal_rows %}
+    <div class="journal-row">
+      <p>V deníku: <a href="/denik?rok={{ e.datum_uhrady.year }}">{{ e.cislo_dokladu }}</a> ({{ e.ucet }}, {{ e.datum_uhrady | cz_date }})</p>
+      {% with back="/faktury/" ~ inv.cislo %}{% include "denik/_priloha.html" %}{% endwith %}
+    </div>
+    {% endfor %}
   </section>
   {% endif %}
 </div>

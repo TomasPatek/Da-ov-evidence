@@ -38,7 +38,7 @@ from app.money import (
     sum_money,
 )
 from app.storage import Record
-from app.web.forms import EMAIL_RE, parse_date
+from app.web.forms import EMAIL_RE, parse_date, read_upload
 from app.web.routes_contacts import contact_choices
 from app.web.security import verify_csrf
 from app.web.templating import render
@@ -396,13 +396,15 @@ async def invoice_paid(request: Request, cislo: str) -> Response:
         if method_text in {m.value for m in PaymentMethod}
         else PaymentMethod.TRANSFER
     )
-    if when is not None:
+    photo = await read_upload(form, "priloha", request.app.state.settings.max_upload_bytes, errors)
+    if when is not None and not errors:
         try:
             _service(request).mark_paid(
                 cislo,
                 when,
                 method=method,
                 kod_transakce=str(form.get("kod_transakce", "")),
+                attachment=photo,
             )
         except InvoiceError as exc:
             errors.append(str(exc))

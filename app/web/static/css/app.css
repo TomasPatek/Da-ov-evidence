@@ -276,3 +276,12 @@ label.camera input[type=file] { position: absolute; width: 1px; height: 1px; opa
 .photo { display: flex; flex-direction: column; gap: .5rem; }
 .card.photo + .card.upload { margin-top: 1rem; }
 @media (max-width: 640px) { label.camera { width: 100%; } }
+
+/* Photo of the document of a cash book entry. */
+.attachment { margin-top: .25rem; font-size: .9rem; }
+.inline-details { display: inline-block; margin-left: .5rem; }
+.attachment > .inline-details:first-child { margin-left: 0; }
+.inline-details > summary { display: inline; margin: 0; }
+.inline-details[open] { display: block; margin: .5rem 0 0; }
+.inline-details form { margin-top: .5rem; }
+.journal-row { border-top: 1px solid var(--border); padding-top: .5rem; margin-top: .75rem; }
