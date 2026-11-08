@@ -14,7 +14,7 @@ aktualizuje se jen program (Docker image).
 ## Postup
 
 1. Přečtěte si [CHANGELOG](../CHANGELOG.md) nebo poznámky k vydání na
-   [stránce Releases](https://github.com/TomasPatek/Da-ov-evidence/releases).
+   [stránce Releases](https://github.com/TomasPatek/Danova-evidence/releases).
    Nová **hlavní** verze (např. z 1.x na 2.0) mění formát dat a poznámky popisují migraci.
 2. Udělejte zálohu podle [zálohování](zalohovani.md).
 3. Přejděte do složky aplikace a stáhněte novou verzi.

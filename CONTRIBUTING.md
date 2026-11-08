@@ -20,8 +20,8 @@ Díky za zájem. Tento návod popisuje, jak rozběhnout vývojové prostředí a
 Potřebujete [uv](https://docs.astral.sh/uv/) a Git.
 
 ```sh
-git clone https://github.com/TomasPatek/Da-ov-evidence.git
-cd Da-ov-evidence
+git clone https://github.com/TomasPatek/Danova-evidence.git
+cd Danova-evidence
 uv sync
 git config core.hooksPath .githooks
 ```

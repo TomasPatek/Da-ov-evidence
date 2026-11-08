@@ -4,5 +4,5 @@ contact_links:
     url: https://topalux.cz
     about: Placená podpora od autora.
   - name: Bezpečnostní chyba
-    url: https://github.com/TomasPatek/Da-ov-evidence/security/advisories/new
+    url: https://github.com/TomasPatek/Danova-evidence/security/advisories/new
     about: Zranitelnosti hlaste soukromě, ne veřejným issue.

@@ -65,7 +65,7 @@ Uchovává se 7 denních, 5 týdenních, 12 měsíčních a 10 ročních záloh.
 2. Stáhněte aplikaci a vytvořte prázdné složky:
 
    ```sh
-   git clone https://github.com/TomasPatek/Da-ov-evidence.git ~/danova-evidence
+   git clone https://github.com/TomasPatek/Danova-evidence.git ~/danova-evidence
    cd ~/danova-evidence
    mkdir -p data config/rclone
    ```

@@ -2,9 +2,9 @@
 
 Self-hosted webová aplikace pro daňovou evidenci OSVČ, která není plátcem DPH. Data ukládá do CSV, takže je přečtete i bez ní.
 
-[![CI](https://github.com/TomasPatek/Da-ov-evidence/actions/workflows/ci.yml/badge.svg)](https://github.com/TomasPatek/Da-ov-evidence/actions/workflows/ci.yml)
+[![CI](https://github.com/TomasPatek/Danova-evidence/actions/workflows/ci.yml/badge.svg)](https://github.com/TomasPatek/Danova-evidence/actions/workflows/ci.yml)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE.md)
-[![Poslední verze](https://img.shields.io/github/v/release/TomasPatek/Da-ov-evidence?include_prereleases&label=verze)](https://github.com/TomasPatek/Da-ov-evidence/releases)
+[![Poslední verze](https://img.shields.io/github/v/release/TomasPatek/Danova-evidence?include_prereleases&label=verze)](https://github.com/TomasPatek/Danova-evidence/releases)
 
 ![Hlavní obrazovka](docs/img/prehled.png)
 

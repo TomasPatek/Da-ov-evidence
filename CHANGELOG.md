@@ -122,6 +122,6 @@ faktur s více řádky z Air Bank přibude v další verzi.
   - Dokumentace: instalace, konfigurace, zálohování, aktualizace, formát CSV (generovaný z kódu),
     CONTRIBUTING, SECURITY, šablony issues a pull requestů.
 
-[Nevydáno]: https://github.com/TomasPatek/Da-ov-evidence/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/TomasPatek/Da-ov-evidence/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/TomasPatek/Da-ov-evidence/releases/tag/v1.0.0
+[Nevydáno]: https://github.com/TomasPatek/Danova-evidence/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/TomasPatek/Danova-evidence/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/TomasPatek/Danova-evidence/releases/tag/v1.0.0
