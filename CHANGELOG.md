@@ -8,6 +8,8 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 
 ### Změněno
 
+- Docker image obsahuje Tesseract (čeština), restic a rclone. Nové proměnné `BACKUP_REPOSITORY`,
+  `RESTIC_PASSWORD`, `BACKUP_TIME`, `POSTA_INTERVAL_MIN`, `IMAP_SECURITY`.
 - Nová sekce `[evidence]` ve `firma.toml`; u existující instalace ji vyplníte v *Nastavení →
   Peněžní deník*. Docker image obsahuje knihovnu `libzbar0` pro čtení QR kódů.
 - Nové proměnné `SMTP_FROM` a `SMTP_SECURITY` v `.env`; nová položka `[fakturace] text_dph`
@@ -34,6 +36,18 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 
 ### Přidáno
 
+- Fáze 4, dokončení:
+  - Evidence majetku (`majetek.csv`) s rovnoměrnými (§ 31) a zrychlenými (§ 32) odpisy,
+    přerušením a polovičním odpisem v roce vyřazení; pravidla v `app/tax/depreciation.py`.
+  - Roční přehled: příjmy, výdaje, odpisy, dílčí základ daně, orientační vyměřovací základy
+    ČSSZ a ZP, pohledávky a závazky k 31. 12., majetek, zakázky; export do PDF a Markdownu.
+  - Uzamčení roku proti změnám (úhrady faktur a dokladů z uzamčeného roku dál možné),
+    zápis do auditního logu.
+  - OCR skenů a fotek (Tesseract, čeština), focení účtenek z mobilu, otočení fotek podle EXIF.
+  - Ikona na ploše iPhonu (manifest, ikony), stránka pro uzamčení a zálohu v nastavení.
+  - Noční šifrovaná záloha (restic, cloud přes rclone nebo složka) s retencí, stránka
+    *Záloha*, obnova `python -m app.backup obnovit` ověřená testem.
+  - Návody `docs/rocni-prehled.md`, `docs/mobil.md`, přepracovaný `docs/zalohovani.md`.
 - Fáze 3, automatizace:
   - Stahování pošty přes IMAP každých 15 minut (APScheduler v aplikaci) a tlačítkem;
     zpracované zprávy se přesouvají do složky *Zpracováno*, ostatní zůstávají a čtou se jen jednou.

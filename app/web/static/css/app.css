@@ -183,7 +183,7 @@ input[type=date], input[type=search] {
   font: inherit; padding: .5rem .7rem; border: 1px solid var(--border); border-radius: 6px;
   background: var(--bg); color: var(--text); width: 100%;
 }
-a.button.primary { background: var(--brand-primary); border-color: var(--brand-primary); color: var(--brand-primary-contrast); font-weight: 600; }
+a.button.primary, label.button.primary { background: var(--brand-primary); border-color: var(--brand-primary); color: var(--brand-primary-contrast); font-weight: 600; }
 button.danger { border-color: var(--danger); color: var(--danger); }
 
 .table-wrap { overflow-x: auto; }
@@ -275,3 +275,4 @@ label.camera { position: relative; display: inline-flex; align-items: center; ju
 label.camera input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .photo { display: flex; flex-direction: column; gap: .5rem; }
 .card.photo + .card.upload { margin-top: 1rem; }
+@media (max-width: 640px) { label.camera { width: 100%; } }
