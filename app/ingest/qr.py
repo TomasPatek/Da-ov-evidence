@@ -11,7 +11,6 @@ from urllib.parse import unquote
 
 import pypdfium2 as pdfium
 from PIL import Image
-from pyzbar.pyzbar import ZBarSymbol, decode
 
 from app.banks.ucet import iban_is_valid
 from app.ingest.model import Extraction
@@ -47,6 +46,10 @@ def pdf_images(data: bytes, scale: float = 2.5) -> list[Image.Image]:
 
 
 def find_spayd(images: list[Image.Image]) -> dict[str, str] | None:
+    # Imported here: pyzbar needs the native zbar library, which tools such as the
+    # docs generator (python -m app.storage.docs) must not depend on.
+    from pyzbar.pyzbar import ZBarSymbol, decode
+
     for image in images:
         for code in decode(image, symbols=[ZBarSymbol.QRCODE]):
             fields = parse_spayd(code.data.decode("utf-8", "replace"))
