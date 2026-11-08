@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import mimetypes
 import secrets
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -38,6 +39,7 @@ from app.web.security import AuthGateMiddleware, SecurityHeadersMiddleware
 from app.web.templating import render
 
 log = logging.getLogger("app")
+mimetypes.add_type("application/manifest+json", ".webmanifest")
 
 STATIC_DIR = Path(__file__).parent / "web" / "static"
 

@@ -55,6 +55,12 @@ class FakeMailer:
         self.sent.append(message)
 
 
+@pytest.fixture(autouse=True)
+def _no_ocr(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Golden files must not depend on whether Tesseract is installed; OCR tests opt in."""
+    monkeypatch.setattr("app.ingest.pipeline.OCR_ENABLED", False)
+
+
 @pytest.fixture
 def fake_mailer() -> FakeMailer:
     return FakeMailer()

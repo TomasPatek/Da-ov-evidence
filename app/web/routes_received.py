@@ -10,7 +10,7 @@ from typing import Any
 
 import pypdfium2 as pdfium
 from fastapi import APIRouter, Depends, HTTPException, Request
-from PIL import Image
+from PIL import Image, ImageOps
 from starlette.datastructures import FormData, UploadFile
 from starlette.responses import RedirectResponse, Response
 
@@ -119,9 +119,11 @@ async def doc_upload(request: Request) -> Response:
     log.info("Uploaded %d received documents", len(created))
     if errors:
         return _list_with_errors(request, errors, uploaded=len(created))
-    if len(created) == 1:
-        return RedirectResponse(f"/doklady/{created[0]}", status_code=303)
-    return RedirectResponse("/doklady?filtr=kontrola", status_code=303)
+    target = f"/doklady/{created[0]}" if len(created) == 1 else "/doklady?filtr=kontrola"
+    if request.headers.get("HX-Request"):
+        # Photo form submitted by HTMX: let the browser load the review page.
+        return Response(status_code=204, headers={"HX-Redirect": target})
+    return RedirectResponse(target, status_code=303)
 
 
 def _list_with_errors(request: Request, errors: list[str], uploaded: int = 0) -> Response:
@@ -533,7 +535,7 @@ def doc_preview(request: Request, doc_id: str, strana: int = 1) -> Response:
             finally:
                 pdf.close()
         else:
-            image = Image.open(path)
+            image = ImageOps.exif_transpose(Image.open(path))
             image.thumbnail((1400, 1400))
     except (pdfium.PdfiumError, OSError, Image.DecompressionBombError) as exc:
         raise HTTPException(404, "Náhled se nepodařilo vytvořit.") from exc

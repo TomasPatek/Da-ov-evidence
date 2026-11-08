@@ -6,20 +6,31 @@ no document is sent to any external service.
 
 from __future__ import annotations
 
+import io
 import logging
 import re
+
+from PIL import Image
 
 from app.ingest.files import FileKind, isdoc_from_isdocx
 from app.ingest.isdoc import isdoc_attachment, parse_isdoc
 from app.ingest.model import Extraction
+from app.ingest.ocr import ocr_available, ocr_images
 from app.ingest.own_invoice import OWN_INVOICE, is_own_document, read_own_invoice
-from app.ingest.pdftext import extract_text_fields, pdf_text
-from app.ingest.qr import read_qr
+from app.ingest.pdftext import extract_text_fields, normalize, pdf_text
+from app.ingest.qr import pdf_images, read_qr
 from app.ingest.templates import SupplierTemplates
 from app.storage import Record
 from app.tax.categories import Direction, default_category
 
 log = logging.getLogger(__name__)
+
+# Tests switch OCR off for deterministic golden files; the OCR test switches it on.
+OCR_ENABLED = True
+
+
+def ocr_enabled() -> bool:
+    return OCR_ENABLED and ocr_available()
 
 
 def read_document(
@@ -64,6 +75,18 @@ def read_document(
         ex.uncertain = {"dodavatel_nazev"} if not own.customer.nazev else set()
         ex.steps.append("vlastní faktura")
         return ex
+    # 5. OCR for scans and photos (only when the earlier steps found no amount)
+    if (kind.is_pdf or kind.is_image) and not ex.amount and ocr_enabled():
+        try:
+            images: list[Image.Image] = (
+                pdf_images(data) if kind.is_pdf else [Image.open(io.BytesIO(data))]
+            )
+            text = ocr_images(images)
+        except Exception:
+            log.info("OCR failed")
+            text = ""
+        if text.strip():
+            extract_text_fields(normalize(text), ex, own_ico, own_account, source="OCR")
     # 4. Supplier template and known contact
     templates.apply(ex)
     complete(ex, contacts, jobs)

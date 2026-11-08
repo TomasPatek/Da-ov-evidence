@@ -6,6 +6,18 @@
   <a class="button" href="/doklady/novy">Zadat ručně</a>
 </div>
 {% include "_errors.html" %}
+<section class="card photo" id="foto">
+  <form method="post" action="/doklady/nahrat" enctype="multipart/form-data"
+        hx-post="/doklady/nahrat" hx-encoding="multipart/form-data" hx-trigger="change">
+    <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+    <input type="hidden" name="zdroj" value="foto">
+    <label class="button primary camera">Vyfotit účtenku
+      <input type="file" name="soubory" accept="image/*" capture="environment" required>
+    </label>
+    <noscript><button type="submit">Nahrát fotku</button></noscript>
+  </form>
+  <p class="muted">Po vyfocení se účtenka sama nahraje a přečte. Fotku podložte tmavým podkladem a foťte zblízka a rovně.</p>
+</section>
 <section class="card upload">
   <form method="post" action="/doklady/nahrat" enctype="multipart/form-data">
     <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
