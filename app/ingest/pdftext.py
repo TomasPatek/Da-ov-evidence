@@ -25,7 +25,8 @@ MAX_PAGES = 5
 _DATE = r"(\d{1,2})\.\s?(\d{1,2})\.\s?(\d{4})|(\d{4})-(\d{2})-(\d{2})"
 _DATE_RE = re.compile(_DATE)
 _AMOUNT_RE = re.compile(
-    r"(?<![\d.,])-?\d{1,3}(?:[  ]\d{3})*[,.]\d{2}(?![\d])|(?<![\d.,])-?\d+[,.]\d{2}(?![\d])"
+    r"(?<![\d.,])-?\d{1,3}(?:[ \u00a0\u202f]\d{3})*[,.]\d{2}(?![\d])"
+    r"|(?<![\d.,])-?\d+[,.]\d{2}(?![\d])"
 )
 _ICO_RE = re.compile(r"\bI[ČC]O?\s*[:.]?\s*(\d{8})\b", re.IGNORECASE)
 _DIC_RE = re.compile(r"\bDI[ČC]\s*[:.]?\s*(CZ\d{8,10})\b", re.IGNORECASE)
@@ -48,6 +49,8 @@ TOTAL_LABELS = (
     r"celková\s+částka",
     r"celkem\s+s\s+dph(?!\s+v)",
     r"celkem\s+kč",
+    r"celkem\s+zaplaťte",
+    r"^zaplaceno\s*:",  # Air Bank invoice already paid in cash
     r"celkem(?!\s+(?:bez|s\s+dph\s+v|k\s+úhradě))",
 )
 NUMBER_PATTERNS = (
@@ -72,7 +75,12 @@ def pdf_text(data: bytes) -> str:
 
 
 def normalize(text: str) -> str:
-    text = text.replace("\r\n", "\n").replace("\r", "\n").replace(" ", " ").replace("￾", "")
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    # No-break spaces (thousands separators, "FAKTURA 2026…") become plain spaces;
+    # escapes keep editors from silently turning them into ordinary spaces again.
+    for char in ("\u00a0", "\u202f", "\u2009"):
+        text = text.replace(char, " ")
+    text = text.replace("\ufffe", "")
     return "\n".join(line.strip() for line in text.split("\n"))
 
 
@@ -87,7 +95,7 @@ def parse_date(match: re.Match[str]) -> date | None:
 
 
 def parse_amount(text: str) -> Decimal | None:
-    cleaned = re.sub(r"[  ]", "", text).replace(",", ".")
+    cleaned = re.sub(r"[ \u00a0\u202f]", "", text).replace(",", ".")
     try:
         return round_money(Decimal(cleaned))
     except InvalidOperation:

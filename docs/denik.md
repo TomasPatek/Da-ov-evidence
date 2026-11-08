@@ -23,7 +23,13 @@ tiskopis Baloušek ET 328 (sloupce 1–23), takže součty můžete porovnat s p
    kategorie (sloupec ET 328) a text.
 3. **Výběr z účtu do pokladny a vklad z pokladny na účet** zapíšete v *Převod pokladna ↔ účet*.
    Zapíše se jako průběžná položka (sloupce 6 a 7) a neovlivní příjmy ani výdaje.
-4. **Tabulka ET 328** ukazuje rok ve všech 23 sloupcích s měsíčními součty a řádkem
+4. **Fotka dokladu** (příjmový nebo výdajový pokladní doklad, účtenka): přiložíte ji
+   při *Označit jako uhrazenou* u faktury, u *Nového zápisu*, nebo dodatečně odkazem
+   *Přidat fotku dokladu* u zápisu v pokladně v seznamu deníku a u uhrazené faktury.
+   Na telefonu tlačítko nabídne fotoaparát. Přijímá se JPEG, PNG a PDF; fotka se uloží do
+   `data/RRRR/pokladna/` a otevřete ji odkazem *📎 Doklad*. Přijaté doklady mají vlastní
+   soubor, k nim se fotka nepřikládá.
+5. **Tabulka ET 328** ukazuje rok ve všech 23 sloupcích s měsíčními součty a řádkem
    *převedeno*. Vytisknete ji z prohlížeče na šířku.
 
 Číslo dokladu ve sloupci *b*:
@@ -32,7 +38,10 @@ tiskopis Baloušek ET 328 (sloupce 1–23), takže součty můžete porovnat s p
   úhradě faktury, dokladu nebo u ručního zápisu. Když ho nevyplníte, použije se číslo faktury
   nebo přijatého dokladu, u pohybu bez dokladu `B1`, `B2`…
 - **Pokladna:** příjmový `PPD1/27` nebo výdajový `VPD1/27` pokladní doklad (pořadové číslo /
-  poslední dvojčíslí roku; každý rok začíná od 1). Čísluje aplikace sama.
+  poslední dvojčíslí roku; každý rok začíná od 1). Čísluje aplikace sama v pořadí zadání.
+  Když číslo nesedí s papírovým dokladem, opravíte ho odkazem *Opravit číslo* u zápisu
+  v deníku nebo u uhrazené faktury (stačí napsat pořadové číslo, např. `3`). Další doklady
+  pak navážou na nejvyšší použité číslo. Stejné číslo nesmí mít dva zápisy.
 
 Vazba na fakturu nebo přijatý doklad zůstává ve sloupci `doklad_id` i s kódem transakce.
 
@@ -55,7 +64,13 @@ Vazba na fakturu nebo přijatý doklad zůstává ve sloupci `doklad_id` i s kó
 - **„Evidence v aplikaci začíná…“:** zápis je starší než začátek evidence. Patří do původní
   evidence, nebo upravte začátek v nastavení.
 - **„Pokladna má záporný zůstatek“:** chybí příjem do pokladny (tržba, výběr z účtu) nebo je
-  některý výdaj zapsán na pokladnu místo na účet.
+  některý výdaj zapsán na pokladnu místo na účet. Pořadí zadání v rámci jednoho dne nevadí:
+  příjmy téhož dne se počítají před výdaji.
+- **„Přiložte PDF nebo fotku dokladu“:** soubor není JPEG, PNG ani PDF. Na iPhonu zvolte
+  v *Nastavení → Fotoaparát → Formáty* volbu *Nejkompatibilnější*, nebo fotku pořiďte přímo
+  z formuláře (Safari ji odešle jako JPEG).
+- **Fotku nejde přidat v uzamčeném roce:** rok odemkněte v *Ročním přehledu*, přidejte fotku
+  a rok znovu zamkněte.
 - **Zápis z faktury nebo dokladu nejde smazat:** zrušte úhradu u faktury nebo dokladu,
   zápis zmizí s ní.
 - **Základ daně na stránce Deník:** je jen orientační (příjmy 9 + 10 minus výdaje 15–19),

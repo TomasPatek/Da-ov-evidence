@@ -73,7 +73,7 @@ a podobné (arm64). Nemusíte ho pak sestavovat, což ušetří čas a místo na
 2. Do `.env` přidejte:
 
    ```sh
-   APP_IMAGE=ghcr.io/tomaspatek/danova-evidence:1.0.0
+   APP_IMAGE=ghcr.io/tomaspatek/danova-evidence:1.1.0
    APP_PULL_POLICY=missing
    ```
 

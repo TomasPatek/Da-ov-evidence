@@ -52,7 +52,11 @@
     <tr>
       <td class="nowrap">{{ e.datum_uhrady | cz_date }}</td>
       <td class="nowrap">{% if e.doklad_id and e.doklad_id.startswith("PD") %}<a href="/doklady/{{ e.doklad_id }}">{{ e.cislo_dokladu }}</a>{% elif e.doklad_id %}<a href="/faktury/{{ e.doklad_id }}">{{ e.cislo_dokladu }}</a>{% else %}{{ e.cislo_dokladu }}{% endif %}</td>
-      <td>{{ e.popis }}<br><span class="muted">{{ e.ucet }}{% if e.zpusob_uhrady not in ("převod", "hotovost") %} · {{ e.zpusob_uhrady }}{% endif %}{% if e.zakazka_id %} · <a href="/zakazky/{{ e.zakazka_id }}">{{ e.zakazka_id }}</a>{% endif %}</span></td>
+      <td>{{ e.popis }}<br><span class="muted">{{ e.ucet }}{% if e.zpusob_uhrady not in ("převod", "hotovost") %} · {{ e.zpusob_uhrady }}{% endif %}{% if e.zakazka_id %} · <a href="/zakazky/{{ e.zakazka_id }}">{{ e.zakazka_id }}</a>{% endif %}</span>
+        {% if e.priloha or e.ucet == "hotovost" %}<div class="attachment">{% with back="/denik?rok=" ~ year ~ ("&mesic=" ~ month if month else ""), label="📎 Doklad" %}
+          {% if e.priloha or not e.doklad_id.startswith("PD") %}{% include "denik/_priloha.html" %}{% endif %}
+          {% if e.ucet == "hotovost" %}{% include "denik/_cislo.html" %}{% endif %}
+        {% endwith %}</div>{% endif %}</td>
       <td class="hide-mobile">{{ column_label(e.kategorie) }}</td>
       <td class="num">{% if e.smer == "příjem" %}{{ e.castka | czk }}{% endif %}</td>
       <td class="num">{% if e.smer == "výdaj" %}{{ e.castka | czk }}{% endif %}</td>

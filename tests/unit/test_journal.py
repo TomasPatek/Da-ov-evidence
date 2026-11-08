@@ -263,3 +263,24 @@ def test_transfer_bank_side_gets_code(journal: Journal) -> None:
         date(2027, 1, 5), Account.BANK, Account.CASH, D("30"), "Výběr", kod_transakce="987654"
     )
     assert (out["cislo_dokladu"], inn["cislo_dokladu"]) == ("987654", "PPD1/27")
+
+
+def test_same_day_income_comes_before_expense(journal: Journal) -> None:
+    # Opening cash 100 Kč. On one day: deposit 300 Kč to the bank entered first,
+    # then the 250 Kč cash income that made it possible.
+    day = date(2027, 10, 18)
+    journal.transfer(day, Account.CASH, Account.BANK, D("300"), "Vklad na účet")
+    journal.add(entry(day, Account.CASH, "příjem", "250", 9, "Tržba"))
+    report = journal.et_report(2027)
+    assert not any("záporný" in w for w in report.warnings)
+    cash_rows = [r for r in report.rows if r.entry["ucet"] == "hotovost"]
+    assert [r.entry["smer"] for r in cash_rows] == ["příjem", "výdaj"]
+    assert [r.cash_balance for r in cash_rows] == [D("350"), D("50")]
+
+
+def test_negative_cash_at_end_of_day_is_still_reported(journal: Journal) -> None:
+    day = date(2027, 10, 18)
+    journal.add(entry(day, Account.CASH, "příjem", "50", 9, "Tržba"))
+    journal.add(entry(day, Account.CASH, "výdaj", "200", 16, "Materiál"))
+    warnings = journal.et_report(2027).warnings
+    assert any("od 18. 10. záporný" in w for w in warnings)

@@ -7,7 +7,7 @@
   {% include "_errors.html" %}
   <p class="muted">Pro platby bez dokladu v aplikaci: tržba v hotovosti, vklad, pojistné OSVČ, osobní spotřeba…
   Faktury a přijaté doklady se do deníku zapisují samy při úhradě.</p>
-  <form method="post" action="/denik/novy">
+  <form method="post" action="/denik/novy" enctype="multipart/form-data">
     <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
     <div class="row">
       <fieldset class="choices" hx-get="/denik/kategorie" hx-trigger="change"
@@ -44,6 +44,10 @@
       <select name="zakazka_id"><option value="">— bez zakázky —</option>{% for j in jobs %}<option value="{{ j.id }}" {{ 'selected' if v.zakazka_id == j.id }}>{{ j.id }} {{ j.nazev }}</option>{% endfor %}</select>
     </label>
     <label>Poznámka <input type="text" name="poznamka" value="{{ v.poznamka }}"></label>
+    <label>Fotka dokladu <span class="muted">(nepovinné; pokladní doklad, účtenka; JPEG, PNG nebo PDF)</span>
+      <input type="file" name="priloha" accept="image/jpeg,image/png,application/pdf">
+    </label>
+    {% if errors %}<p class="muted">Po chybě vyberte fotku znovu, prohlížeč ji nepamatuje.</p>{% endif %}
     <button type="submit" class="primary">Zapsat</button>
   </form>
 </section>

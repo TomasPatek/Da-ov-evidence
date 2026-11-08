@@ -6,13 +6,27 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 
 ## [Nevydáno]
 
+## [1.1.0] - 2026-11-08
+
+### Přidáno
+
+- Fotka nebo PDF dokladu u zápisu v pokladně: při úhradě faktury, u nového zápisu a dodatečně
+  v deníku. Soubory jsou v `data/RRRR/pokladna/`, `denik.csv` má nový sloupec `priloha`
+  (starší soubory se načtou beze změny).
+- Ruční oprava čísla pokladního dokladu (PPD/VPD) u zápisu v pokladně, např. podle
+  papírového dokladu. Automatické číslování naváže na nejvyšší použité číslo.
+
 ### Změněno
 
 - CI a sestavení vydání používají nové verze akcí GitHubu (Node 24).
 
 ### Opraveno
 
+- Pokladna už neukazuje záporný zůstatek jen proto, že výdaj (např. vklad na účet) byl zadán
+  dřív než příjem téhož dne. V rámci jednoho dne jdou v deníku příjmy před výdaji.
 - Kontrola dokumentace CSV v CI už nepotřebuje knihovnu zbar.
+- Faktury vydané v Air Bank a zaplacené v hotovosti: správná částka (pevné mezery v částkách
+  jako `1 150,00`) a popis plnění u textu „Zaplaceno:“.
 
 ## [1.0.0] - 2026-11-08
 
@@ -108,5 +122,6 @@ faktur s více řádky z Air Bank přibude v další verzi.
   - Dokumentace: instalace, konfigurace, zálohování, aktualizace, formát CSV (generovaný z kódu),
     CONTRIBUTING, SECURITY, šablony issues a pull requestů.
 
-[Nevydáno]: https://github.com/TomasPatek/Da-ov-evidence/compare/v1.0.0...HEAD
+[Nevydáno]: https://github.com/TomasPatek/Da-ov-evidence/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/TomasPatek/Da-ov-evidence/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/TomasPatek/Da-ov-evidence/releases/tag/v1.0.0

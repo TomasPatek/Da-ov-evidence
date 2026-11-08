@@ -13,11 +13,13 @@ from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
 from enum import StrEnum
+from pathlib import Path
 
 from app.config import FirmaConfig
+from app.ingest.files import FileKind, UploadError, detect
 from app.money import ZERO, parse_csv_amount, round_money, sum_money
 from app.storage import Record, Storage
-from app.storage.atomic import file_lock
+from app.storage.atomic import atomic_write_bytes, file_lock
 from app.storage.csvformat import Column, ColumnKind, TableSchema
 from app.tax.categories import Direction, categories, category
 
@@ -79,8 +81,31 @@ DENIK_SCHEMA = TableSchema(
         ),
         Column("zakazka_id", description="Zakázka, ke které zápis patří; prázdné = režie."),
         Column("poznamka", description="Volná poznámka."),
+        Column(
+            "priloha",
+            description=(
+                "Fotka nebo sken dokladu k zápisu (hlavně pokladní doklad), "
+                "např. `pokladna/D2027-0004.jpg` ve složce roku; jinak prázdné."
+            ),
+        ),
     ),
 )
+
+ATTACHMENT_DIR = "pokladna"
+_ENTRY_ID_RE = re.compile(r"^D(\d{4})-\d+$")
+
+
+def attachment_kind(data: bytes) -> FileKind:
+    """PDF or a photo (JPEG, PNG), detected from the content; Czech error otherwise."""
+    try:
+        kind = detect(data)
+    except UploadError as exc:
+        if not data:
+            raise JournalError(str(exc)) from exc
+        kind = None
+    if kind is None or not (kind.is_pdf or kind.is_image):
+        raise JournalError("Přiložte PDF nebo fotku dokladu (JPEG, PNG).")
+    return kind
 
 
 class JournalError(ValueError):
@@ -190,7 +215,12 @@ class Journal:
 
     def entries(self, year: int) -> list[Record]:
         rows = self.storage.table(DENIK_SCHEMA, year).all()
-        rows.sort(key=lambda r: (r["datum_uhrady"], _id_seq(r["id"])))
+        # Within one day income goes first: the order of entry says nothing about the order
+        # of payments, and the cash desk must not look negative just because a deposit to the
+        # bank was entered before the cash income of the same day.
+        rows.sort(
+            key=lambda r: (r["datum_uhrady"], r["smer"] != Direction.INCOME, _id_seq(r["id"]))
+        )
         return rows
 
     def for_document(self, doklad_id: str) -> list[Record]:
@@ -279,6 +309,7 @@ class Journal:
             "danove_uznatelny": False if transit else category(d.kategorie).affects_tax_base,
             "zakazka_id": d.zakazka_id,
             "poznamka": d.poznamka.strip(),
+            "priloha": "",
         }
 
     def add(self, d: EntryDraft) -> Record:
@@ -336,11 +367,102 @@ class Journal:
             entry_id, {"cislo_dokladu": number}
         )
 
+    def set_cash_number(self, entry_id: str, typed: str) -> Record:
+        """Correct the number of a cash voucher, e.g. to match the paper ``PPD3/26``.
+
+        Just the sequence number (``3``) is enough; prefix and year are added. The
+        automatic numbering continues from the highest number used.
+        """
+        entry = self.get(entry_id)
+        if entry["ucet"] != Account.CASH:
+            raise JournalError("Číslo pokladního dokladu jde opravit jen u zápisu v pokladně.")
+        income = entry["smer"] == Direction.INCOME
+        prefix = "PPD" if income else "VPD"
+        year = entry["datum_uhrady"].year % 100
+        text = re.sub(r"\s+", "", typed).upper()
+        if text.isdigit():
+            text = f"{prefix}{text}/{year:02d}"
+        m = re.fullmatch(r"(PPD|VPD)([1-9]\d{0,4})/(\d{2})", text)
+        if not m:
+            raise JournalError(f"Zadejte číslo ve tvaru {prefix}1/{year:02d}.")
+        if m.group(1) != prefix:
+            raise JournalError(
+                "Příjem do pokladny má číslo PPD…" if income else "Výdaj z pokladny má číslo VPD…"
+            )
+        if int(m.group(3)) != year:
+            raise JournalError(f"Na konci čísla musí být dvojčíslí roku úhrady {year:02d}.")
+        for row in self.entries(entry["datum_uhrady"].year):
+            if row["cislo_dokladu"] == text and row["id"] != entry_id:
+                raise JournalError(f"Číslo {text} už má jiný zápis ({row['id']}).")
+        if entry["cislo_dokladu"] == text:
+            return entry
+        return self.storage.table(DENIK_SCHEMA, int(entry_id[1:5])).update(
+            entry_id, {"cislo_dokladu": text}
+        )
+
     def delete(self, entry_id: str) -> None:
         m = re.match(r"^D(\d{4})-\d+$", entry_id)
         if not m:
             raise JournalError("Neplatný zápis.")
-        self.storage.table(DENIK_SCHEMA, int(m.group(1))).delete(entry_id)
+        table = self.storage.table(DENIK_SCHEMA, int(m.group(1)))
+        row = table.get(entry_id)
+        table.delete(entry_id)
+        path = self.attachment_path(row) if row else None
+        if path is not None:
+            path.unlink(missing_ok=True)
+
+    # -- attachments (photo of a cash document) ------------------------------------
+
+    def get(self, entry_id: str) -> Record:
+        m = _ENTRY_ID_RE.match(entry_id)
+        row = self.storage.table(DENIK_SCHEMA, int(m.group(1))).get(entry_id) if m else None
+        if row is None:
+            raise JournalError("Zápis v deníku neexistuje.")
+        return row
+
+    def _attachment_dir(self, entry_id: str) -> Path:
+        return self.storage.data_dir / entry_id[1:5] / ATTACHMENT_DIR
+
+    def attachment_path(self, entry: Record) -> Path | None:
+        """File attached to ``entry``; never anything outside the year's attachment folder."""
+        name = entry.get("priloha") or ""
+        if not name or not _ENTRY_ID_RE.match(str(entry.get("id", ""))):
+            return None
+        base = self._attachment_dir(entry["id"]).resolve()
+        path = (base.parent / name).resolve()
+        if path.parent != base:
+            return None
+        return path if path.is_file() else None
+
+    def attach(self, entry_id: str, data: bytes) -> Record:
+        """Attach (or replace) the photo or scan of the document of an entry."""
+        kind = attachment_kind(data)
+        entry = self.get(entry_id)
+        old = self.attachment_path(entry)
+        name = f"{ATTACHMENT_DIR}/{entry_id}.{kind.ext}"
+        table = self.storage.table(DENIK_SCHEMA, int(entry_id[1:5]))
+        # The row first: a locked year refuses the change before any file is written.
+        record = table.update(entry_id, {"priloha": name})
+        target = self._attachment_dir(entry_id) / f"{entry_id}.{kind.ext}"
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            atomic_write_bytes(target, data)
+        except OSError:
+            table.update(entry_id, {"priloha": entry["priloha"]})
+            raise
+        if old is not None and old != target.resolve():
+            old.unlink(missing_ok=True)
+        return record
+
+    def remove_attachment(self, entry_id: str) -> Record:
+        entry = self.get(entry_id)
+        path = self.attachment_path(entry)
+        record = self.storage.table(DENIK_SCHEMA, int(entry_id[1:5])).update(
+            entry_id, {"priloha": ""}
+        )
+        if path is not None:
+            path.unlink(missing_ok=True)
+        return record
 
     def remove_for_document(self, doklad_id: str) -> None:
         for r in self.for_document(doklad_id):

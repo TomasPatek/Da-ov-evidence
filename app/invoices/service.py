@@ -16,7 +16,14 @@ from app.invoices.schemas import FAKTURY_SCHEMA, POLOZKY_SCHEMA, InvoiceState
 from app.invoices.spayd import SpaydError, build_spayd
 from app.invoices.totals import invoice_total, line_total
 from app.jobs import ZAKAZKY_SCHEMA, JobState
-from app.journal import Account, EntryDraft, Journal, JournalError, PaymentMethod
+from app.journal import (
+    Account,
+    EntryDraft,
+    Journal,
+    JournalError,
+    PaymentMethod,
+    attachment_kind,
+)
 from app.money import sum_money
 from app.storage import CsvTable, Record, Storage
 from app.storage.atomic import atomic_write_bytes, file_lock
@@ -459,12 +466,14 @@ class InvoiceService:
         method: PaymentMethod = PaymentMethod.TRANSFER,
         kod_transakce: str = "",
         amount: Decimal | None = None,
+        attachment: bytes | None = None,
     ) -> Record:
         """Record a payment and write it into the cash book (from its start date on).
 
         Without ``amount`` the rest of the invoice is paid. A smaller amount is a partial
         payment (the invoice stays open), a larger one an overpayment (cash basis: the
-        cash book gets what really arrived).
+        cash book gets what really arrived). ``attachment`` is a photo or scan of the
+        document (e.g. the cash receipt) attached to the cash book entry.
         """
         invoice = self._require(cislo)
         if invoice["stav"] not in OPEN_STATES:
@@ -478,10 +487,20 @@ class InvoiceService:
         value = amount if amount is not None else invoice["castka"] - paid_before
         if value <= 0:
             raise InvoiceError("Částka úhrady musí být kladná.")
+        if attachment is not None:
+            if not booked:
+                raise InvoiceError(
+                    "Úhrada před začátkem evidence se do deníku nezapisuje, "
+                    "fotku dokladu k ní nejde připojit."
+                )
+            try:
+                attachment_kind(attachment)  # refuse a bad file before anything is written
+            except JournalError as exc:
+                raise InvoiceError(str(exc)) from exc
         if booked:
             customer = self.storage.table(KONTAKTY_SCHEMA).get(invoice["kontakt_id"]) or {}
             try:
-                journal.add(
+                entry = journal.add(
                     EntryDraft(
                         datum=when,
                         ucet=Account.CASH if method is PaymentMethod.CASH else Account.BANK,
@@ -495,6 +514,8 @@ class InvoiceService:
                         kod_transakce=kod_transakce,
                     )
                 )
+                if attachment is not None:
+                    journal.attach(entry["id"], attachment)
             except JournalError as exc:
                 raise InvoiceError(str(exc)) from exc
             if paid_before + value < invoice["castka"]:

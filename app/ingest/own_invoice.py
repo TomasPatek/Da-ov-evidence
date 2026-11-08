@@ -114,9 +114,9 @@ def customer_block(data: bytes, own_ico: str) -> Customer:
 
 
 def description(text: str) -> str:
-    """Lines between "Fakturuji Vám za" (or similar) and the total."""
+    """Lines between "Fakturuji Vám za" (or similar) and the total ("Celkem", "Zaplaceno:")."""
     m = re.search(
-        r"(?:fakturuji\s+vám\s+za|fakturujeme\s+vám|předmět\s+plnění)[^\n]*\n(.*?)\n[^\n]*celkem",
+        r"(?:fakturuji\s+vám\s+za|fakturujeme\s+vám|předmět\s+plnění)[^\n]*\n(.*?)\n[^\n]*(?:celkem|zaplaceno\s*:)",
         text,
         re.IGNORECASE | re.DOTALL,
     )
