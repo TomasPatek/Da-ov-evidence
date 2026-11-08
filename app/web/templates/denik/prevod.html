@@ -17,6 +17,9 @@
       <label>Datum <input type="date" name="datum" value="{{ v.datum }}" max="{{ today.isoformat() }}" required></label>
       <label>Částka (Kč) <input type="text" name="castka" value="{{ v.castka }}" inputmode="decimal" required></label>
     </div>
+    <label>Kód transakce <span class="muted">(z notifikace banky, číslo dokladu pohybu na účtu)</span>
+      <input type="text" name="kod_transakce" value="{{ v.kod_transakce }}" maxlength="40" autocomplete="off">
+    </label>
     <label>Text <span class="muted">(nepovinné)</span> <input type="text" name="popis" value="{{ v.popis }}"></label>
     <button type="submit" class="primary">Zapsat převod</button>
   </form>

@@ -68,7 +68,9 @@ Každá změna se zapíše do `audit.csv` i s původní hodnotou.
 ### 5. Označte úhradu
 
 1. Až platba dorazí na účet, otevřete fakturu.
-2. V části *Úhrada* zadejte datum, kdy peníze přišly, a klikněte na *Označit jako uhrazenou*.
+2. V části *Úhrada* zadejte datum, kdy peníze přišly, způsob úhrady a u platby na účet
+   *Kód transakce* z notifikace banky. Klikněte na *Označit jako uhrazenou*. Úhrada se zapíše
+   do peněžního deníku.
 3. Omylem zadanou úhradu vrátíte tlačítkem *Zrušit úhradu*.
 
 ### 6. Stornujte chybnou fakturu

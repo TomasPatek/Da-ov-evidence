@@ -132,6 +132,7 @@ class Confirmation:
     zpusob_uhrady: str
     datum_uhrady: date | None
     poznamka: str = ""
+    kod_transakce: str = ""
 
 
 def _seq(doc_id: str) -> int:
@@ -357,10 +358,14 @@ class ReceivedDocs:
             record = self.table(year_of(doc_id) or 0).update(doc_id, values)
         self.templates.learn(values["dodavatel_ico"], values)
         if c.datum_uhrady is not None:
-            record = self.pay(record["id"], c.datum_uhrady, PaymentMethod(c.zpusob_uhrady))
+            record = self.pay(
+                record["id"], c.datum_uhrady, PaymentMethod(c.zpusob_uhrady), c.kod_transakce
+            )
         return record
 
-    def pay(self, doc_id: str, when: date, method: PaymentMethod) -> Record:
+    def pay(
+        self, doc_id: str, when: date, method: PaymentMethod, kod_transakce: str = ""
+    ) -> Record:
         doc = self.require(doc_id)
         if doc["stav"] == DocState.REVIEW:
             raise ReceivedError("Doklad nejdřív zkontrolujte a potvrďte.")
@@ -379,6 +384,7 @@ class ReceivedDocs:
                         zpusob_uhrady=method,
                         doklad_id=doc_id,
                         zakazka_id=doc["zakazka_id"],
+                        kod_transakce=kod_transakce,
                     )
                 )
             except JournalError as exc:

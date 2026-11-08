@@ -32,6 +32,9 @@
         <select name="zpusob_uhrady">{% for m in methods %}<option value="{{ m.value }}" {{ 'selected' if v.zpusob_uhrady == m.value }}>{{ m.value }}</option>{% endfor %}</select>
       </label>
     </div>
+    <label>Kód transakce <span class="muted">(u platby z účtu, z notifikace banky; jinak B1, B2…)</span>
+      <input type="text" name="kod_transakce" value="{{ v.kod_transakce }}" maxlength="40" autocomplete="off">
+    </label>
     <label>Kategorie (sloupec ET 328)
       <select name="kategorie" required>
         <option value="">— vyberte —</option>

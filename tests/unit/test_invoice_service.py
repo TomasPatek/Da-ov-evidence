@@ -371,7 +371,7 @@ def test_payment_goes_to_cash_book_from_start(storage: Storage, firma: FirmaConf
     svc = InvoiceService(storage, firma)
     early, late, cash = svc.issue(draft(day=1)), svc.issue(draft(day=2)), svc.issue(draft(day=3))
     svc.mark_paid(early["cislo"], date(2026, 2, 14), today=date(2026, 3, 1))
-    svc.mark_paid(late["cislo"], date(2026, 2, 20), today=date(2026, 3, 1))
+    svc.mark_paid(late["cislo"], date(2026, 2, 20), today=date(2026, 3, 1), kod_transakce="5550001")
     svc.mark_paid(
         cash["cislo"], date(2026, 2, 21), today=date(2026, 3, 1), method=PaymentMethod.CASH
     )
@@ -385,7 +385,8 @@ def test_payment_goes_to_cash_book_from_start(storage: Storage, firma: FirmaConf
         9,
         D("4100.00"),
     )
-    assert bank["cislo_dokladu"] == late["cislo"]
+    assert bank["cislo_dokladu"] == "5550001"
+    assert bank["doklad_id"] == late["cislo"]
     assert bank["popis"] == f"Úhrada faktury {late['cislo']} – Petr Zákazník"
     assert (kasa["ucet"], kasa["cislo_dokladu"], kasa["zpusob_uhrady"]) == (
         "hotovost",

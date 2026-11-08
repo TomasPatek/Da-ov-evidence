@@ -127,6 +127,7 @@ def entry_new(request: Request, smer: str = "výdaj") -> Response:
         "zpusob_uhrady": "převod",
         "zakazka_id": "",
         "poznamka": "",
+        "kod_transakce": "",
     }
     return _form(request, v=v)
 
@@ -146,6 +147,7 @@ async def entry_create(request: Request) -> Response:
             "zpusob_uhrady",
             "zakazka_id",
             "poznamka",
+            "kod_transakce",
         )
     }
     errors: list[str] = []
@@ -185,6 +187,7 @@ async def entry_create(request: Request) -> Response:
                     zpusob_uhrady=method,
                     zakazka_id=v["zakazka_id"],
                     poznamka=v["poznamka"],
+                    kod_transakce=v["kod_transakce"],
                 )
             )
         except JournalError as exc:
@@ -199,7 +202,13 @@ def transfer_form(request: Request) -> Response:
     return render(
         request,
         "denik/prevod.html",
-        v={"datum": date.today().isoformat(), "smer": "do-pokladny", "castka": "", "popis": ""},
+        v={
+            "datum": date.today().isoformat(),
+            "smer": "do-pokladny",
+            "castka": "",
+            "popis": "",
+            "kod_transakce": "",
+        },
         today=date.today(),
     )
 
@@ -207,7 +216,10 @@ def transfer_form(request: Request) -> Response:
 @router.post("/prevod")
 async def transfer_create(request: Request) -> Response:
     form = await request.form()
-    v = {k: str(form.get(k, "")).strip() for k in ("datum", "smer", "castka", "popis")}
+    v = {
+        k: str(form.get(k, "")).strip()
+        for k in ("datum", "smer", "castka", "popis", "kod_transakce")
+    }
     errors: list[str] = []
     when = parse_date(v["datum"], "datum", errors)
     try:
@@ -222,7 +234,7 @@ async def transfer_create(request: Request) -> Response:
     if not errors and when and amount is not None:
         source, target = (Account.BANK, Account.CASH) if to_cash else (Account.CASH, Account.BANK)
         try:
-            _journal(request).transfer(when, source, target, amount, text)
+            _journal(request).transfer(when, source, target, amount, text, v["kod_transakce"])
         except JournalError as exc:
             errors.append(str(exc))
         else:

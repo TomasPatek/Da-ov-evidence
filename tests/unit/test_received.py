@@ -237,3 +237,17 @@ def test_file_path_stays_inside_documents_folder(docs: ReceivedDocs) -> None:
     rec = docs.confirm(None, confirmation())
     rec["soubor"] = "../../config/auth.json"
     assert docs.file_path(rec) is None
+
+
+def test_payment_with_transaction_code(
+    docs: ReceivedDocs, storage: Storage, firma: FirmaConfig
+) -> None:
+    rec = docs.confirm(None, confirmation())
+    docs.pay(rec["id"], date(2027, 1, 18), PaymentMethod.CARD, kod_transakce="4455667788")
+    (row,) = Journal(storage, firma).entries(2027)
+    assert row["cislo_dokladu"] == "4455667788"
+    docs.unpay(rec["id"])
+    done = docs.confirm(
+        None, confirmation(datum_uhrady=date(2027, 1, 20), kod_transakce="111"), today=TODAY
+    )
+    assert Journal(storage, firma).for_document(done["id"])[0]["cislo_dokladu"] == "111"

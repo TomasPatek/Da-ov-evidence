@@ -322,3 +322,75 @@ def test_evidence_settings_validation(ready: TestClient) -> None:
         data={"csrf_token": token(ready), "zacatek": "2026-01-01", "hotovost": "200", "banka": "0"},
     )
     assert resp.headers["location"] == "/nastaveni?ulozeno=1"
+
+
+def test_transaction_codes_in_forms(ready: TestClient) -> None:
+    cid = new_contact(ready)
+    cislo = issue(ready, cid)
+    assert 'name="kod_transakce"' in ready.get(f"/faktury/{cislo}").text
+    ready.post(
+        f"/faktury/{cislo}/uhrazena",
+        data={
+            "csrf_token": token(ready),
+            "datum_uhrady": TODAY.isoformat(),
+            "zpusob_uhrady": "převod",
+            "kod_transakce": "70000001",
+        },
+    )
+    location = upload(ready, "faktura-radky.pdf")
+    ready.post(
+        location,
+        data=confirm_data(ready, uhrazeno="1", zpusob_uhrady="karta", kod_transakce="70000002"),
+    )
+    # Editing the paid document keeps its code.
+    page = ready.get(location).text
+    assert 'name="kod_transakce" value="70000002"' in page
+    ready.post(
+        location,
+        data=confirm_data(
+            ready, uhrazeno="1", zpusob_uhrady="karta", kod_transakce="70000002", popis="Opraveno"
+        ),
+    )
+    ready.post(
+        "/denik/novy",
+        data={
+            "csrf_token": token(ready),
+            "smer": "výdaj",
+            "ucet": "banka",
+            "datum": TODAY.isoformat(),
+            "castka": "100",
+            "kategorie": "19",
+            "popis": "Poplatek",
+            "zpusob_uhrady": "převod",
+            "kod_transakce": "70000003",
+        },
+    )
+    ready.post(
+        "/denik/prevod",
+        data={
+            "csrf_token": token(ready),
+            "smer": "do-pokladny",
+            "datum": TODAY.isoformat(),
+            "castka": "50",
+            "popis": "",
+            "kod_transakce": "70000004",
+        },
+    )
+    journal = ready.get("/denik").text
+    for code in ("70000001", "70000002", "70000003", "70000004", f"PPD1/{TODAY:%y}"):
+        assert code in journal, code
+    resp = ready.post(
+        "/denik/novy",
+        data={
+            "csrf_token": token(ready),
+            "smer": "výdaj",
+            "ucet": "banka",
+            "datum": TODAY.isoformat(),
+            "castka": "1",
+            "kategorie": "19",
+            "popis": "x",
+            "zpusob_uhrady": "převod",
+            "kod_transakce": "<script>",
+        },
+    )
+    assert resp.status_code == 400 and "Kód transakce" in resp.text

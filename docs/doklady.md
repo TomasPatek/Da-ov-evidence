@@ -31,7 +31,8 @@ deníku.
    Aplikace zakázku navrhne podle adresy v dokladu, nebo nabídne jedinou rozpracovanou.
    Nákup bez zakázky je režie.
 6. Pokud je doklad zaplacený (kartou, online, hotově), nechte zaškrtnuté *Už je zaplaceno*
-   a zkontrolujte datum úhrady. Klikněte na *Potvrdit*. Otevře se další doklad ve frontě.
+   a zkontrolujte datum úhrady. U platby z účtu doplňte *Kód transakce* z notifikace banky,
+   stane se číslem dokladu v deníku. Klikněte na *Potvrdit*. Otevře se další doklad ve frontě.
 7. Nezaplacený doklad zaplaťte později: v detailu dokladu zadejte datum a způsob úhrady
    a klikněte na *Označit jako zaplacený*.
 
@@ -43,7 +44,7 @@ Po potvrzení si aplikace zapamatuje pro dodavatele kategorii, popis a způsob �
 ## Jak ověřit, že to funguje
 
 - Potvrzený doklad má stav *potvrzen* nebo *uhrazen* a v *Peněžním deníku* je u uhrazeného
-  výdaj s číslem dokladu (`PD2027-001`, u hotovosti `VPD1/27`…).
+  výdaj s kódem transakce (bez něj s číslem `PD2027-001`), u hotovosti s číslem `VPD1/27`…
 - V detailu zakázky je doklad v části *Náklady* a promítne se do *Rozdílu*.
 - Soubor dokladu leží v `data/RRRR/doklady/` a jmenuje se podle čísla dokladu.
 

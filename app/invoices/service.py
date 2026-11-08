@@ -382,6 +382,7 @@ class InvoiceService:
         when: date,
         today: date | None = None,
         method: PaymentMethod = PaymentMethod.TRANSFER,
+        kod_transakce: str = "",
     ) -> Record:
         """Mark as paid and write the income into the cash book (from its start date on)."""
         invoice = self._require(cislo)
@@ -405,6 +406,7 @@ class InvoiceService:
                         zpusob_uhrady=method,
                         doklad_id=cislo,
                         zakazka_id=invoice["zakazka_id"],
+                        kod_transakce=kod_transakce,
                     )
                 )
             except JournalError as exc:

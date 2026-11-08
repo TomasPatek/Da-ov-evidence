@@ -26,9 +26,15 @@ tiskopis Baloušek ET 328 (sloupce 1–23), takže součty můžete porovnat s p
 4. **Tabulka ET 328** ukazuje rok ve všech 23 sloupcích s měsíčními součty a řádkem
    *převedeno*. Vytisknete ji z prohlížeče na šířku.
 
-Číslo dokladu ve sloupci *b*: u účtu číslo faktury nebo přijatého dokladu (u pohybu bez
-dokladu `B1`, `B2`…), u pokladny příjmový `PPD1/27` nebo výdajový `VPD1/27` pokladní doklad
-(pořadové číslo / poslední dvojčíslí roku; každý rok začíná od 1).
+Číslo dokladu ve sloupci *b*:
+
+- **Pohyb na účtu:** kód transakce z notifikace banky. Zadáte ho do pole *Kód transakce* při
+  úhradě faktury, dokladu nebo u ručního zápisu. Když ho nevyplníte, použije se číslo faktury
+  nebo přijatého dokladu, u pohybu bez dokladu `B1`, `B2`…
+- **Pokladna:** příjmový `PPD1/27` nebo výdajový `VPD1/27` pokladní doklad (pořadové číslo /
+  poslední dvojčíslí roku; každý rok začíná od 1). Čísluje aplikace sama.
+
+Vazba na fakturu nebo přijatý doklad zůstává ve sloupci `doklad_id` i s kódem transakce.
 
 | Sloupce | Význam | Základ daně |
 | --- | --- | --- |

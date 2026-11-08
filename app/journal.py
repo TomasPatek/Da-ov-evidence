@@ -51,7 +51,8 @@ DENIK_SCHEMA = TableSchema(
         Column(
             "cislo_dokladu",
             description=(
-                "Číslo dokladu ve sloupci *b* ET 328: číslo faktury nebo přijatého dokladu, "
+                "Číslo dokladu ve sloupci *b* ET 328: u účtu kód transakce z notifikace banky, "
+                "bez něj číslo faktury nebo přijatého dokladu, "
                 "u hotovosti příjmový `PPD1/27…` nebo výdajový `VPD1/27…` pokladní doklad "
                 "(číslo/dvojčíslí roku), "
                 "u bankovního pohybu bez dokladu `B1…`."
@@ -98,6 +99,11 @@ class EntryDraft:
     doklad_id: str = ""
     zakazka_id: str = ""
     poznamka: str = ""
+    # Bank "Kód transakce" (Air Bank notification); becomes the document number of bank rows.
+    kod_transakce: str = ""
+
+
+_TRANSACTION_CODE_RE = re.compile(r"[\w./-]{1,40}")
 
 
 @dataclass
@@ -235,6 +241,11 @@ class Journal:
             )
         if not d.popis.strip():
             raise JournalError("Vyplňte text zápisu.")
+        code = d.kod_transakce.strip()
+        if code and d.ucet is Account.BANK and not _TRANSACTION_CODE_RE.fullmatch(code):
+            raise JournalError(
+                "Kód transakce smí obsahovat jen písmena, číslice, / . - _ (do 40 znaků)."
+            )
 
     @staticmethod
     def _number(rows: list[Record], d: EntryDraft) -> str:
@@ -242,6 +253,8 @@ class Journal:
         if d.ucet is Account.CASH:
             prefix = "PPD" if d.smer == Direction.INCOME else "VPD"
             suffix = f"/{d.datum.year % 100:02d}"
+        elif d.kod_transakce.strip():
+            return d.kod_transakce.strip()
         elif d.doklad_id:
             return d.doklad_id
         else:
@@ -275,7 +288,13 @@ class Journal:
         return table.insert(lambda rows: self._record(rows, d, year))
 
     def transfer(
-        self, when: date, source: Account, target: Account, amount: Decimal, text: str
+        self,
+        when: date,
+        source: Account,
+        target: Account,
+        amount: Decimal,
+        text: str,
+        kod_transakce: str = "",
     ) -> tuple[Record, Record]:
         """Move money between the cash desk and the bank account (two rows, columns 6/7)."""
         if source is target:
@@ -288,6 +307,7 @@ class Journal:
             TRANSIT_INCOME,
             text,
             PaymentMethod.CASH if source is Account.CASH else PaymentMethod.TRANSFER,
+            kod_transakce=kod_transakce,
         )
         inn = EntryDraft(
             when,
@@ -297,6 +317,7 @@ class Journal:
             TRANSIT_EXPENSE,
             text,
             PaymentMethod.CASH if target is Account.CASH else PaymentMethod.TRANSFER,
+            kod_transakce=kod_transakce,
         )
         self._validate(out)
         self._validate(inn)

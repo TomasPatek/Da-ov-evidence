@@ -396,7 +396,12 @@ async def invoice_paid(request: Request, cislo: str) -> Response:
     )
     if when is not None:
         try:
-            _service(request).mark_paid(cislo, when, method=method)
+            _service(request).mark_paid(
+                cislo,
+                when,
+                method=method,
+                kod_transakce=str(form.get("kod_transakce", "")),
+            )
         except InvoiceError as exc:
             errors.append(str(exc))
     if errors:

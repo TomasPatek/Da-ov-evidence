@@ -155,7 +155,7 @@ Peněžní deník roku. Každý řádek je jeden pohyb peněz v pokladně nebo n
 | --- | --- | --- |
 | `id` | text | Neměnný identifikátor `DRRRR-NNNN`. |
 | `datum_uhrady` | datum (`RRRR-MM-DD`) | Datum skutečné úhrady (ne datum vystavení). |
-| `cislo_dokladu` | text | Číslo dokladu ve sloupci *b* ET 328: číslo faktury nebo přijatého dokladu, u hotovosti příjmový `PPD1/27…` nebo výdajový `VPD1/27…` pokladní doklad (číslo/dvojčíslí roku), u bankovního pohybu bez dokladu `B1…`. |
+| `cislo_dokladu` | text | Číslo dokladu ve sloupci *b* ET 328: u účtu kód transakce z notifikace banky, bez něj číslo faktury nebo přijatého dokladu, u hotovosti příjmový `PPD1/27…` nebo výdajový `VPD1/27…` pokladní doklad (číslo/dvojčíslí roku), u bankovního pohybu bez dokladu `B1…`. |
 | `doklad_id` | text | Vazba na vydanou fakturu nebo přijatý doklad. |
 | `popis` | text | Text zápisu (sloupec *c* ET 328). |
 | `smer` | text | `příjem` nebo `výdaj` (z pohledu pokladny nebo účtu). |

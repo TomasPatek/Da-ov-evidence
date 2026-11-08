@@ -173,6 +173,11 @@ def _form_page(request: Request, doc: Record, status_code: int = 200, **ctx: Any
         types=DocType,
         jobs=_jobs(request, str(doc.get("zakazka_id") or "")),
         journal_ready=Journal(request.app.state.storage, docs.firma).ready,
+        journal_rows=(
+            Journal(request.app.state.storage, docs.firma).for_document(str(doc["id"]))
+            if doc.get("id")
+            else []
+        ),
         today=date.today(),
         **ctx,
     )
@@ -198,6 +203,7 @@ def _confirmation(form: FormData) -> tuple[Confirmation, list[str], dict[str, An
             "zpusob_uhrady",
             "datum_uhrady",
             "poznamka",
+            "kod_transakce",
         )
     }
     issued = parse_date(raw["datum_vystaveni"], "datum vystavení", errors, required=False)
@@ -231,6 +237,7 @@ def _confirmation(form: FormData) -> tuple[Confirmation, list[str], dict[str, An
         zpusob_uhrady=raw["zpusob_uhrady"],
         datum_uhrady=paid,
         poznamka=raw["poznamka"],
+        kod_transakce=raw["kod_transakce"],
     )
     # Values to redisplay the form after an error.
     echo: dict[str, Any] = {
@@ -345,7 +352,9 @@ async def doc_pay(request: Request, doc_id: str) -> Response:
         errors.append("Datum úhrady nesmí být v budoucnosti.")
     if not errors and when:
         try:
-            _docs(request).pay(doc_id, when, PaymentMethod(method))
+            _docs(request).pay(
+                doc_id, when, PaymentMethod(method), str(form.get("kod_transakce", "")).strip()
+            )
         except ReceivedError as exc:
             errors.append(str(exc))
     if errors:

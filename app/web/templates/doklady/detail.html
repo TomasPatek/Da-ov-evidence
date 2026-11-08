@@ -82,10 +82,14 @@
         <label>Datum úhrady
           <input type="date" name="datum_uhrady" value="{{ d.datum_uhrady or today.isoformat() }}" max="{{ today.isoformat() }}">
         </label>
-        <p class="muted">Hotově = výdaj z pokladny, ostatní = výdaj z účtu. Zaplacený doklad se zapíše do peněžního deníku.</p>
+        <label>Kód transakce <span class="muted">(z notifikace banky, nepovinné)</span>
+          <input type="text" name="kod_transakce" value="{{ d.kod_transakce or '' }}" maxlength="40" autocomplete="off">
+        </label>
+        <p class="muted">Hotově = výdaj z pokladny (doklad VPD), ostatní = výdaj z účtu. Kód transakce je u platby z účtu číslem dokladu v deníku.</p>
         {% else %}
-        <p>Uhrazeno {{ d.datum_uhrady | cz_date }} ({{ d.zpusob_uhrady }}). Změnu úhrady provedete tlačítkem níže.</p>
+        <p>Uhrazeno {{ d.datum_uhrady | cz_date }} ({{ d.zpusob_uhrady }}){% for r in journal_rows %}, v deníku jako <a href="/denik?rok={{ r.datum_uhrady.year }}">{{ r.cislo_dokladu }}</a>{% endfor %}. Změnu úhrady provedete tlačítkem níže.</p>
         <input type="hidden" name="uhrazeno" value="1"><input type="hidden" name="datum_uhrady" value="{{ d.datum_uhrady }}">
+        {% for r in journal_rows %}{% if r.ucet == "banka" and r.cislo_dokladu != d.id %}<input type="hidden" name="kod_transakce" value="{{ r.cislo_dokladu }}">{% endif %}{% endfor %}
         {% endif %}
       </fieldset>
       <label>Poznámka
@@ -105,6 +109,7 @@
       <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
       <input type="date" name="datum_uhrady" value="{{ today.isoformat() }}" max="{{ today.isoformat() }}" aria-label="Datum úhrady" required>
       <select name="zpusob_uhrady" aria-label="Způsob úhrady">{% for m in methods %}<option value="{{ m.value }}" {{ 'selected' if d.zpusob_uhrady == m.value }}>{{ m.value }}</option>{% endfor %}</select>
+      <input type="text" name="kod_transakce" placeholder="Kód transakce" aria-label="Kód transakce" maxlength="40" autocomplete="off">
       <button type="submit">Označit jako zaplacený</button>
     </form>
     {% elif d.stav == "uhrazen" %}

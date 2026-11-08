@@ -67,6 +67,9 @@
           <select name="zpusob_uhrady">{% for m in methods %}<option value="{{ m.value }}">{{ m.value }}</option>{% endfor %}</select>
         </label>
       </div>
+      <label>Kód transakce <span class="muted">(z notifikace banky, nepovinné; u platby na účet je číslem dokladu v deníku)</span>
+        <input type="text" name="kod_transakce" maxlength="40" autocomplete="off">
+      </label>
       <p class="muted">Úhrada se zapíše do peněžního deníku: hotově do pokladny, jinak na účet.</p>
       <button type="submit" class="primary">Označit jako uhrazenou</button>
     </form>

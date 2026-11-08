@@ -227,3 +227,39 @@ def test_cash_numbers_restart_each_year(journal: Journal) -> None:
     a = journal.add(entry(date(2028, 1, 2), Account.CASH, "příjem", "10", 9))
     b = journal.add(entry(date(2028, 1, 3), Account.CASH, "výdaj", "1", 19))
     assert (a["cislo_dokladu"], b["cislo_dokladu"]) == ("PPD1/28", "VPD1/28")
+
+
+def test_bank_rows_use_transaction_code(journal: Journal) -> None:
+    coded = journal.add(
+        entry(
+            date(2027, 1, 5),
+            Account.BANK,
+            "výdaj",
+            "1",
+            15,
+            doklad_id="PD2027-001",
+            kod_transakce=" 123456789 ",
+        )
+    )
+    assert coded["cislo_dokladu"] == "123456789"
+    assert coded["doklad_id"] == "PD2027-001"
+    # Without a code the document number (or B1) is used as before.
+    assert (
+        journal.add(entry(date(2027, 1, 6), Account.BANK, "výdaj", "1", 15))["cislo_dokladu"]
+        == "B1"
+    )
+    # Cash vouchers are always numbered by the app.
+    cash = journal.add(entry(date(2027, 1, 7), Account.CASH, "výdaj", "1", 15, kod_transakce="X1"))
+    assert cash["cislo_dokladu"] == "VPD1/27"
+
+
+def test_invalid_transaction_code(journal: Journal) -> None:
+    with pytest.raises(JournalError, match="Kód transakce"):
+        journal.add(entry(date(2027, 1, 5), Account.BANK, "výdaj", "1", 15, kod_transakce="a b;c"))
+
+
+def test_transfer_bank_side_gets_code(journal: Journal) -> None:
+    out, inn = journal.transfer(
+        date(2027, 1, 5), Account.BANK, Account.CASH, D("30"), "Výběr", kod_transakce="987654"
+    )
+    assert (out["cislo_dokladu"], inn["cislo_dokladu"]) == ("987654", "PPD1/27")
