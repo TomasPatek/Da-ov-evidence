@@ -27,6 +27,8 @@ _COUNTER_RE = re.compile(
 _FIELDS = {
     "Částka": "castka",
     "Datum zaúčtování": "datum",
+    # Card payments not yet booked carry only the date of the purchase.
+    "Datum provedení": "datum_provedeni",
     "Variabilní symbol": "vs",
     "Konstantní symbol": "ks",
     "Specifický symbol": "ss",
@@ -98,7 +100,7 @@ class AirBankParser:
         amount = _amount(values.get("castka", "").removesuffix(head.group("mena")).strip())
         if amount is None:
             amount = _amount(head.group("castka"))
-        booked = _date(values.get("datum", ""))
+        booked = _date(values.get("datum", "")) or _date(values.get("datum_provedeni", ""))
         code = values.get("kod", "")
         if amount is None or booked is None or not re.fullmatch(r"[\w./-]{1,40}", code):
             log.info("Air Bank notification is missing amount, date or transaction code")

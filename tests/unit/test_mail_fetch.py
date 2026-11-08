@@ -141,8 +141,8 @@ def test_all_samples_and_duplicates(
     # The same notification delivered twice (different Message-ID) is stored once.
     duplicate = samples[0].replace(b"Message-ID: <n", b"Message-ID: <dup-n")
     result = processor.run(FakeMailbox([*samples, duplicate]))
-    assert result.notifications == 5
-    assert len(BankBook(storage, firma).all()) == 4
+    assert result.notifications == len(samples) + 1
+    assert len(BankBook(storage, firma).all()) == len(samples)
 
 
 def test_attachment_goes_to_review_queue(

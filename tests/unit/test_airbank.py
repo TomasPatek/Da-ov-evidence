@@ -104,3 +104,13 @@ def test_every_sample_parses(name: str) -> None:
 
 def test_registry() -> None:
     assert any(isinstance(p, AirBankParser) for p in PARSERS)
+
+
+def test_card_payment_uses_execution_date() -> None:
+    mv = parse("platba-kartou.eml")
+    assert mv.smer is Direction.OUT
+    assert mv.castka == Decimal("267.00")
+    assert mv.datum == date(2026, 2, 14)
+    assert mv.popis == "Platba kartou (nezaúčtováno) v GOPAY  *ELEKTRO-VZOR, VZOROV, 000"
+    assert mv.kod_transakce == "900000000005"
+    assert mv.protiucet == ""

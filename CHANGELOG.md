@@ -37,7 +37,7 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 - Fáze 3, automatizace:
   - Stahování pošty přes IMAP každých 15 minut (APScheduler v aplikaci) a tlačítkem;
     zpracované zprávy se přesouvají do složky *Zpracováno*, ostatní zůstávají a čtou se jen jednou.
-  - Parser notifikací Air Bank (`app/banks/airbank`), výměnné parsery bank (`docs/banky.md`).
+  - Parser notifikací Air Bank (`app/banks/airbank`) včetně plateb kartou, výměnné parsery bank (`docs/banky.md`).
   - Bankovní pohyby (`RRRR/banka.csv`), sloučení duplicit podle kódu transakce.
   - Párování: automaticky podle VS a částky, návrhy (částečná úhrada, přeplatek, shoda částky
     nebo účtu, platba kartou k už zaplacenému dokladu), zápis jiných pohybů, převody, zrušení.
