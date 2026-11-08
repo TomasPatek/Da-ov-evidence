@@ -1,0 +1,16 @@
+<label>Název <input type="text" name="nazev" value="{{ v.nazev }}" required placeholder="např. Dodávka Ford Transit"></label>
+<div class="row">
+  <label>Pořízeno a uvedeno do užívání <input type="date" name="datum_porizeni" value="{{ v.datum_porizeni }}" required></label>
+  <label>Vstupní cena (Kč) <input type="text" name="vstupni_cena" value="{{ v.vstupni_cena }}" inputmode="decimal" required></label>
+</div>
+<div class="row">
+  <label>Odpisová skupina
+    <select name="odpisova_skupina">{% for n, g in groups.items() %}<option value="{{ n }}" {{ 'selected' if v.odpisova_skupina|string == n|string }}>{{ n }} ({{ g.years }} let)</option>{% endfor %}</select>
+  </label>
+  <label>Způsob odpisování
+    <select name="zpusob_odpisu">{% for m in methods %}<option value="{{ m.value }}" {{ 'selected' if v.zpusob_odpisu == m.value }}>{{ m.value }}</option>{% endfor %}</select>
+  </label>
+</div>
+<p class="muted">Např. skupina 1: počítače, nářadí; skupina 2: auta, stroje. Seznam je v příloze č. 1 zákona o daních z příjmů.</p>
+<label>Doklad o pořízení <span class="muted">(nepovinné, např. PD2027-005)</span> <input type="text" name="doklad_id" value="{{ v.doklad_id }}"></label>
+<label>Poznámka <input type="text" name="poznamka" value="{{ v.poznamka }}"></label>

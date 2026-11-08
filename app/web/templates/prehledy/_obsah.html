@@ -1,0 +1,43 @@
+<h2>Podklady k přiznání k dani z příjmů</h2>
+<table class="list summary">
+  <tbody>
+    <tr><td>Příjmy z podnikání (sloupce 9 + 10)</td><td class="num">{{ r.income | czk }}</td></tr>
+    <tr><td>Výdaje (sloupce 15–19)</td><td class="num">{{ r.expenses | czk }}</td></tr>
+    <tr><td>Daňové odpisy majetku</td><td class="num">{{ r.depreciation | czk }}</td></tr>
+    <tr><td>Výdaje celkem včetně odpisů</td><td class="num">{{ r.expenses_with_depreciation | czk }}</td></tr>
+    <tr class="total"><td>Dílčí základ daně (§ 7)</td><td class="num">{{ r.tax_base | czk }}</td></tr>
+  </tbody>
+</table>
+<h2>Přehledy pro ČSSZ a zdravotní pojišťovnu (orientačně)</h2>
+<table class="list summary">
+  <tbody>
+    <tr><td>Vyměřovací základ, sociální pojištění (55 % zisku)</td><td class="num">{{ r.vz_social | czk }}</td></tr>
+    <tr><td>Vyměřovací základ, zdravotní pojištění (50 % zisku)</td><td class="num">{{ r.vz_health | czk }}</td></tr>
+  </tbody>
+</table>
+<p class="muted">Minimální vyměřovací základy a sazby se mění každý rok a nejsou započteny.</p>
+<h2>Peněžní prostředky</h2>
+<table class="list summary">
+  <thead><tr><th></th><th class="num">Začátek roku</th><th class="num">Konec roku</th></tr></thead>
+  <tbody>
+    <tr><td>Pokladna</td><td class="num">{{ r.opening_cash | czk }}</td><td class="num">{{ r.closing_cash | czk }}</td></tr>
+    <tr><td>Účet</td><td class="num">{{ r.opening_bank | czk }}</td><td class="num">{{ r.closing_bank | czk }}</td></tr>
+  </tbody>
+</table>
+<p>Příjmy neovlivňující základ daně (11–13): {{ r.not_affecting_income | czk }} · výdaje neovlivňující základ daně (20–23): {{ r.not_affecting_expenses | czk }}</p>
+<h2>Pohledávky k 31. 12. {{ r.year }}</h2>
+{% if r.receivables %}<table class="list"><thead><tr><th>Faktura</th><th>Splatnost</th><th class="num">Částka</th></tr></thead><tbody>
+{% for i in r.receivables %}<tr><td>{{ i.cislo }}</td><td>{{ i.datum_splatnosti.strftime("%d. %m. %Y") }}</td><td class="num">{{ i.castka | czk }}</td></tr>{% endfor %}
+</tbody></table>{% else %}<p>Žádné neuhrazené vydané faktury.</p>{% endif %}
+<h2>Závazky k 31. 12. {{ r.year }}</h2>
+{% if r.payables %}<table class="list"><thead><tr><th>Doklad</th><th>Dodavatel</th><th class="num">Částka</th></tr></thead><tbody>
+{% for d in r.payables %}<tr><td>{{ d.id }}</td><td>{{ d.dodavatel_nazev }}</td><td class="num">{{ d.castka | czk }}</td></tr>{% endfor %}
+</tbody></table>{% else %}<p>Žádné neuhrazené přijaté doklady.</p>{% endif %}
+<h2>Majetek a odpisy</h2>
+{% if r.assets %}<table class="list"><thead><tr><th>Majetek</th><th>Skupina</th><th class="num">Odpis</th></tr></thead><tbody>
+{% for a, amount in r.assets %}<tr><td>{{ a.nazev }}</td><td>{{ a.odpisova_skupina }} ({{ a.zpusob_odpisu }})</td><td class="num">{{ amount | czk }}</td></tr>{% endfor %}
+</tbody></table>{% else %}<p>Žádný odpisovaný majetek.</p>{% endif %}
+<h2>Zakázky (podle úhrad v roce)</h2>
+{% if r.jobs %}<table class="list"><thead><tr><th>Zakázka</th><th class="num">Příjmy</th><th class="num">Náklady</th><th class="num">Rozdíl</th></tr></thead><tbody>
+{% for j in r.jobs %}<tr><td>{{ j.id }} {{ j.nazev }}</td><td class="num">{{ j.prijmy | czk }}</td><td class="num">{{ j.naklady | czk }}</td><td class="num">{{ j.rozdil | czk }}</td></tr>{% endfor %}
+</tbody></table>{% else %}<p>Žádné zakázky s platbami.</p>{% endif %}

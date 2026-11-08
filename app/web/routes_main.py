@@ -85,7 +85,13 @@ def svc_job(invoices: list[Record], job_id: str) -> list[Record]:
 
 @router.get("/nastaveni")
 def settings_page(request: Request) -> Response:
-    return render(request, "nastaveni.html")
+    storage = request.app.state.storage
+    return render(
+        request,
+        "nastaveni.html",
+        locked_years=storage.locked_years(),
+        lock_default=date.today().year - 1,
+    )
 
 
 @router.get("/branding/theme.css")

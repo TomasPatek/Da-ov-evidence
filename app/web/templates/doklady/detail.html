@@ -11,6 +11,7 @@
 {% if request.query_params.get("ulozeno") %}<div class="alert alert-info" role="status">Uloženo.</div>{% endif %}
 {% if d.stav == "ke kontrole" and uncertain %}<div class="alert alert-warning" role="status">Zvýrazněná pole aplikace přečetla nejistě nebo je nenašla. Zkontrolujte je.</div>{% endif %}
 {% for h in hints %}<div class="alert alert-warning" role="status">{{ h }}</div>{% endfor %}
+{% if d.kategorie == 20 and d.id and d.stav != "ke kontrole" %}<div class="alert alert-info" role="status">Nákup majetku: <a href="/majetek/novy?doklad={{ d.id }}&amp;nazev={{ d.popis | urlencode }}&amp;cena={{ d.castka | amount_input }}">založte kartu majetku</a>, ať se odpisuje.</div>{% endif %}
 {% if not journal_ready %}<div class="alert alert-warning" role="status">Začátek peněžního deníku není nastavený, úhrady se do deníku zatím nezapíšou. <a href="/pruvodce/evidence">Nastavit</a></div>{% endif %}
 <div class="review{{ ' no-preview' if not pages }}">
   {% if pages %}

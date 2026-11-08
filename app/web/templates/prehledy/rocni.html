@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Roční přehled {{ year }} · Daňová evidence{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Roční přehled {{ year }}{% if locked %} <span class="badge">uzamčeno</span>{% endif %}</h1>
+  <div class="actions">
+    <a class="button" href="/prehledy?rok={{ year - 1 }}">← {{ year - 1 }}</a>
+    <a class="button" href="/prehledy/{{ year }}.md">Markdown</a>
+    <a class="button primary" href="/prehledy/{{ year }}.pdf">PDF</a>
+  </div>
+</div>
+<div class="alert alert-warning" role="status">Orientační podklad. Nenahrazuje daňové přiznání ani daňového poradce.</div>
+{% if not r.journal_ready %}<div class="alert alert-warning" role="status">Peněžní deník není nastavený, příjmy a výdaje proto chybí.</div>{% endif %}
+{% if not r.checks_ok %}<div class="alert alert-error" role="alert">Kontrolní součty deníku nesedí.</div>{% endif %}
+<section class="card report">{% include "prehledy/_obsah.html" %}</section>
+{% endblock %}

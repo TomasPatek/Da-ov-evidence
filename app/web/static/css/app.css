@@ -264,3 +264,8 @@ details > summary { cursor: pointer; color: var(--brand-primary); margin: .25rem
 details[open] > form { margin-top: .75rem; }
 section.card.movement + section.card.movement, .tabs + section.card { margin-top: .75rem; }
 form.match fieldset { display: flex; flex-direction: column; gap: .35rem; }
+
+/* Reports. */
+table.summary { max-width: 640px; }
+table.summary tr.total td { font-weight: 700; border-top: 2px solid var(--border); }
+.report h2 { margin-top: 1.25rem; }

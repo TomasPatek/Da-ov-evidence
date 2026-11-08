@@ -2,7 +2,7 @@
 
 from app.storage.audit import AuditAction, AuditLog
 from app.storage.csvformat import Column, ColumnKind, SchemaError, TableSchema
-from app.storage.store import Storage
+from app.storage.store import LockedYearError, Storage
 from app.storage.table import CsvTable, Record
 
 __all__ = [
@@ -11,6 +11,7 @@ __all__ = [
     "Column",
     "ColumnKind",
     "CsvTable",
+    "LockedYearError",
     "Record",
     "SchemaError",
     "Storage",
