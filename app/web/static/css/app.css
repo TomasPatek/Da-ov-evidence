@@ -285,3 +285,4 @@ label.camera input[type=file] { position: absolute; width: 1px; height: 1px; opa
 .inline-details[open] { display: block; margin: .5rem 0 0; }
 .inline-details form { margin-top: .5rem; }
 .journal-row { border-top: 1px solid var(--border); padding-top: .5rem; margin-top: .75rem; }
+.inline-details[open] form { min-width: 14rem; }

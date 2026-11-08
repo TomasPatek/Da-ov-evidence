@@ -11,6 +11,8 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 - Fotka nebo PDF dokladu u zápisu v pokladně: při úhradě faktury, u nového zápisu a dodatečně
   v deníku. Soubory jsou v `data/RRRR/pokladna/`, `denik.csv` má nový sloupec `priloha`
   (starší soubory se načtou beze změny).
+- Ruční oprava čísla pokladního dokladu (PPD/VPD) u zápisu v pokladně, např. podle
+  papírového dokladu. Automatické číslování naváže na nejvyšší použité číslo.
 
 ### Změněno
 

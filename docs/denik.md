@@ -38,7 +38,10 @@ tiskopis Baloušek ET 328 (sloupce 1–23), takže součty můžete porovnat s p
   úhradě faktury, dokladu nebo u ručního zápisu. Když ho nevyplníte, použije se číslo faktury
   nebo přijatého dokladu, u pohybu bez dokladu `B1`, `B2`…
 - **Pokladna:** příjmový `PPD1/27` nebo výdajový `VPD1/27` pokladní doklad (pořadové číslo /
-  poslední dvojčíslí roku; každý rok začíná od 1). Čísluje aplikace sama.
+  poslední dvojčíslí roku; každý rok začíná od 1). Čísluje aplikace sama v pořadí zadání.
+  Když číslo nesedí s papírovým dokladem, opravíte ho odkazem *Opravit číslo* u zápisu
+  v deníku nebo u uhrazené faktury (stačí napsat pořadové číslo, např. `3`). Další doklady
+  pak navážou na nejvyšší použité číslo. Stejné číslo nesmí mít dva zápisy.
 
 Vazba na fakturu nebo přijatý doklad zůstává ve sloupci `doklad_id` i s kódem transakce.
 

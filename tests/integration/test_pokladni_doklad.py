@@ -130,3 +130,30 @@ def test_wrong_file_is_refused_and_nothing_is_written(ready: TestClient) -> None
 def test_attachment_of_unknown_entry(ready: TestClient) -> None:
     assert ready.get("/denik/D2026-0999/priloha").status_code == 404
     assert ready.get("/denik/..%2F..%2Fconfig/priloha").status_code == 404
+
+
+def test_correct_cash_voucher_number(ready: TestClient) -> None:
+    cislo = issue(ready, new_contact(ready))
+    ready.post(
+        f"/faktury/{cislo}/uhrazena",
+        data={
+            "csrf_token": token(ready),
+            "datum_uhrady": TODAY.isoformat(),
+            "zpusob_uhrady": "hotovost",
+        },
+    )
+    page = ready.get(f"/faktury/{cislo}").text
+    assert "Opravit číslo" in page
+    entry_id = entry_id_in(page)
+    yy = f"{TODAY.year % 100:02d}"
+    resp = ready.post(
+        f"/denik/{entry_id}/cislo",
+        data={"csrf_token": token(ready), "cislo": "4", "zpet": f"/faktury/{cislo}"},
+    )
+    assert resp.status_code == 303 and resp.headers["location"] == f"/faktury/{cislo}"
+    assert f"PPD4/{yy}" in ready.get(f"/faktury/{cislo}").text
+    assert f"PPD4/{yy}" in ready.get(f"/denik?rok={TODAY.year}").text
+    resp = ready.post(
+        f"/denik/{entry_id}/cislo", data={"csrf_token": token(ready), "cislo": f"VPD4/{yy}"}
+    )
+    assert resp.status_code == 400 and "Příjem do pokladny má číslo PPD" in resp.text

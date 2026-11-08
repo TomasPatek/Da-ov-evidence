@@ -101,7 +101,7 @@
     {% for e in journal_rows %}
     <div class="journal-row">
       <p>V deníku: <a href="/denik?rok={{ e.datum_uhrady.year }}">{{ e.cislo_dokladu }}</a> ({{ e.ucet }}, {{ e.datum_uhrady | cz_date }})</p>
-      {% with back="/faktury/" ~ inv.cislo %}{% include "denik/_priloha.html" %}{% endwith %}
+      {% with back="/faktury/" ~ inv.cislo %}{% include "denik/_priloha.html" %}{% if e.ucet == "hotovost" %}{% include "denik/_cislo.html" %}{% endif %}{% endwith %}
     </div>
     {% endfor %}
   </section>

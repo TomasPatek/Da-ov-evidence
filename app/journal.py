@@ -362,6 +362,39 @@ class Journal:
             entry_id, {"cislo_dokladu": number}
         )
 
+    def set_cash_number(self, entry_id: str, typed: str) -> Record:
+        """Correct the number of a cash voucher, e.g. to match the paper ``PPD3/26``.
+
+        Just the sequence number (``3``) is enough; prefix and year are added. The
+        automatic numbering continues from the highest number used.
+        """
+        entry = self.get(entry_id)
+        if entry["ucet"] != Account.CASH:
+            raise JournalError("Číslo pokladního dokladu jde opravit jen u zápisu v pokladně.")
+        income = entry["smer"] == Direction.INCOME
+        prefix = "PPD" if income else "VPD"
+        year = entry["datum_uhrady"].year % 100
+        text = re.sub(r"\s+", "", typed).upper()
+        if text.isdigit():
+            text = f"{prefix}{text}/{year:02d}"
+        m = re.fullmatch(r"(PPD|VPD)([1-9]\d{0,4})/(\d{2})", text)
+        if not m:
+            raise JournalError(f"Zadejte číslo ve tvaru {prefix}1/{year:02d}.")
+        if m.group(1) != prefix:
+            raise JournalError(
+                "Příjem do pokladny má číslo PPD…" if income else "Výdaj z pokladny má číslo VPD…"
+            )
+        if int(m.group(3)) != year:
+            raise JournalError(f"Na konci čísla musí být dvojčíslí roku úhrady {year:02d}.")
+        for row in self.entries(entry["datum_uhrady"].year):
+            if row["cislo_dokladu"] == text and row["id"] != entry_id:
+                raise JournalError(f"Číslo {text} už má jiný zápis ({row['id']}).")
+        if entry["cislo_dokladu"] == text:
+            return entry
+        return self.storage.table(DENIK_SCHEMA, int(entry_id[1:5])).update(
+            entry_id, {"cislo_dokladu": text}
+        )
+
     def delete(self, entry_id: str) -> None:
         m = re.match(r"^D(\d{4})-\d+$", entry_id)
         if not m:

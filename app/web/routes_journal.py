@@ -323,7 +323,12 @@ async def attachment_upload(request: Request, entry_id: str) -> Response:
             errors.append(str(exc))
     if errors:
         return render(
-            request, "denik/priloha-chyba.html", status_code=400, errors=errors, back=back
+            request,
+            "denik/chyba-zapisu.html",
+            status_code=400,
+            errors=errors,
+            back=back,
+            heading="Doklad se nepodařilo nahrát",
         )
     log.info("Attachment added to a cash book entry")
     return RedirectResponse(back, status_code=303)
@@ -337,4 +342,23 @@ async def attachment_delete(request: Request, entry_id: str) -> Response:
         _journal(request).remove_attachment(entry_id)
     except JournalError as exc:
         raise HTTPException(404, str(exc)) from exc
+    return RedirectResponse(back, status_code=303)
+
+
+@router.post("/{entry_id}/cislo")
+async def cash_number(request: Request, entry_id: str) -> Response:
+    """Correct the number of a cash voucher (PPD/VPD)."""
+    form = await request.form()
+    back = safe_return_path(str(form.get("zpet", "")), f"/denik?rok={entry_id[1:5]}")
+    try:
+        _journal(request).set_cash_number(entry_id, str(form.get("cislo", "")))
+    except JournalError as exc:
+        return render(
+            request,
+            "denik/chyba-zapisu.html",
+            status_code=400,
+            errors=[str(exc)],
+            back=back,
+            heading="Číslo dokladu se nepodařilo změnit",
+        )
     return RedirectResponse(back, status_code=303)

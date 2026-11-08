@@ -201,3 +201,78 @@ def test_older_cash_book_without_column_still_works(journal: Journal) -> None:
     assert journal.get(entry_id)["priloha"] == ""
     assert journal.attach(entry_id, jpeg())["priloha"] == f"pokladna/{entry_id}.jpg"
     assert path.read_text("utf-8-sig").splitlines()[0].endswith(";priloha")
+
+
+# -- manual correction of the cash voucher number ------------------------------------
+
+
+def cash(journal: Journal, direction: str = "výdaj", day: date = date(2026, 10, 18)) -> str:
+    column = 16 if direction == "výdaj" else 9
+    rec = journal.add(
+        EntryDraft(day, Account.CASH, direction, D("100"), column, "Pokladna", PaymentMethod.CASH)
+    )
+    return str(rec["id"])
+
+
+@pytest.mark.parametrize(
+    ("typed", "direction", "stored"),
+    [
+        ("VPD7/26", "výdaj", "VPD7/26"),
+        (" vpd 7 / 26 ", "výdaj", "VPD7/26"),
+        ("7", "výdaj", "VPD7/26"),
+        ("12", "příjem", "PPD12/26"),
+        ("PPD3/26", "příjem", "PPD3/26"),
+    ],
+)
+def test_set_cash_number(journal: Journal, typed: str, direction: str, stored: str) -> None:
+    entry_id = cash(journal, direction)
+    assert journal.set_cash_number(entry_id, typed)["cislo_dokladu"] == stored
+
+
+def test_series_continues_after_corrected_number(journal: Journal) -> None:
+    journal.set_cash_number(cash(journal), "VPD5/26")
+    assert journal.get(cash(journal))["cislo_dokladu"] == "VPD6/26"
+
+
+@pytest.mark.parametrize(
+    ("typed", "direction", "message"),
+    [
+        ("PPD3/26", "výdaj", "Výdaj z pokladny má číslo VPD"),
+        ("VPD3/26", "příjem", "Příjem do pokladny má číslo PPD"),
+        ("VPD3/25", "výdaj", "dvojčíslí roku úhrady 26"),
+        ("VPD0/26", "výdaj", "ve tvaru"),
+        ("faktura", "výdaj", "ve tvaru"),
+        ("", "výdaj", "ve tvaru"),
+    ],
+)
+def test_set_cash_number_validation(
+    journal: Journal, typed: str, direction: str, message: str
+) -> None:
+    entry_id = cash(journal, direction)
+    with pytest.raises(JournalError, match=message):
+        journal.set_cash_number(entry_id, typed)
+
+
+def test_cash_number_must_be_unique(journal: Journal) -> None:
+    first = cash(journal)  # VPD1/26
+    second = cash(journal)
+    with pytest.raises(JournalError, match=f"VPD1/26 už má jiný zápis \\({first}\\)"):
+        journal.set_cash_number(second, "VPD1/26")
+    assert journal.set_cash_number(first, "VPD1/26")["cislo_dokladu"] == "VPD1/26"  # unchanged
+
+
+def test_only_cash_rows(journal: Journal) -> None:
+    rec = journal.add(
+        EntryDraft(
+            date(2026, 10, 18), Account.BANK, "výdaj", D("100"), 16, "Účet", PaymentMethod.TRANSFER
+        )
+    )
+    with pytest.raises(JournalError, match="jen u zápisu v pokladně"):
+        journal.set_cash_number(rec["id"], "VPD1/26")
+
+
+def test_locked_year_refuses_new_number(journal: Journal) -> None:
+    entry_id = cash(journal)
+    journal.storage.set_locked(2026, True)
+    with pytest.raises(LockedYearError):
+        journal.set_cash_number(entry_id, "VPD9/26")
