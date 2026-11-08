@@ -43,6 +43,9 @@ class Settings:
     imap_done_folder: str = "Zpracováno"
     posta_interval_min: int = 15  # 0 = no automatic fetching
     imap_password: str = field(default="", repr=False)
+    backup_repository: str = ""
+    backup_time: str = "02:30"
+    restic_password: str = field(default="", repr=False)
     smtp_port: int = 465
     smtp_security: str = "ssl"  # ssl | starttls | none (none only for local test servers)
     smtp_from: str = ""
@@ -79,6 +82,9 @@ class Settings:
             imap_done_folder=os.environ.get("IMAP_SLOZKA_ZPRACOVANO") or "Zpracováno",
             posta_interval_min=int(os.environ.get("POSTA_INTERVAL_MIN") or 15),
             imap_password=os.environ.get("IMAP_PASSWORD", ""),
+            backup_repository=os.environ.get("BACKUP_REPOSITORY", ""),
+            backup_time=os.environ.get("BACKUP_TIME") or "02:30",
+            restic_password=os.environ.get("RESTIC_PASSWORD", ""),
             smtp_host=os.environ.get("SMTP_HOST", ""),
             smtp_user=os.environ.get("SMTP_USER", ""),
             smtp_port=int(os.environ.get("SMTP_PORT") or 465),

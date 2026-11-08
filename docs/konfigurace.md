@@ -36,6 +36,9 @@ Leží vedle `docker-compose.yml`. Do repozitáře nikdy nepatří; vzor je `.en
 | `IMAP_HOST`, `IMAP_PORT`, `IMAP_USER`, `IMAP_PASSWORD` | Schránka, ze které se stahují notifikace banky a doklady (port `993`). |
 | `IMAP_SECURITY` | Volitelné: `ssl` (výchozí), `starttls` nebo `none` (jen testovací server). |
 | `IMAP_SLOZKA_ZPRACOVANO` | Složka pro zpracované zprávy, výchozí `Zpracováno`. Aplikace ji založí. |
+| `BACKUP_REPOSITORY` | Kam ukládat noční zálohu: `rclone:<remote>:<složka>` pro cloud, nebo cesta. Viz [zálohování](zalohovani.md). |
+| `RESTIC_PASSWORD` | Heslo, kterým jsou zálohy šifrované. Uložte ho i mimo server. |
+| `BACKUP_TIME` | Čas noční zálohy, výchozí `02:30`. |
 | `POSTA_INTERVAL_MIN` | Jak často stahovat poštu v minutách, výchozí `15`; `0` = jen ručně. |
 | `SMTP_HOST`, `SMTP_PORT` | Server pro odesílání faktur. Port `465` (šifrované spojení) nebo `587` (STARTTLS). |
 | `SMTP_USER`, `SMTP_PASSWORD` | Přihlášení k odchozí poště. Použijte heslo pro aplikace, pokud ho schránka umožňuje. |

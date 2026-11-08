@@ -212,3 +212,24 @@ def test_scheduler_only_when_configured(storage: Storage, tmp_path: Path) -> Non
         assert job is not None and job.trigger.interval.total_seconds() == 15 * 60
     finally:
         scheduler.shutdown(wait=False)
+
+
+def test_scheduler_with_backup_only(storage: Storage, tmp_path: Path) -> None:
+    settings = Settings(
+        data_dir=storage.data_dir,
+        config_dir=tmp_path,
+        secret_key="k",
+        backup_repository=str(tmp_path / "repo"),
+        restic_password="x",
+        backup_time="03:15",
+    )
+    scheduler = start_scheduler(settings, storage, lambda: FakeMailbox([]))
+    assert scheduler is not None
+    try:
+        assert scheduler.get_job("posta") is None
+        job = scheduler.get_job("zaloha")
+        assert (
+            job is not None and "hour='3'" in str(job.trigger) and "minute='15'" in str(job.trigger)
+        )
+    finally:
+        scheduler.shutdown(wait=False)

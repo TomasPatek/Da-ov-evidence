@@ -25,6 +25,7 @@ from app.mail.smtp import MailSender, SmtpSender
 from app.storage import LockedYearError, Storage
 from app.web import (
     routes_auth,
+    routes_backup,
     routes_bank,
     routes_contacts,
     routes_invoices,
@@ -113,6 +114,7 @@ def create_app(
     app.include_router(routes_journal.router)
     app.include_router(routes_bank.router)
     app.include_router(routes_reports.router)
+    app.include_router(routes_backup.router)
     app.include_router(routes_main.router)
 
     @app.exception_handler(LockedYearError)

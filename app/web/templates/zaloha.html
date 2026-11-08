@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Záloha · Daňová evidence{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/nastaveni">Nastavení</a></p>
+<h1>Záloha</h1>
+{% if request.query_params.get("bezi") or running %}<div class="alert alert-info" role="status">Záloha běží. Obnovte stránku za chvíli.</div>{% endif %}
+<div class="grid">
+  <section class="card">
+    <h2>Nastavení</h2>
+    {% if configured %}
+    <dl class="facts">
+      <dt>Úložiště</dt><dd>{{ s.backup_repository }}</dd>
+      <dt>Kdy</dt><dd>každou noc v {{ s.backup_time }}</dd>
+      <dt>Co</dt><dd>složky data a config, šifrovaně (restic)</dd>
+      <dt>Uchovává</dt><dd>7 denních, 5 týdenních, 12 měsíčních a 10 ročních záloh</dd>
+    </dl>
+    <form method="post" action="/zaloha/spustit">
+      <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+      <button type="submit" class="primary">Zálohovat teď</button>
+    </form>
+    {% else %}
+    <p class="warn">Záloha není nastavená. Doplňte <code>BACKUP_REPOSITORY</code> a <code>RESTIC_PASSWORD</code>
+    v souboru <code>.env</code> a nastavte rclone podle <code>docs/zalohovani.md</code>.</p>
+    {% endif %}
+  </section>
+  <section class="card">
+    <h2>Poslední záloha</h2>
+    {% if last %}
+    <dl class="facts">
+      <dt>Kdy</dt><dd>{{ last.cas }}</dd>
+      <dt>Výsledek</dt><dd class="{{ '' if last.ok else 'warn' }}">{{ last.zprava }}</dd>
+      {% if last.ok %}<dt>Záloha</dt><dd>{{ last.snapshot }} ({{ last.souboru }} souborů)</dd>{% endif %}
+    </dl>
+    {% else %}<p class="muted">Zatím neproběhla.</p>{% endif %}
+    {% if configured %}<p><a href="/zaloha?seznam=1">Zobrazit uložené zálohy</a></p>{% endif %}
+    {% if snapshots is not none %}
+    <ul class="plain">{% for sn in snapshots %}<li>{{ sn.cas }} · {{ sn.id }}</li>{% else %}<li class="muted">Žádné.</li>{% endfor %}</ul>
+    {% endif %}
+  </section>
+</div>
+<section class="card">
+  <h2>Heslo zálohy</h2>
+  <p>Bez hesla <code>RESTIC_PASSWORD</code> zálohu nikdo neobnoví, ani vy. Uložte ho mimo server, např. do správce
+  hesel, spolu s přístupem k cloudu. Postup obnovy na čistém stroji je v <code>docs/zalohovani.md</code>.</p>
+</section>
+{% endblock %}
