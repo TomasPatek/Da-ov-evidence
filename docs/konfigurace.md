@@ -33,7 +33,10 @@ Leží vedle `docker-compose.yml`. Do repozitáře nikdy nepatří; vzor je `.en
 | `APP_UID`, `APP_GID` | Uživatel a skupina, pod kterými kontejner běží. Musí vlastnit složky `data` a `config`. |
 | `LOG_LEVEL` | `INFO` (výchozí), `DEBUG` nebo `WARNING`. Na úrovni `INFO` log neobsahuje částky ani jména klientů. |
 | `SETUP_TOKEN` | Volitelně pevný kód pro první spuštění. Jinak se vygeneruje a vypíše do logu. |
-| `IMAP_HOST`, `IMAP_PORT`, `IMAP_USER`, `IMAP_PASSWORD` | Schránka, ze které se budou stahovat doklady (zatím se nepoužívá). |
+| `IMAP_HOST`, `IMAP_PORT`, `IMAP_USER`, `IMAP_PASSWORD` | Schránka, ze které se stahují notifikace banky a doklady (port `993`). |
+| `IMAP_SECURITY` | Volitelné: `ssl` (výchozí), `starttls` nebo `none` (jen testovací server). |
+| `IMAP_SLOZKA_ZPRACOVANO` | Složka pro zpracované zprávy, výchozí `Zpracováno`. Aplikace ji založí. |
+| `POSTA_INTERVAL_MIN` | Jak často stahovat poštu v minutách, výchozí `15`; `0` = jen ručně. |
 | `SMTP_HOST`, `SMTP_PORT` | Server pro odesílání faktur. Port `465` (šifrované spojení) nebo `587` (STARTTLS). |
 | `SMTP_USER`, `SMTP_PASSWORD` | Přihlášení k odchozí poště. Použijte heslo pro aplikace, pokud ho schránka umožňuje. |
 | `SMTP_FROM` | Adresa odesílatele faktur. Když chybí, použije se `SMTP_USER`. |

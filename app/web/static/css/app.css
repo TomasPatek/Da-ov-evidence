@@ -251,3 +251,16 @@ table.et tr.total td { font-weight: 700; }
 }
 .nowrap { white-space: nowrap; }
 .grid + form.filters, .card + form.filters, .card + .tabs { margin-top: 1rem; }
+
+/* Bank movements. */
+.movement-head { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
+.movement-head strong { font-size: 1.15rem; margin-right: .5rem; }
+.income { color: var(--ok-text); }
+.expense { color: var(--text); }
+.badge-bank-nespárováno { color: var(--warn-text); background: var(--warn-bg); border-color: currentColor; }
+.badge-bank-spárováno { color: var(--ok-text); border-color: currentColor; }
+details > summary { cursor: pointer; color: var(--brand-primary); margin: .25rem 0; }
+@media (prefers-color-scheme: dark) { details > summary { color: var(--brand-accent); } }
+details[open] > form { margin-top: .75rem; }
+section.card.movement + section.card.movement, .tabs + section.card { margin-top: .75rem; }
+form.match fieldset { display: flex; flex-direction: column; gap: .35rem; }

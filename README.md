@@ -10,7 +10,7 @@ Self-hosted webová aplikace pro daňovou evidenci OSVČ, která není plátcem 
 
 ## Co aplikace umí
 
-> Aplikace je ve vývoji. Hotové jsou fáze 0 (kostra), 1 (fakturace) a 2 (evidence); ostatní body přibývají postupně, viz [CHANGELOG](CHANGELOG.md).
+> Aplikace je ve vývoji. Hotové jsou fáze 0 (kostra), 1 (fakturace), 2 (evidence) a 3 (automatizace); ostatní body přibývají postupně, viz [CHANGELOG](CHANGELOG.md).
 
 - Přihlášení jedním uživatelem, průvodce prvním spuštěním, vlastní logo a barvy.
 - Data v CSV souborech, které otevřete v Excelu nebo Numbers.
@@ -20,7 +20,7 @@ Self-hosted webová aplikace pro daňovou evidenci OSVČ, která není plátcem 
 - Zakázky s přehledem fakturace, přímých nákladů a rozdílu; upozornění na dokončené zakázky bez faktury a na nepřeúčtovaný materiál.
 - Peněžní deník ve sloupcích tiskopisu ET 328 s kontrolními součty a zůstatky pokladny a účtu.
 - Přijaté doklady: nahrání PDF, fotky nebo ISDOC, automatické čtení (ISDOC, QR platba, text PDF), fronta Ke kontrole, šablony dodavatelů.
-- Stahování dokladů z e-mailu a párování plateb z Air Bank *(fáze 3)*.
+- Stahování pošty každých 15 minut: notifikace Air Bank se párují s fakturami a doklady a zapisují do deníku, doklady z příloh jdou do fronty Ke kontrole. Načítání měsíčního výpisu přibude.
 - OCR účtenek, majetek a odpisy, roční přehledy, zálohování, instalace na iPhone *(fáze 4)*.
 
 ## Co aplikace neumí
@@ -45,6 +45,8 @@ Podrobně: [instalace na server](docs/instalace-server.md) nebo [na vlastní po�
 - [Fakturace: kontakty, zakázky a faktury](docs/fakturace.md)
 - [Přijaté doklady](docs/doklady.md)
 - [Peněžní deník](docs/denik.md)
+- [Banka a pošta: párování plateb](docs/banka.md)
+- [Jak přidat parser další banky](docs/banky.md)
 - [Konfigurace](docs/konfigurace.md)
 - [Zálohování a obnova](docs/zalohovani.md)
 - [Aktualizace](docs/aktualizace.md)

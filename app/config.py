@@ -38,6 +38,11 @@ class Settings:
     imap_user: str = ""
     smtp_host: str = ""
     smtp_user: str = ""
+    imap_port: int = 993
+    imap_security: str = "ssl"  # ssl | starttls | none (none only for local test servers)
+    imap_done_folder: str = "Zpracováno"
+    posta_interval_min: int = 15  # 0 = no automatic fetching
+    imap_password: str = field(default="", repr=False)
     smtp_port: int = 465
     smtp_security: str = "ssl"  # ssl | starttls | none (none only for local test servers)
     smtp_from: str = ""
@@ -69,6 +74,11 @@ class Settings:
             log_level=os.environ.get("LOG_LEVEL", "INFO").upper(),
             imap_host=os.environ.get("IMAP_HOST", ""),
             imap_user=os.environ.get("IMAP_USER", ""),
+            imap_port=int(os.environ.get("IMAP_PORT") or 993),
+            imap_security=(os.environ.get("IMAP_SECURITY") or "ssl").strip().lower(),
+            imap_done_folder=os.environ.get("IMAP_SLOZKA_ZPRACOVANO") or "Zpracováno",
+            posta_interval_min=int(os.environ.get("POSTA_INTERVAL_MIN") or 15),
+            imap_password=os.environ.get("IMAP_PASSWORD", ""),
             smtp_host=os.environ.get("SMTP_HOST", ""),
             smtp_user=os.environ.get("SMTP_USER", ""),
             smtp_port=int(os.environ.get("SMTP_PORT") or 465),

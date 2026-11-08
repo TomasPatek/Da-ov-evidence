@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Pošta · Daňová evidence{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/banka">Banka</a></p>
+<h1>Pošta</h1>
+{% if request.query_params.get("hotovo") %}<div class="alert alert-info" role="status">Pošta stažena.</div>{% endif %}
+{% if request.query_params.get("chyba") %}<div class="alert alert-error" role="alert">Stažení pošty skončilo chybou, podrobnosti níže.</div>{% endif %}
+<div class="grid">
+  <section class="card">
+    <h2>Schránka</h2>
+    {% if configured %}
+    <dl class="facts">
+      <dt>Server</dt><dd>{{ s.imap_host }}:{{ s.imap_port }}</dd>
+      <dt>Účet</dt><dd>{{ s.imap_user }}</dd>
+      <dt>Stahování</dt><dd>{% if s.posta_interval_min > 0 %}každých {{ s.posta_interval_min }} minut{% else %}jen ručně{% endif %}</dd>
+      <dt>Zpracované zprávy</dt><dd>složka „{{ s.imap_done_folder }}“</dd>
+    </dl>
+    <form method="post" action="/posta/stahnout">
+      <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+      <button type="submit" class="primary">Stáhnout teď</button>
+    </form>
+    {% else %}
+    <p class="warn">Stahování pošty není nastavené. Doplňte řádky <code>IMAP_…</code> v souboru <code>.env</code>
+    a restartujte aplikaci (<code>docker compose up -d</code>). Příklad pro WEDOS je v <code>docs/konfigurace.md</code>.</p>
+    {% endif %}
+  </section>
+  <section class="card">
+    <h2>Poslední stažení</h2>
+    {% if last %}
+    <dl class="facts">
+      <dt>Kdy</dt><dd>{{ last.cas }}</dd>
+      <dt>Notifikace banky</dt><dd>{{ last.notifikace }} (spárováno {{ last.sparovano }})</dd>
+      <dt>Doklady z příloh</dt><dd>{{ last.doklady }}</dd>
+      <dt>Ostatní zprávy</dt><dd>{{ last.ostatni }} (zůstaly ve schránce)</dd>
+    </dl>
+    {% for e in last.chyby %}<p class="warn">{{ e }}</p>{% endfor %}
+    {% else %}<p class="muted">Pošta se zatím nestahovala.</p>{% endif %}
+    <p class="muted">Aplikace si pamatuje {{ seen }} prohlédnutých zpráv, každou zpracuje jen jednou.</p>
+  </section>
+</div>
+<section class="card">
+  <h2>Co se se zprávami děje</h2>
+  <ul>
+    <li><strong>Notifikace banky</strong> (Air Bank): pohyb se uloží do <a href="/banka">Banky</a> a když sedí variabilní symbol a částka, rovnou se spáruje a zapíše do deníku.</li>
+    <li><strong>Zpráva s PDF, fotkou nebo ISDOC v příloze</strong>: doklad se přečte a čeká v <a href="/doklady?filtr=kontrola">Ke kontrole</a>.</li>
+    <li>Obě se pak přesunou do složky „{{ s.imap_done_folder }}“. <strong>Ostatní zprávy</strong> zůstanou ve schránce.</li>
+  </ul>
+</section>
+{% endblock %}

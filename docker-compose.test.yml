@@ -15,5 +15,6 @@ services:
         -Dgreenmail.setup.test.all -Dgreenmail.hostname=0.0.0.0
         -Dgreenmail.auth.disabled -Dgreenmail.verbose
     ports:
+      - "3025:3025"   # SMTP (delivering test mails)
       - "3143:3143"   # IMAP
       - "3993:3993"   # IMAPS

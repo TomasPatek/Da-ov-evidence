@@ -63,7 +63,7 @@ strict = true
 packages = ["app"]
 
 [[tool.mypy.overrides]]
-module = ["argon2.*", "weasyprint.*", "pypdfium2.*", "pyzbar.*"]
+module = ["argon2.*", "weasyprint.*", "pypdfium2.*", "pyzbar.*", "apscheduler.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
