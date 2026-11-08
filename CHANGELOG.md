@@ -34,7 +34,7 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 
 - Fáze 2, evidence:
   - Peněžní deník (`RRRR/denik.csv`) ve sloupcích tiskopisu ET 328: pokladna a účet se
-    zůstatky, průběžné položky pro převody, kontrolní součty, tabulka ET 328 k tisku,
+    zůstatky, pokladní doklady číslované `PPD1/27` a `VPD1/27`, průběžné položky pro převody, kontrolní součty, tabulka ET 328 k tisku,
     orientační rozdíl příjmů a výdajů. Kategorie a daňová uznatelnost jsou v `app/tax`
     s odkazy na zákon č. 586/1992 Sb.
   - Začátek evidence a počáteční stavy pokladny a účtu v průvodci a v nastavení.

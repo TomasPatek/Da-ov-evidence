@@ -112,7 +112,11 @@ def test_cash_and_document_numbers(journal: Journal) -> None:
     c = journal.add(entry(date(2027, 1, 4), Account.CASH, "příjem", "1", 9))
     d = journal.add(entry(date(2027, 1, 5), Account.BANK, "výdaj", "1", 19))
     e = journal.add(entry(date(2027, 1, 5), Account.BANK, "výdaj", "1", 15, doklad_id="PD2027-004"))
-    assert [a["cislo_dokladu"], b["cislo_dokladu"], c["cislo_dokladu"]] == ["P1", "V1", "P2"]
+    assert [a["cislo_dokladu"], b["cislo_dokladu"], c["cislo_dokladu"]] == [
+        "PPD1/27",
+        "VPD1/27",
+        "PPD2/27",
+    ]
     assert d["cislo_dokladu"] == "B1"
     assert e["cislo_dokladu"] == "PD2027-004"
     assert a["id"] == "D2027-0001" and e["id"] == "D2027-0005"
@@ -190,7 +194,7 @@ def test_transfer_creates_two_rows_with_transit_columns(journal: Journal) -> Non
     )
     assert (out["ucet"], out["smer"], out["kategorie"]) == ("hotovost", "výdaj", 6)
     assert (inn["ucet"], inn["smer"], inn["kategorie"]) == ("banka", "příjem", 7)
-    assert out["cislo_dokladu"] == "V1"
+    assert out["cislo_dokladu"] == "VPD1/27"
     report = journal.et_report(2027)
     assert report.totals[8] == 0 and report.totals[14] == 0
     with pytest.raises(JournalError):
@@ -215,3 +219,11 @@ def test_tax_summary(journal: Journal) -> None:
     assert s.taxable_income == D("1000")
     assert s.deductible_expenses == D("300")
     assert s.profit == D("700")
+
+
+def test_cash_numbers_restart_each_year(journal: Journal) -> None:
+    journal.add(entry(date(2027, 12, 30), Account.CASH, "příjem", "10", 9))
+    journal.add(entry(date(2027, 12, 31), Account.CASH, "výdaj", "1", 19))
+    a = journal.add(entry(date(2028, 1, 2), Account.CASH, "příjem", "10", 9))
+    b = journal.add(entry(date(2028, 1, 3), Account.CASH, "výdaj", "1", 19))
+    assert (a["cislo_dokladu"], b["cislo_dokladu"]) == ("PPD1/28", "VPD1/28")

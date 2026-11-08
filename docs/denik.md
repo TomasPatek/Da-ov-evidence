@@ -27,7 +27,8 @@ tiskopis Baloušek ET 328 (sloupce 1–23), takže součty můžete porovnat s p
    *převedeno*. Vytisknete ji z prohlížeče na šířku.
 
 Číslo dokladu ve sloupci *b*: u účtu číslo faktury nebo přijatého dokladu (u pohybu bez
-dokladu `B1`, `B2`…), u pokladny příjmový `P1…` nebo výdajový `V1…` pokladní doklad.
+dokladu `B1`, `B2`…), u pokladny příjmový `PPD1/27` nebo výdajový `VPD1/27` pokladní doklad
+(pořadové číslo / poslední dvojčíslí roku; každý rok začíná od 1).
 
 | Sloupce | Význam | Základ daně |
 | --- | --- | --- |

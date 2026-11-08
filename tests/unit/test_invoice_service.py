@@ -389,7 +389,7 @@ def test_payment_goes_to_cash_book_from_start(storage: Storage, firma: FirmaConf
     assert bank["popis"] == f"Úhrada faktury {late['cislo']} – Petr Zákazník"
     assert (kasa["ucet"], kasa["cislo_dokladu"], kasa["zpusob_uhrady"]) == (
         "hotovost",
-        "P1",
+        "PPD1/26",
         "hotovost",
     )
     svc.mark_unpaid(late["cislo"])

@@ -148,7 +148,11 @@ def test_confirm_with_payment_writes_expense(
         today=TODAY,
     )
     (row,) = Journal(storage, firma).entries(2027)
-    assert (row["ucet"], row["castka"], row["cislo_dokladu"]) == ("hotovost", D("830.00"), "V1")
+    assert (row["ucet"], row["castka"], row["cislo_dokladu"]) == (
+        "hotovost",
+        D("830.00"),
+        "VPD1/27",
+    )
 
 
 def test_pay_later_and_undo(docs: ReceivedDocs, storage: Storage, firma: FirmaConfig) -> None:

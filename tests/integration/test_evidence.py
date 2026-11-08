@@ -137,7 +137,7 @@ def test_pay_later_and_undo(ready: TestClient) -> None:
     )
     assert resp.status_code == 303
     journal = ready.get("/denik").text
-    assert "V1" in journal
+    assert f"VPD1/{TODAY:%y}" in journal
     ready.post(f"/doklady/{doc_id}/neuhrazeno", data={"csrf_token": token(ready)})
     assert doc_id not in ready.get("/denik").text
 
@@ -168,7 +168,7 @@ def test_manual_document(ready: TestClient) -> None:
     assert resp.status_code == 303
     page = ready.get(resp.headers["location"]).text
     assert "Trafika u nádraží" in page and "uhrazen" in page
-    assert "V1" in ready.get("/denik").text
+    assert f"VPD1/{TODAY:%y}" in ready.get("/denik").text
 
 
 def test_supplier_from_ares(ready: TestClient, fake_ares: FakeAres) -> None:

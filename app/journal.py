@@ -52,7 +52,8 @@ DENIK_SCHEMA = TableSchema(
             "cislo_dokladu",
             description=(
                 "Číslo dokladu ve sloupci *b* ET 328: číslo faktury nebo přijatého dokladu, "
-                "u hotovosti příjmový `P1…` nebo výdajový `V1…` pokladní doklad, "
+                "u hotovosti příjmový `PPD1/27…` nebo výdajový `VPD1/27…` pokladní doklad "
+                "(číslo/dvojčíslí roku), "
                 "u bankovního pohybu bez dokladu `B1…`."
             ),
         ),
@@ -237,18 +238,17 @@ class Journal:
 
     @staticmethod
     def _number(rows: list[Record], d: EntryDraft) -> str:
+        """Cash vouchers ``PPD1/27`` / ``VPD1/27`` per year; bank rows without document ``B1``."""
         if d.ucet is Account.CASH:
-            prefix = "P" if d.smer == Direction.INCOME else "V"
+            prefix = "PPD" if d.smer == Direction.INCOME else "VPD"
+            suffix = f"/{d.datum.year % 100:02d}"
         elif d.doklad_id:
             return d.doklad_id
         else:
-            prefix = "B"
-        used = [
-            int(r["cislo_dokladu"][1:])
-            for r in rows
-            if re.fullmatch(rf"{prefix}\d+", r["cislo_dokladu"])
-        ]
-        return f"{prefix}{max(used, default=0) + 1}"
+            prefix, suffix = "B", ""
+        pattern = re.compile(rf"{prefix}(\d+){re.escape(suffix)}")
+        used = [int(m.group(1)) for r in rows if (m := pattern.fullmatch(r["cislo_dokladu"]))]
+        return f"{prefix}{max(used, default=0) + 1}{suffix}"
 
     def _record(self, rows: list[Record], d: EntryDraft, year: int) -> Record:
         transit = d.kategorie in (TRANSIT_INCOME, TRANSIT_EXPENSE)

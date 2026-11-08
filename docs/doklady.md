@@ -43,7 +43,7 @@ Po potvrzení si aplikace zapamatuje pro dodavatele kategorii, popis a způsob �
 ## Jak ověřit, že to funguje
 
 - Potvrzený doklad má stav *potvrzen* nebo *uhrazen* a v *Peněžním deníku* je u uhrazeného
-  výdaj s číslem dokladu (`PD2027-001`, u hotovosti `V1`…).
+  výdaj s číslem dokladu (`PD2027-001`, u hotovosti `VPD1/27`…).
 - V detailu zakázky je doklad v části *Náklady* a promítne se do *Rozdílu*.
 - Soubor dokladu leží v `data/RRRR/doklady/` a jmenuje se podle čísla dokladu.
 
