@@ -64,7 +64,8 @@ Vazba na fakturu nebo přijatý doklad zůstává ve sloupci `doklad_id` i s kó
 - **„Evidence v aplikaci začíná…“:** zápis je starší než začátek evidence. Patří do původní
   evidence, nebo upravte začátek v nastavení.
 - **„Pokladna má záporný zůstatek“:** chybí příjem do pokladny (tržba, výběr z účtu) nebo je
-  některý výdaj zapsán na pokladnu místo na účet.
+  některý výdaj zapsán na pokladnu místo na účet. Pořadí zadání v rámci jednoho dne nevadí:
+  příjmy téhož dne se počítají před výdaji.
 - **„Přiložte PDF nebo fotku dokladu“:** soubor není JPEG, PNG ani PDF. Na iPhonu zvolte
   v *Nastavení → Fotoaparát → Formáty* volbu *Nejkompatibilnější*, nebo fotku pořiďte přímo
   z formuláře (Safari ji odešle jako JPEG).

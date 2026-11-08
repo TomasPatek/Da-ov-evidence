@@ -286,10 +286,11 @@ def test_book_other_and_transfer(book: BankBook, storage: Storage, firma: FirmaC
     )
     book.book_transfer(deposit["id"])
     rows = Journal(storage, firma).entries(2026)
+    # Same day: income first, then expenses in the order they were entered.
     assert [(r["cislo_dokladu"], r["kategorie"], r["ucet"]) for r in rows] == [
+        ("2", 7, "banka"),
         ("1", 21, "banka"),
         ("VPD1/26", 6, "hotovost"),
-        ("2", 7, "banka"),
     ]
     book.unmatch(deposit["id"])
     assert [r["cislo_dokladu"] for r in Journal(storage, firma).entries(2026)] == ["1"]

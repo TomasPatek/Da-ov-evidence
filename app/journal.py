@@ -215,7 +215,12 @@ class Journal:
 
     def entries(self, year: int) -> list[Record]:
         rows = self.storage.table(DENIK_SCHEMA, year).all()
-        rows.sort(key=lambda r: (r["datum_uhrady"], _id_seq(r["id"])))
+        # Within one day income goes first: the order of entry says nothing about the order
+        # of payments, and the cash desk must not look negative just because a deposit to the
+        # bank was entered before the cash income of the same day.
+        rows.sort(
+            key=lambda r: (r["datum_uhrady"], r["smer"] != Direction.INCOME, _id_seq(r["id"]))
+        )
         return rows
 
     def for_document(self, doklad_id: str) -> list[Record]:

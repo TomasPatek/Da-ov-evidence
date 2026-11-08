@@ -20,6 +20,8 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 
 ### Opraveno
 
+- Pokladna už neukazuje záporný zůstatek jen proto, že výdaj (např. vklad na účet) byl zadán
+  dřív než příjem téhož dne. V rámci jednoho dne jdou v deníku příjmy před výdaji.
 - Kontrola dokumentace CSV v CI už nepotřebuje knihovnu zbar.
 - Faktury vydané v Air Bank a zaplacené v hotovosti: správná částka (pevné mezery v částkách jako `1 150,00`) a popis plnění u textu „Zaplaceno:“.
 
