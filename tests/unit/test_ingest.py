@@ -19,14 +19,14 @@ from app.ingest.templates import SupplierTemplates
 
 FIXTURES = Path(__file__).parents[1] / "fixtures" / "doklady"
 SAMPLES = sorted(p for p in FIXTURES.iterdir() if p.suffix != ".json")
-OWN_ICO, OWN_ACCOUNT = "99999994", "1234567899/0100"
+OWN_ICO, OWN_ACCOUNT, OWN_IBAN = "99999994", "1000000005/3030", "CZ0330300000001000000005"
 
 
 @pytest.mark.parametrize("path", SAMPLES, ids=lambda p: p.name)
 def test_golden_files(path: Path, tmp_path: Path) -> None:
     data = path.read_bytes()
     ex = read_document(
-        data, detect(data), OWN_ICO, OWN_ACCOUNT, SupplierTemplates(tmp_path), [], []
+        data, detect(data), OWN_ICO, OWN_ACCOUNT, SupplierTemplates(tmp_path), [], [], OWN_IBAN
     )
     golden = json.loads((FIXTURES / f"{path.name}.json").read_text("utf-8"))
     assert ex.as_json() == golden["values"]
@@ -186,3 +186,38 @@ def test_single_running_job_is_suggested() -> None:
         ],
     )
     assert ex.get("zakazka_id") == "Z1"
+
+
+# -- own invoices issued elsewhere ------------------------------------------------------
+
+
+def test_own_invoice_is_recognised(tmp_path: Path) -> None:
+    from app.ingest.own_invoice import customer_block
+
+    data = (FIXTURES / "vydana-airbank.pdf").read_bytes()
+    customer = customer_block(data, OWN_ICO)
+    assert (customer.nazev, customer.ulice, customer.psc, customer.mesto) == (
+        "Petr Zákazník",
+        "Lipová 3",
+        "54321",
+        "Vzorov",
+    )
+
+
+def test_supplier_invoice_mentioning_our_ico_is_not_own(tmp_path: Path) -> None:
+    # Received invoices carry our IČO as the customer, but ask for payment elsewhere.
+    for name in ("faktura-radky.pdf", "faktura-sloupce.pdf", "faktura-qr.pdf"):
+        data = (FIXTURES / name).read_bytes()
+        ex = read_document(
+            data, PDF, OWN_ICO, OWN_ACCOUNT, SupplierTemplates(tmp_path), [], [], OWN_IBAN
+        )
+        assert ex.get("typ") != "vydaná faktura", name
+
+
+def test_own_ico_without_own_account_is_not_own() -> None:
+    from app.ingest.own_invoice import is_own_document
+
+    ex = Extraction(text="Dodavatel IČO: 99999994\nÚčet 19-2000145399/0800")
+    assert not is_own_document(ex, OWN_ICO, OWN_ACCOUNT, OWN_IBAN)
+    ex = Extraction(text="IČO: 99999994\nČíslo účtu: 1000000005/3030")
+    assert is_own_document(ex, OWN_ICO, OWN_ACCOUNT, OWN_IBAN)

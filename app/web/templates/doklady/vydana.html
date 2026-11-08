@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ d.id }} – vaše vydaná faktura · Daňová evidence{% endblock %}
+{% block content %}
+<p class="crumbs"><a href="/doklady?filtr=kontrola">Přijaté doklady</a></p>
+<div class="page-head">
+  <h1>Vaše vydaná faktura {{ v.cislo }}</h1>
+  <a class="button" href="/doklady/{{ d.id }}/soubor">Stáhnout originál</a>
+</div>
+{% include "_errors.html" %}
+<div class="alert alert-info" role="status">Na dokladu je vaše IČO jako dodavatel a platba na váš účet: jde o vaši fakturu
+vystavenou jinde (Air Bank). Po převzetí bude mezi vydanými fakturami pod svým číslem, s původním PDF,
+a platby se k ní budou párovat podle variabilního symbolu.</div>
+<div class="review{{ ' no-preview' if not pages }}">
+  {% if pages %}
+  <section class="card preview" aria-label="Náhled faktury">
+    {% for p in range(1, pages + 1) %}<img src="/doklady/{{ d.id }}/nahled.png?strana={{ p }}" alt="Strana {{ p }} faktury">{% endfor %}
+  </section>
+  {% endif %}
+  <section class="card">
+    <form method="post" action="/doklady/{{ d.id }}/prevzit">
+      <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+      <div class="row">
+        <label>Číslo faktury <input type="text" name="cislo" value="{{ v.cislo }}" required></label>
+        <label>Variabilní symbol <input type="text" name="vs" value="{{ v.vs }}" inputmode="numeric"></label>
+      </div>
+      <fieldset>
+        <legend>Odběratel</legend>
+        <label>Existující kontakt
+          <select name="kontakt_id">
+            <option value="">— založit nový podle údajů níže —</option>
+            {% for c in contacts %}<option value="{{ c.id }}" {{ 'selected' if c.id == v.kontakt_id }}>{{ c.nazev }}{% if c.ico %} ({{ c.ico }}){% endif %}</option>{% endfor %}
+          </select>
+        </label>
+        <label>Jméno nebo název <input type="text" name="nazev" value="{{ v.nazev }}"></label>
+        <label>Ulice <input type="text" name="ulice" value="{{ v.ulice }}"></label>
+        <div class="row">
+          <label>PSČ <input type="text" name="psc" value="{{ v.psc }}" inputmode="numeric"></label>
+          <label class="grow">Obec <input type="text" name="mesto" value="{{ v.mesto }}"></label>
+          <label>IČO <input type="text" name="ico" value="{{ v.ico }}" inputmode="numeric" maxlength="8"></label>
+        </div>
+      </fieldset>
+      <div class="row">
+        <label>Vystaveno <input type="date" name="datum_vystaveni" value="{{ v.datum_vystaveni }}" required></label>
+        <label>Splatnost <input type="date" name="datum_splatnosti" value="{{ v.datum_splatnosti }}" required></label>
+        <label>Částka (Kč) <input type="text" name="castka" value="{{ v.castka }}" inputmode="decimal" required></label>
+      </div>
+      <label>Co fakturujete <input type="text" name="popis" value="{{ v.popis }}" required></label>
+      <label>Zakázka <span class="muted">(nepovinné)</span>
+        <select name="zakazka_id"><option value="">— bez zakázky —</option>{% for j in jobs %}<option value="{{ j.id }}" {{ 'selected' if v.zakazka_id == j.id }}>{{ j.id }} {{ j.nazev }}</option>{% endfor %}</select>
+      </label>
+      <button type="submit" class="primary">Převzít do vydaných faktur</button>
+    </form>
+    <form method="post" action="/doklady/{{ d.id }}/smazat" class="inline-form">
+      <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+      <button type="submit" class="danger">Smazat (nepřebírat)</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

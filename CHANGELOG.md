@@ -43,6 +43,9 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
     nebo účtu, platba kartou k už zaplacenému dokladu), zápis jiných pohybů, převody, zrušení.
   - Částečné úhrady vydaných faktur.
   - Doklady z příloh e-mailů jdou do fronty Ke kontrole.
+  - Faktury vystavené v Air Bank se poznají (vaše IČO jako dodavatel, platba na váš účet)
+    a převezmou do vydaných faktur pod svým číslem a s původním PDF; aplikace pokračuje
+    ve stejné číselné řadě. Nový sloupec `zdroj` ve `faktury-vydane.csv`.
   - Ruční nahrání notifikací `.eml`; stránky *Banka* a *Pošta*; návod `docs/banka.md`.
   - Anonymizované vzorky notifikací v `tests/fixtures/airbank`, test proti GreenMail v CI.
 - Fáze 2, evidence:

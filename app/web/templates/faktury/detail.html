@@ -7,12 +7,14 @@
   <div class="actions">
     <a class="button" href="/faktury/{{ inv.cislo }}/pdf" target="_blank" rel="noopener">PDF</a>
     <a class="button" href="/faktury/{{ inv.cislo }}/isdoc">ISDOC</a>
-    {% if inv.stav in open_states %}<a class="button" href="/faktury/{{ inv.cislo }}/upravit">Upravit</a>{% endif %}
+    {% if inv.stav in open_states and not inv.zdroj %}<a class="button" href="/faktury/{{ inv.cislo }}/upravit">Upravit</a>{% endif %}
     {% if inv.stav != "stornovana" %}<a class="button primary" href="/faktury/{{ inv.cislo }}/odeslat">Odeslat e-mailem</a>{% endif %}
   </div>
 </div>
 {% include "_errors.html" %}
 {% if request.query_params.get("nova") %}<div class="alert alert-info" role="status">Faktura vystavena. Zkontrolujte PDF a pošlete ji odběrateli.</div>{% endif %}
+{% if inv.zdroj %}<div class="alert alert-info" role="status">Faktura převzatá z {{ inv.zdroj }}. PDF je originál; opravy dělejte tam, kde faktura vznikla.</div>{% endif %}
+{% if request.query_params.get("prevzato") %}<div class="alert alert-info" role="status">Faktura převzata. Platby se k ní budou párovat podle variabilního symbolu.</div>{% endif %}
 {% if request.query_params.get("upraveno") %}<div class="alert alert-info" role="status">Faktura upravena a PDF vytvořeno znovu.{% if inv.datum_odeslani %} Odběrateli už byla odeslána původní verze, <a href="/faktury/{{ inv.cislo }}/odeslat">pošlete mu opravenou</a>.{% endif %}</div>{% endif %}
 {% if request.query_params.get("odeslano") %}<div class="alert alert-info" role="status">Faktura odeslána.</div>{% endif %}
 {% if inv.stav == "stornovana" %}<div class="alert alert-warning" role="status">Stornováno: {{ inv.duvod_storna }}</div>{% endif %}

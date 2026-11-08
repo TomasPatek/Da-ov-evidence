@@ -102,6 +102,7 @@ Vydané faktury roku. Vystavená faktura se nemaže, jen se stornuje. Položky j
 | `duvod_storna` | text | Důvod storna; vyplněno jen u stornované faktury. |
 | `soubor_pdf` | text | PDF faktury, cesta v rámci složky roku. |
 | `poznamka` | text | Poznámka vytištěná na faktuře. |
+| `zdroj` | text | Kde faktura vznikla: prázdné = v aplikaci, jinak např. `Air Bank` (převzatá faktura, PDF je originál a aplikace ho nemění). |
 
 ### `RRRR/faktury-vydane-polozky.csv`
 
@@ -125,7 +126,7 @@ Přijaté doklady (faktury a účtenky od dodavatelů). Soubory leží ve složc
 | Sloupec | Typ | Popis |
 | --- | --- | --- |
 | `id` | text | Neměnný identifikátor `PDRRRR-NNN`, např. `PD2027-001`. |
-| `typ` | text | `faktura`, `účtenka` nebo `jiný`. |
+| `typ` | text | `faktura`, `účtenka` nebo `jiný`; `vydaná faktura` = vaše faktura vystavená jinde (Air Bank), čeká na převzetí do vydaných faktur. |
 | `kontakt_id` | text | Dodavatel, odkaz na `kontakty.csv` (po potvrzení). |
 | `dodavatel_ico` | text | IČO dodavatele, jak bylo na dokladu. |
 | `dodavatel_nazev` | text | Název dodavatele, jak byl na dokladu. |

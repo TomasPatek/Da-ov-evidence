@@ -38,6 +38,9 @@ deníku.
 
 Doklad bez souboru (třeba papírovou účtenku) zadáte tlačítkem *Zadat ručně*.
 
+Vaše vlastní faktura vystavená jinde (v Air Bank) se ve frontě označí jako *vaše faktura*
+a místo potvrzení výdaje ji převezmete do vydaných faktur (viz [Fakturace](fakturace.md#3b-faktury-vystavené-v-air-bank)).
+
 Po potvrzení si aplikace zapamatuje pro dodavatele kategorii, popis a způsob úhrady
 (soubor `sablony-dodavatelu.json`). Další doklad od něj už bude předvyplněný.
 

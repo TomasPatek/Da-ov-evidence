@@ -11,7 +11,7 @@ from pathlib import Path
 
 from app.config import FirmaConfig
 from app.contacts import KONTAKTY_SCHEMA
-from app.invoices.numbering import next_number
+from app.invoices.numbering import NumberingError, next_number, parse_number
 from app.invoices.schemas import FAKTURY_SCHEMA, POLOZKY_SCHEMA, InvoiceState
 from app.invoices.spayd import SpaydError, build_spayd
 from app.invoices.totals import invoice_total, line_total
@@ -234,6 +234,7 @@ class InvoiceService:
                     "duvod_storna": "",
                     "soubor_pdf": "",
                     "poznamka": draft.poznamka.strip(),
+                    "zdroj": "",
                 }
             )
         if draft.zakazka_id:
@@ -288,6 +289,10 @@ class InvoiceService:
         invoice = self._require(cislo)
         if invoice["stav"] not in OPEN_STATES:
             raise InvoiceError("Upravit lze jen neuhrazenou a nestornovanou fakturu.")
+        if invoice.get("zdroj"):
+            raise InvoiceError(
+                f"Faktura vznikla v {invoice['zdroj']}; opravte ji tam a převezměte znovu."
+            )
         self._validate(draft)
         year = invoice["datum_vystaveni"].year
         if draft.datum_vystaveni.year != year:
@@ -339,6 +344,66 @@ class InvoiceService:
             )
         if render_pdf is not None:
             record = self.write_pdf(record, render_pdf)
+        return record
+
+    def import_external(
+        self,
+        cislo: str,
+        draft: InvoiceDraft,
+        pdf: bytes,
+        source: str,
+        vs: str = "",
+    ) -> Record:
+        """Take over an invoice issued elsewhere under its own number, keeping its PDF.
+
+        It continues the same number series: the next invoice issued in the app gets the
+        following number.
+        """
+        fmt = self.firma.fakturace.format_cisla
+        try:
+            year, _ = parse_number(cislo, fmt)
+        except NumberingError as exc:
+            raise InvoiceError(
+                f"Číslo {cislo} neodpovídá číselné řadě {fmt}. "
+                "Převzít lze jen faktury ze stejné řady."
+            ) from exc
+        self._validate(draft)
+        if draft.datum_vystaveni.year != year:
+            raise InvoiceError(f"Datum vystavení musí být v roce {year} podle čísla faktury.")
+        invoices = self.storage.table(FAKTURY_SCHEMA, year)
+        items = self.storage.table(POLOZKY_SCHEMA, year)
+        with file_lock(self.storage.data_dir / str(year) / "faktury-vydane-cislovani"):
+            if invoices.get(cislo) is not None:
+                raise InvoiceError(f"Faktura {cislo} už v aplikaci je.")
+            self._replace_items(items, cislo, draft.lines)
+            record = invoices.insert(
+                {
+                    "cislo": cislo,
+                    "kontakt_id": draft.kontakt_id,
+                    "zakazka_id": draft.zakazka_id,
+                    "datum_vystaveni": draft.datum_vystaveni,
+                    "datum_splatnosti": draft.datum_splatnosti,
+                    "vs": vs or cislo,
+                    "castka": draft.total,
+                    "mena": CURRENCY,
+                    "stav": InvoiceState.ISSUED.value,
+                    "datum_odeslani": None,
+                    "datum_uhrady": None,
+                    "duvod_storna": "",
+                    "soubor_pdf": "",
+                    "poznamka": draft.poznamka.strip(),
+                    "zdroj": source,
+                }
+            )
+        path = self.pdf_path(record)
+        atomic_write_bytes(path, pdf)
+        record = invoices.update(cislo, {"soubor_pdf": f"doklady/{path.name}"})
+        if draft.zakazka_id:
+            self._set_job_state(
+                draft.zakazka_id,
+                JobState.INVOICED,
+                only_from=(JobState.INQUIRY, JobState.IN_PROGRESS, JobState.DONE),
+            )
         return record
 
     def write_pdf(self, invoice: Record, render_pdf: PdfRenderer) -> Record:

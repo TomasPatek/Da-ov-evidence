@@ -1,0 +1,21 @@
+{
+  "values": {
+    "typ": "vydaná faktura",
+    "dodavatel_ico": "",
+    "dodavatel_nazev": "Petr Zákazník",
+    "cislo_dodavatele": "20260042",
+    "datum_vystaveni": "2026-11-05",
+    "datum_splatnosti": "2026-11-19",
+    "castka": "1250.00",
+    "mena": "CZK",
+    "vs": "20260042",
+    "zpusob_uhrady": "převod",
+    "popis": "Oprava pračky; Výměna topného tělesa"
+  },
+  "uncertain": [],
+  "steps": [
+    "QR platba",
+    "text PDF",
+    "vlastní faktura"
+  ]
+}

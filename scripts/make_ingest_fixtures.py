@@ -30,7 +30,8 @@ from app.invoices.spayd import build_spayd, qr_png, qr_svg  # noqa: E402
 
 OUT = ROOT / "tests" / "fixtures" / "doklady"
 OWN_ICO = "99999994"  # demo company Jana Vzorová (the customer on these documents)
-OWN_ACCOUNT = "1234567899/0100"
+OWN_ACCOUNT = "1000000005/3030"
+OWN_IBAN = "CZ0330300000001000000005"
 STYLE = "body{font-family:'DejaVu Sans';font-size:10pt} td{padding:2px 6px} .r{text-align:right}"
 
 CUSTOMER = """<p>Odběratel: IČO: 99999994<br>Jana Vzorová<br>Ukázková 12<br>54321 Horní Dolní</p>"""
@@ -71,6 +72,29 @@ def qr_page(payload: str) -> str:
 <p>Datum vystavení: 3. 3. 2027</p>
 <p>Celkem k úhradě: 2 420,00 Kč</p>
 <p>Zaplaťte pomocí QR kódu:</p><div style="width:40mm">{svg}</div>
+"""
+
+
+def own_invoice_page() -> str:
+    """Layout like invoices issued in Air Bank internet banking (two columns)."""
+    payload = build_spayd(
+        OWN_IBAN, Decimal("1250"), vs="20260042", message="Faktura 20260042", due=date(2026, 11, 19)
+    )
+    svg = qr_svg(payload).replace("\n", "")
+    return f"""
+<p style="text-align:right;font-size:20pt">FAKTURA 20260042</p>
+<table style="width:100%"><tr><td>
+<p>Prosím o zaplacení<br><b style="font-size:16pt">1 250,00 Kč</b></p>
+<p>Forma úhrady: bankovním převodem<br>Číslo účtu: 1000000005/3030<br>
+Variabilní symbol: 20260042<br>Datum vystavení: 5. 11. 2026<br>Datum splatnosti: 19. 11. 2026</p>
+<p>IBAN: {OWN_IBAN}</p></td><td style="width:40mm">{svg}</td></tr></table>
+<table style="width:100%"><tr>
+<td style="width:50%;vertical-align:top">/ Dodavatel<br>Jana Vzorová<br>Ukázková 12<br>54321 Horní Dolní<br>
+Česká republika<br><br>IČO: 99999994<br>Nejsem plátce DPH.</td>
+<td style="vertical-align:top">/ Odběratel<br>Petr Zákazník<br>Lipová 3<br>54321 Vzorov (okr. Vzorov)<br>Česká republika</td>
+</tr></table>
+<p>/ Fakturuji Vám za</p><p>Oprava pračky</p><p>Výměna topného tělesa</p>
+<p style="text-align:right">Celkem zaplaťte: 1 250,00 Kč</p>
 """
 
 
@@ -133,6 +157,7 @@ def main() -> None:
     )
     files["faktura-qr.pdf"] = pdf(qr_page(payload))
     files["uctenka-qr.png"] = qr_png(payload, scale=6)
+    files["vydana-airbank.pdf"] = pdf(own_invoice_page())
     files["faktura.isdoc"] = isdoc_bytes()
     files["faktura-s-isdoc.pdf"] = pdf(
         "<h2>Faktura VF27-0815</h2><p>Velkoobchod Vzor a.s.</p>",
@@ -151,7 +176,14 @@ def main() -> None:
     for name, data in files.items():
         (OUT / name).write_bytes(data)
         ex = read_document(
-            data, detect(data), OWN_ICO, OWN_ACCOUNT, SupplierTemplates(OUT / "none"), [], []
+            data,
+            detect(data),
+            OWN_ICO,
+            OWN_ACCOUNT,
+            SupplierTemplates(OUT / "none"),
+            [],
+            [],
+            own_iban=OWN_IBAN,
         )
         golden = {"values": ex.as_json(), "uncertain": sorted(ex.uncertain), "steps": ex.steps}
         (OUT / f"{name}.json").write_text(

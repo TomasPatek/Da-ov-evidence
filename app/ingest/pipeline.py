@@ -12,6 +12,7 @@ import re
 from app.ingest.files import FileKind, isdoc_from_isdocx
 from app.ingest.isdoc import isdoc_attachment, parse_isdoc
 from app.ingest.model import Extraction
+from app.ingest.own_invoice import OWN_INVOICE, is_own_document, read_own_invoice
 from app.ingest.pdftext import extract_text_fields, pdf_text
 from app.ingest.qr import read_qr
 from app.ingest.templates import SupplierTemplates
@@ -29,6 +30,7 @@ def read_document(
     templates: SupplierTemplates,
     contacts: list[Record],
     jobs: list[Record],
+    own_iban: str = "",
 ) -> Extraction:
     ex = Extraction()
     # 1. ISDOC
@@ -50,6 +52,18 @@ def read_document(
             extract_text_fields(pdf_text(data), ex, own_ico, own_account)
         except Exception:
             log.info("PDF text layer could not be read")
+    # An invoice the user issued elsewhere (Air Bank): taken over, not booked as expense.
+    if kind.is_pdf and is_own_document(ex, own_ico, own_account, own_iban):
+        own = read_own_invoice(data, ex, own_ico)
+        ex.values["typ"] = OWN_INVOICE
+        ex.values["dodavatel_nazev"] = own.customer.nazev
+        ex.values["dodavatel_ico"] = own.customer.ico
+        ex.values.pop("dodavatel_dic", None)
+        ex.values.pop("ucet", None)
+        ex.values["popis"] = own.popis
+        ex.uncertain = {"dodavatel_nazev"} if not own.customer.nazev else set()
+        ex.steps.append("vlastní faktura")
+        return ex
     # 4. Supplier template and known contact
     templates.apply(ex)
     complete(ex, contacts, jobs)
