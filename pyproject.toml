@@ -20,6 +20,8 @@ dependencies = [
     "pillow>=13.0.0",
     "pypdfium2>=5.15.1",
     "defusedxml>=0.7.1",
+    "imap-tools>=1.16.0",
+    "apscheduler>=3.11.3",
 ]
 
 [dependency-groups]

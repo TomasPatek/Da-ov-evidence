@@ -167,6 +167,30 @@ Peněžní deník roku. Každý řádek je jeden pohyb peněz v pokladně nebo n
 | `zakazka_id` | text | Zakázka, ke které zápis patří; prázdné = režie. |
 | `poznamka` | text | Volná poznámka. |
 
+### `RRRR/banka.csv`
+
+Pohyby na podnikatelském účtu z notifikací a výpisů banky. Stejná transakce z obou zdrojů se sloučí podle kódu transakce. Spárovaný pohyb má zápis v deníku.
+
+| Sloupec | Typ | Popis |
+| --- | --- | --- |
+| `id` | text | Neměnný identifikátor `BPRRRR-NNNN`. |
+| `datum` | datum (`RRRR-MM-DD`) | Datum zaúčtování v bance. |
+| `smer` | text | `příjem` nebo `výdaj`. |
+| `castka` | částka (`1234,50`) | Částka, vždy kladná. |
+| `protiucet` | text | Účet protistrany (číslo/kód banky). |
+| `protiucet_nazev` | text | Název protistrany, jak ho uvádí banka. |
+| `vs` | text | Variabilní symbol. |
+| `ks` | text | Konstantní symbol. |
+| `ss` | text | Specifický symbol. |
+| `zprava` | text | Zpráva pro příjemce. |
+| `popis` | text | Typ pohybu podle banky, např. `Platba Cvakem`. |
+| `kod_transakce` | text | Kód transakce v bance; slouží ke sloučení duplicit. |
+| `zdroj` | text | `notifikace`, `výpis` nebo `notifikace, výpis`. |
+| `parovani` | text | Spárovaná faktura nebo přijatý doklad; u jiného zápisu prázdné. |
+| `stav` | text | `nespárováno`, `spárováno` nebo `ignorováno`. |
+| `denik_id` | text | Zápisy v deníku vytvořené z pohybu (oddělené čárkou). |
+| `poznamka` | text | Volná poznámka, u ignorovaného pohybu důvod. |
+
 ### `audit.csv`
 
 Záznam všech změn v datových souborech. Každý změněný sloupec má vlastní řádek. Soubor se jen doplňuje, nikdy se z něj nemaže.

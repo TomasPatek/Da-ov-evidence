@@ -17,6 +17,7 @@ from app.invoices.spayd import SpaydError, build_spayd
 from app.invoices.totals import invoice_total, line_total
 from app.jobs import ZAKAZKY_SCHEMA, JobState
 from app.journal import Account, EntryDraft, Journal, JournalError, PaymentMethod
+from app.money import sum_money
 from app.storage import CsvTable, Record, Storage
 from app.storage.atomic import atomic_write_bytes, file_lock
 from app.tax.categories import Direction, default_category
@@ -376,6 +377,15 @@ class InvoiceService:
             changes["stav"] = InvoiceState.SENT.value
         return self._table_for(cislo).update(cislo, changes)
 
+    def paid_amount(self, cislo: str) -> Decimal:
+        """Sum of payments of the invoice recorded in the cash book."""
+        rows = Journal(self.storage, self.firma).for_document(cislo)
+        return sum_money(r["castka"] for r in rows if r["smer"] == Direction.INCOME)
+
+    def remaining(self, invoice: Record) -> Decimal:
+        total: Decimal = invoice["castka"]
+        return total - self.paid_amount(invoice["cislo"])
+
     def mark_paid(
         self,
         cislo: str,
@@ -383,8 +393,14 @@ class InvoiceService:
         today: date | None = None,
         method: PaymentMethod = PaymentMethod.TRANSFER,
         kod_transakce: str = "",
+        amount: Decimal | None = None,
     ) -> Record:
-        """Mark as paid and write the income into the cash book (from its start date on)."""
+        """Record a payment and write it into the cash book (from its start date on).
+
+        Without ``amount`` the rest of the invoice is paid. A smaller amount is a partial
+        payment (the invoice stays open), a larger one an overpayment (cash basis: the
+        cash book gets what really arrived).
+        """
         invoice = self._require(cislo)
         if invoice["stav"] not in OPEN_STATES:
             raise InvoiceError("Uhradit lze jen vystavenou nebo odeslanou fakturu.")
@@ -392,7 +408,12 @@ class InvoiceService:
             raise InvoiceError("Datum úhrady nesmí být v budoucnosti.")
         journal = Journal(self.storage, self.firma)
         start = journal.start
-        if start is not None and when >= start:
+        booked = start is not None and when >= start
+        paid_before = self.paid_amount(cislo)
+        value = amount if amount is not None else invoice["castka"] - paid_before
+        if value <= 0:
+            raise InvoiceError("Částka úhrady musí být kladná.")
+        if booked:
             customer = self.storage.table(KONTAKTY_SCHEMA).get(invoice["kontakt_id"]) or {}
             try:
                 journal.add(
@@ -400,7 +421,7 @@ class InvoiceService:
                         datum=when,
                         ucet=Account.CASH if method is PaymentMethod.CASH else Account.BANK,
                         smer=Direction.INCOME.value,
-                        castka=invoice["castka"],
+                        castka=value,
                         kategorie=default_category(Direction.INCOME).column,
                         popis=f"Úhrada faktury {cislo} – {customer.get('nazev', '')}".strip(" –"),
                         zpusob_uhrady=method,
@@ -411,6 +432,8 @@ class InvoiceService:
                 )
             except JournalError as exc:
                 raise InvoiceError(str(exc)) from exc
+            if paid_before + value < invoice["castka"]:
+                return invoice  # partial payment, the invoice stays open
         record = self._table_for(cislo).update(
             cislo, {"stav": InvoiceState.PAID.value, "datum_uhrady": when}
         )
@@ -418,9 +441,9 @@ class InvoiceService:
         return record
 
     def mark_unpaid(self, cislo: str) -> Record:
-        """Undo a payment entered by mistake."""
+        """Undo payments entered by mistake (also partial ones)."""
         invoice = self._require(cislo)
-        if invoice["stav"] != InvoiceState.PAID:
+        if invoice["stav"] != InvoiceState.PAID and not self.paid_amount(cislo):
             raise InvoiceError("Faktura není uhrazená.")
         state = InvoiceState.SENT if invoice["datum_odeslani"] else InvoiceState.ISSUED
         Journal(self.storage, self.firma).remove_for_document(cislo)

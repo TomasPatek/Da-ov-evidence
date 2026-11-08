@@ -395,3 +395,28 @@ def test_payment_goes_to_cash_book_from_start(storage: Storage, firma: FirmaConf
     )
     svc.mark_unpaid(late["cislo"])
     assert [r["doklad_id"] for r in journal.entries(2026)] == [cash["cislo"]]
+
+
+def test_partial_payments_and_overpayment(storage: Storage, firma: FirmaConfig) -> None:
+    from app.journal import Journal
+
+    firma.evidence.zacatek = "2026-01-01"
+    svc = InvoiceService(storage, firma)
+    inv = svc.issue(draft())  # 4 100,00
+    rec = svc.mark_paid(inv["cislo"], date(2026, 2, 20), today=date(2026, 3, 1), amount=D("1000"))
+    assert rec["stav"] == "vystavena"
+    assert svc.paid_amount(inv["cislo"]) == D("1000.00")
+    assert svc.remaining(rec) == D("3100.00")
+    # Manual payment without amount pays the rest.
+    rec = svc.mark_paid(inv["cislo"], date(2026, 2, 25), today=date(2026, 3, 1))
+    assert rec["stav"] == "uhrazena" and rec["datum_uhrady"] == date(2026, 2, 25)
+    assert [r["castka"] for r in Journal(storage, firma).for_document(inv["cislo"])] == [
+        D("1000.00"),
+        D("3100.00"),
+    ]
+    # Undo removes both payments.
+    svc.mark_unpaid(inv["cislo"])
+    assert svc.paid_amount(inv["cislo"]) == 0
+    over = svc.mark_paid(inv["cislo"], date(2026, 2, 26), today=date(2026, 3, 1), amount=D("4200"))
+    assert over["stav"] == "uhrazena"
+    assert svc.remaining(over) == D("-100.00")
