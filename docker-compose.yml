@@ -6,10 +6,12 @@ name: danova-evidence
 
 services:
   app:
-    # Until the first release the image is built locally from this repository.
-    image: danova-evidence:local
+    # By default the image is built locally from this repository. To use a released image
+    # instead, set APP_IMAGE=ghcr.io/tomaspatek/danova-evidence:1.0.0 and APP_PULL_POLICY=missing
+    # in .env (docs/instalace-server.md).
+    image: ${APP_IMAGE:-danova-evidence:local}
     build: .
-    pull_policy: build
+    pull_policy: ${APP_PULL_POLICY:-build}
     restart: unless-stopped
     env_file: .env
     environment:

@@ -64,7 +64,7 @@ Moduly `money`, `storage`, `banks`, `tax` a `invoices` musí mít pokrytí testy
 3. Napište test, který vzorek zpracuje a porovná výsledek s JSON. Test musí nejdřív selhat.
 4. Teprve pak upravte parser.
 
-Podrobný postup pro banky bude v `docs/banky.md` (vznikne ve fázi 3 spolu s parserem Air Bank).
+Podrobný postup pro banky je v [docs/banky.md](docs/banky.md).
 
 ## Pull request
 
@@ -75,13 +75,19 @@ Podrobný postup pro banky bude v `docs/banky.md` (vznikne ve fázi 3 spolu s pa
 
 ## Vydání (pro správce)
 
-1. Přesuňte položky z `Nevydáno` v `CHANGELOG.md` do nové sekce `## [X.Y.Z] - RRRR-MM-DD`.
-2. Commitněte a vytvořte tag: `git tag vX.Y.Z && git push --tags`.
-3. Workflow *Release* sestaví image pro amd64 i arm64, publikuje ho do `ghcr.io`
-   a vytvoří GitHub Release s poznámkami z CHANGELOGu.
-4. Po prvním vydání nastavte v GitHubu balíček `danova-evidence` jako veřejný
-   (*Packages → Package settings → Change visibility*). Jinak stažení image skončí chybou
-   `denied`. Do té doby se image sestavuje lokálně (`docker compose up -d --build`).
+1. Zvyšte verzi v `pyproject.toml` a `app/__init__.py`, spusťte `uv lock`.
+2. Přesuňte položky z `Nevydáno` v `CHANGELOG.md` do nové sekce `## [X.Y.Z] - RRRR-MM-DD`
+   a doplňte odkazy na konci souboru.
+3. Pull request do `main`, zelená CI, merge.
+4. Na aktuálním `main` vytvořte tag a pushněte ho:
+   `git checkout main && git pull && git tag vX.Y.Z && git push origin vX.Y.Z`.
+5. Workflow *Release* sestaví image pro amd64 i arm64, publikuje ho do `ghcr.io`
+   (`ghcr.io/tomaspatek/danova-evidence:X.Y.Z` a `:latest`) a vytvoří GitHub Release
+   s poznámkami z CHANGELOGu.
+6. Po prvním vydání nastavte v GitHubu balíček `danova-evidence` jako veřejný
+   (*Packages → Package settings → Change visibility*), jinak stažení image skončí chybou
+   `denied`, a propojte ho s repozitářem (*Connect repository*).
+7. Ověřte stažení hotového image podle varianty v `docs/instalace-server.md`.
 
 Změna formátu CSV, která vyžaduje migraci, je vždy nová hlavní verze. Release notes pak
 popisují postup migrace a zálohu před ní.

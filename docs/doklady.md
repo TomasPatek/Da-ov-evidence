@@ -55,10 +55,11 @@ Po potvrzení si aplikace zapamatuje pro dodavatele kategorii, popis a způsob �
 
 - **„Nepodporovaný typ souboru“:** nahrávat lze jen PDF, JPEG, PNG a ISDOC. Typ se pozná
   podle obsahu, ne podle přípony. Fotku z iPhonu ve formátu HEIC uložte jako JPEG.
-- **Ze skenu se nic nepřečetlo:** sken nebo fotka bez QR kódu nemá text. Údaje vyplňte ručně;
-  čtení textu z obrázku (OCR) přibude později.
+- **Ze skenu se přečetlo málo:** sken nebo fotku čte OCR, které je méně spolehlivé než text
+  v PDF; všechny takto přečtené údaje jsou označené ke kontrole. Foťte zblízka, rovně a ostře,
+  chybějící údaje doplňte ručně.
 - **Přečtená částka je bez DPH:** jako neplátce DPH zadávejte vždy částku včetně DPH.
 - **Upozornění na částku nad 80 000 Kč:** hmotný majetek nad 80 000 Kč se neuplatní najednou,
-  ale odpisy (sloupec 20 a později evidence majetku).
+  ale odpisy (sloupec 20 a karta v *Majetku*, viz [roční přehled](rocni-prehled.md)).
 - **Chybně nahraný doklad:** dokud čeká na kontrolu, smažete ho tlačítkem *Smazat*.
   Potvrzený doklad už smazat nejde, jen opravit.

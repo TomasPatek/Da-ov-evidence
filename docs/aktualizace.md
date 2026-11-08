@@ -37,6 +37,14 @@ aktualizuje se jen program (Docker image).
    docker compose up -d --build
    ```
 
+   Pokud používáte hotový image (`APP_IMAGE` v `.env`, viz [instalace](instalace-server.md#varianta-hotový-image-místo-sestavení)),
+   přepište v `APP_IMAGE` číslo verze na novou a místo sestavení spusťte:
+
+   ```sh
+   docker compose pull
+   docker compose up -d
+   ```
+
 5. Smažte staré image, které už nejsou potřeba:
 
    ```sh
