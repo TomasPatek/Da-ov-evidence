@@ -21,7 +21,7 @@ a nemá být.
 1. Stáhněte aplikaci a přejděte do její složky:
 
    ```sh
-   git clone https://github.com/TomasPatek/Da-ov-evidence.git ~/danova-evidence
+   git clone https://github.com/TomasPatek/Danova-evidence.git ~/danova-evidence
    cd ~/danova-evidence
    ```
 

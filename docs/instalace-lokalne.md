@@ -20,9 +20,9 @@ Hodí se pro vyzkoušení nebo když nemáte domácí server. Aplikace běží, 
 
    ```powershell
    cd $HOME
-   Invoke-WebRequest "https://github.com/TomasPatek/Da-ov-evidence/archive/refs/heads/main.zip" -OutFile danova-evidence.zip
+   Invoke-WebRequest "https://github.com/TomasPatek/Danova-evidence/archive/refs/heads/main.zip" -OutFile danova-evidence.zip
    Expand-Archive danova-evidence.zip -DestinationPath .
-   Rename-Item Da-ov-evidence-main danova-evidence
+   Rename-Item Danova-evidence-main danova-evidence
    Remove-Item danova-evidence.zip
    cd danova-evidence
    ```
@@ -31,8 +31,8 @@ Hodí se pro vyzkoušení nebo když nemáte domácí server. Aplikace běží, 
 
    ```sh
    cd ~
-   curl -fsSL -o danova-evidence.zip https://github.com/TomasPatek/Da-ov-evidence/archive/refs/heads/main.zip
-   unzip -q danova-evidence.zip && mv Da-ov-evidence-main danova-evidence && rm danova-evidence.zip
+   curl -fsSL -o danova-evidence.zip https://github.com/TomasPatek/Danova-evidence/archive/refs/heads/main.zip
+   unzip -q danova-evidence.zip && mv Danova-evidence-main danova-evidence && rm danova-evidence.zip
    cd danova-evidence
    ```
 

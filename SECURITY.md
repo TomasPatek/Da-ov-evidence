@@ -3,7 +3,7 @@
 ## Jak nahlásit zranitelnost
 
 Zranitelnosti hlaste **soukromě** přes GitHub
-[Private vulnerability reporting](https://github.com/TomasPatek/Da-ov-evidence/security/advisories/new)
+[Private vulnerability reporting](https://github.com/TomasPatek/Danova-evidence/security/advisories/new)
 (záložka *Security* → *Report a vulnerability*). **Nezakládejte veřejné issue.**
 
 Uveďte:
