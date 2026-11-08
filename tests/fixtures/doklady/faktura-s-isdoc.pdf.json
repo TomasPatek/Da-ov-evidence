@@ -1,0 +1,26 @@
+{
+  "values": {
+    "typ": "faktura",
+    "dodavatel_ico": "99990016",
+    "dodavatel_dic": "CZ99990016",
+    "dodavatel_nazev": "Velkoobchod Vzor a.s.",
+    "cislo_dodavatele": "VF27-0815",
+    "datum_vystaveni": "2027-04-01",
+    "datum_splatnosti": "2027-04-15",
+    "castka": "3630.00",
+    "mena": "CZK",
+    "vs": "270815",
+    "ucet": "19-2000145399/0800",
+    "zpusob_uhrady": "převod",
+    "kategorie": 15,
+    "popis": "Sada filtrů pro myčky"
+  },
+  "uncertain": [
+    "kategorie",
+    "popis"
+  ],
+  "steps": [
+    "ISDOC",
+    "text PDF"
+  ]
+}

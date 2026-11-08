@@ -28,6 +28,7 @@ from app.invoices.service import (
 from app.invoices.spayd import qr_svg
 from app.invoices.totals import line_total
 from app.jobs import ZAKAZKY_SCHEMA
+from app.journal import Journal, PaymentMethod
 from app.mail.smtp import Attachment, MailError, build_message
 from app.money import (
     format_csv_amount,
@@ -255,6 +256,8 @@ def _detail(request: Request, cislo: str, status_code: int = 200, **ctx: Any) ->
         open_states=OPEN_STATES,
         today=date.today(),
         mail_ready=mailer.configured,
+        methods=PaymentMethod,
+        journal_rows=Journal(request.app.state.storage, view.firma).for_document(cislo),
         **ctx,
     )
 
@@ -385,9 +388,20 @@ async def invoice_paid(request: Request, cislo: str) -> Response:
     form = await request.form()
     errors: list[str] = []
     when = parse_date(str(form.get("datum_uhrady", "")), "datum úhrady", errors)
+    method_text = str(form.get("zpusob_uhrady", PaymentMethod.TRANSFER.value))
+    method = (
+        PaymentMethod(method_text)
+        if method_text in {m.value for m in PaymentMethod}
+        else PaymentMethod.TRANSFER
+    )
     if when is not None:
         try:
-            _service(request).mark_paid(cislo, when)
+            _service(request).mark_paid(
+                cislo,
+                when,
+                method=method,
+                kod_transakce=str(form.get("kod_transakce", "")),
+            )
         except InvoiceError as exc:
             errors.append(str(exc))
     if errors:

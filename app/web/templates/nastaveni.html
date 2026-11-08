@@ -2,6 +2,7 @@
 {% block title %}Nastavení · Daňová evidence{% endblock %}
 {% block content %}
 <h1>Nastavení</h1>
+{% if request.query_params.get("ulozeno") %}<div class="alert alert-info" role="status">Uloženo.</div>{% endif %}
 <div class="grid">
   <section class="card">
     <h2>Firma</h2>
@@ -22,6 +23,17 @@
       <dt>IBAN</dt><dd>{{ firma.banka.iban | iban or "—" }}</dd>
     </dl>
     <a class="button" href="/pruvodce/banka">Upravit</a>
+  </section>
+  <section class="card">
+    <h2>Peněžní deník</h2>
+    {% if firma.evidence.zacatek %}
+    <dl class="facts">
+      <dt>Začátek evidence</dt><dd>{{ firma.evidence.zacatek }}</dd>
+      <dt>Hotovost</dt><dd>{{ firma.evidence.pocatecni_hotovost }} Kč</dd>
+      <dt>Účet</dt><dd>{{ firma.evidence.pocatecni_banka }} Kč</dd>
+    </dl>
+    {% else %}<p class="warn">Začátek evidence a počáteční stavy zatím nejsou nastavené.</p>{% endif %}
+    <a class="button" href="/pruvodce/evidence">{{ "Upravit" if firma.evidence.zacatek else "Nastavit" }}</a>
   </section>
   <section class="card">
     <h2>Vzhled</h2>

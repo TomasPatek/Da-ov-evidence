@@ -12,7 +12,9 @@ from app.config import FirmaConfig
 from app.invoices.schemas import InvoiceState
 from app.invoices.service import OPEN_STATES, InvoiceService
 from app.jobs import ZAKAZKY_SCHEMA, JobState
+from app.journal import Journal
 from app.money import sum_money
+from app.received import DocState, ReceivedDocs
 from app.storage import Record
 from app.web.branding import logo_path, theme_path
 from app.web.routes_jobs import job_warnings
@@ -48,7 +50,18 @@ def _overview(request: Request, firma: FirmaConfig) -> dict[str, Any]:
     ]
     jobs = request.app.state.storage.table(ZAKAZKY_SCHEMA).all()
     running = [j for j in jobs if j["stav"] in (JobState.INQUIRY, JobState.IN_PROGRESS)]
-    warn_jobs = [j for j in jobs if job_warnings(j, svc_job(invoices, j["id"]))]
+    received = ReceivedDocs(request.app.state.storage, firma)
+    docs = received.all()
+    booked = [d for d in docs if d["stav"] != DocState.REVIEW]
+    warn_jobs = [
+        j
+        for j in jobs
+        if job_warnings(
+            j, svc_job(invoices, j["id"]), [d for d in booked if d["zakazka_id"] == j["id"]]
+        )
+    ]
+    journal = Journal(request.app.state.storage, firma)
+    report = journal.et_report(today.year) if journal.ready else None
     return {
         "unpaid_sum": sum_money(i["castka"] for i in unpaid),
         "unpaid_count": len(unpaid),
@@ -58,6 +71,9 @@ def _overview(request: Request, firma: FirmaConfig) -> dict[str, Any]:
         "year": today.year,
         "running_jobs": len(running),
         "warn_jobs": warn_jobs,
+        "queue_count": sum(1 for d in docs if d["stav"] == DocState.REVIEW),
+        "unpaid_docs": [d for d in docs if d["stav"] == DocState.CONFIRMED],
+        "journal_report": report,
     }
 
 

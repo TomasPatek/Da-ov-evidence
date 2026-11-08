@@ -32,6 +32,7 @@ from app.invoices.pdf import render_pdf  # noqa: E402
 from app.invoices.service import DraftLine, InvoiceDraft, InvoiceService  # noqa: E402
 from app.jobs import ZAKAZKY_SCHEMA  # noqa: E402
 from app.main import create_app  # noqa: E402
+from app.received import Confirmation, ReceivedDocs  # noqa: E402
 from app.storage import Storage  # noqa: E402
 
 DEMO_DIR = ROOT / "scripts" / "demo-data"
@@ -127,7 +128,12 @@ def seed(settings: Settings, today: date | None = None) -> None:
     ):
         jobs.insert(_job(f"Z{y}-{n:03d}", kontakt, nazev, stav, today - timedelta(days=days_ago)))
 
-    svc = InvoiceService(storage, FirmaConfig.load(settings.firma_path))
+    cfg = FirmaConfig.load(settings.firma_path)
+    cfg.evidence.zacatek = date(y, 1, 1).isoformat()
+    cfg.evidence.pocatecni_hotovost = "3500,00"
+    cfg.evidence.pocatecni_banka = "42000,00"
+    cfg.save(settings.firma_path)
+    svc = InvoiceService(storage, cfg)
     pdf = lambda view: render_pdf(view, settings.branding_dir)  # noqa: E731
     d = Decimal
 
@@ -156,6 +162,33 @@ def seed(settings: Settings, today: date | None = None) -> None:
         ],
     )
     issue(3, "K0002", f"Z{y}-002", [DraftLine("Obklady a dlažba", d("18.5"), "m²", d("690"))])
+
+    # Received documents from the fictional samples used by the parser tests.
+    docs = ReceivedDocs(storage, cfg)
+    samples = ROOT / "tests" / "fixtures" / "doklady"
+    paid = docs.upload((samples / "faktura-radky.pdf").read_bytes(), today=today)
+    docs.confirm(
+        paid["id"],
+        Confirmation(
+            typ="faktura",
+            dodavatel_ico="99990032",
+            dodavatel_nazev="Díly Vzor s.r.o.",
+            cislo_dodavatele="2027000123",
+            datum_vystaveni=today - timedelta(days=20),
+            datum_splatnosti=today - timedelta(days=6),
+            castka=d("1500"),
+            vs="2027000123",
+            ucet="19-2000145399/0800",
+            popis="Topné těleso a těsnění",
+            kategorie=15,
+            zakazka_id=f"Z{y}-002",
+            zpusob_uhrady="převod",
+            datum_uhrady=today - timedelta(days=10),
+        ),
+        today=today,
+    )
+    docs.upload((samples / "faktura-sloupce.pdf").read_bytes(), today=today)
+    docs.upload((samples / "faktura.isdoc").read_bytes(), today=today)
 
 
 def prepare(target: Path, configured: bool = True) -> Settings:

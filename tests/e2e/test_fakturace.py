@@ -35,8 +35,9 @@ def test_contact_job_invoice_payment(page: Page, demo_url: str) -> None:
     page.get_by_role("button", name="Uložit a založit zakázku").click()
 
     # 2. New job for the contact.
-    expect(page).to_have_url(re.compile(r"/zakazky/nova\?kontakt=K0004"))
-    expect(page.locator("select[name=kontakt_id]")).to_have_value("K0004")
+    expect(page).to_have_url(re.compile(r"/zakazky/nova\?kontakt=K\d{4}"))
+    contact_id = page.url.rsplit("=", 1)[1]
+    expect(page.locator("select[name=kontakt_id]")).to_have_value(contact_id)
     page.fill("input[name=nazev]", "Nová podlaha v dílně")
     page.select_option("select[name=stav]", "rozpracováno")
     page.get_by_role("button", name="Založit zakázku").click()

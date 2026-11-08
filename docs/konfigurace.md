@@ -76,6 +76,8 @@ Vytvoří ho průvodce. Vzor je `firma.example.toml`.
 | `[fakturace] pocatecni_cislo` | Pořadové číslo úplně první faktury v aplikaci (pokud jste letos už fakturovali jinde). Další roky začínají vždy od 1. |
 | `[fakturace] splatnost_dni` | Výchozí splatnost faktur ve dnech. |
 | `[fakturace] text_dph` | Text na faktuře, výchozí „Nejsem plátce DPH.“ |
+| `[evidence] zacatek` | Den, od kterého vede peněžní deník aplikace (`2027-01-01`). |
+| `[evidence] pocatecni_hotovost`, `pocatecni_banka` | Stav pokladny a účtu k tomuto dni (`1234,50`). Další roky navazují samy. |
 | `[aplikace] pruvodce_dokoncen` | `true`, jakmile je průvodce prvním spuštěním dokončen. |
 
 ### Složka `config/branding/` (vzhled)

@@ -1,0 +1,6 @@
+<label id="kategorie">Kategorie (sloupec ET 328, {{ "příjmy" if smer == "příjem" else "výdaje" }})
+  <select name="kategorie" required>
+    <option value="">— vyberte —</option>
+    {% for c in (incomes if smer == "příjem" else expenses) %}<option value="{{ c.column }}" {{ 'selected' if selected == c.column|string }}>{{ c.column }} – {{ c.label }}{{ "" if c.affects_tax_base else " (neovlivňuje základ daně)" }}</option>{% endfor %}
+  </select>
+</label>

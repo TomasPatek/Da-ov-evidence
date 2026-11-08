@@ -32,6 +32,9 @@ SHOTS = [
         "dark",
     ),
     ("zakazka-detail.png", "/zakazky/{job}", {"width": 1280, "height": 760}, "light"),
+    ("denik.png", "/denik", {"width": 1280, "height": 860}, "light"),
+    ("doklad-kontrola.png", "/doklady/{doc}", {"width": 1280, "height": 900}, "light"),
+    ("et328.png", "/denik/et328", {"width": 1280, "height": 700}, "light"),
 ]
 
 
@@ -58,7 +61,13 @@ def main() -> None:
             page.goto(f"{url}/prihlaseni")
             page.fill("input[name=heslo]", DEMO_PASSWORD)
             page.click("button[type=submit]")
-            page.goto(url + path.format(first=first_invoice(url), job=first_job()))
+            page.goto(
+                url
+                + path.format(
+                    first=first_invoice(url), job=first_job(), doc=f"PD{date.today().year}-002"
+                )
+            )
+            page.wait_for_load_state("networkidle")
             page.screenshot(path=OUT / name, full_page=False)
             ctx.close()
             print(f"docs/img/{name}")

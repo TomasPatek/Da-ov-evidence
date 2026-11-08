@@ -132,6 +132,7 @@ def complete_wizard(client: TestClient) -> None:
             },
         ),
         ("/pruvodce/banka", {"ucet": "19-2000145399/0800"}),
+        ("/pruvodce/evidence", {"zacatek": "2026-01-01", "hotovost": "1000", "banka": "50 000"}),
         ("/pruvodce/posta", {}),
         ("/pruvodce/vzhled", {"primary": "#112233", "accent": "#ffcc00"}),
         (

@@ -13,7 +13,8 @@ from app.contacts import KONTAKTY_SCHEMA
 from app.invoices.schemas import InvoiceState
 from app.invoices.service import InvoiceService
 from app.jobs import ZAKAZKY_SCHEMA, JobState, new_job_id
-from app.money import ZERO, sum_money
+from app.money import format_display_amount, sum_money
+from app.received import ReceivedDocs
 from app.storage import CsvTable, Record
 from app.web.forms import parse_date
 from app.web.routes_contacts import contact_choices
@@ -32,21 +33,44 @@ def _invoices(request: Request) -> InvoiceService:
     return InvoiceService(request.app.state.storage, firma)
 
 
-def job_warnings(job: Record, invoices: list[Record]) -> list[str]:
+MATERIAL_COLUMNS = (15, 16)
+
+
+def job_warnings(
+    job: Record, invoices: list[Record], docs: list[Record] | None = None
+) -> list[str]:
     active = [i for i in invoices if i["stav"] != InvoiceState.CANCELLED]
     warnings = []
     if job["stav"] == JobState.DONE and not active:
         warnings.append("Zakázka je dokončená, ale nemá fakturu.")
+    if active and docs:
+        last = max(i["datum_vystaveni"] for i in active)
+        later = [
+            d
+            for d in docs
+            if d["kategorie"] in MATERIAL_COLUMNS
+            and d["datum_vystaveni"]
+            and d["datum_vystaveni"] > last
+        ]
+        if later:
+            amount = format_display_amount(sum_money(d["castka"] for d in later))
+            warnings.append(
+                f"Materiál za {amount} je nakoupený po poslední faktuře. "
+                "Nezapomněli jste ho přeúčtovat zákazníkovi?"
+            )
     return warnings
 
 
-def job_totals(invoices: list[Record]) -> dict[str, Any]:
+def job_totals(invoices: list[Record], docs: list[Record] | None = None) -> dict[str, Any]:
     active = [i for i in invoices if i["stav"] != InvoiceState.CANCELLED]
     paid = [i for i in active if i["stav"] == InvoiceState.PAID]
+    invoiced = sum_money(i["castka"] for i in active)
+    costs = sum_money(d["castka"] for d in docs or [])
     return {
-        "fakturovano": sum_money(i["castka"] for i in active),
+        "fakturovano": invoiced,
         "uhrazeno": sum_money(i["castka"] for i in paid),
-        "naklady": ZERO,  # direct costs arrive with received documents (phase 2)
+        "naklady": costs,
+        "rozdil": invoiced - costs,
     }
 
 
@@ -92,6 +116,7 @@ def _from_form(request: Request, form: dict[str, str]) -> tuple[Record, list[str
 def job_list(request: Request, stav: str = "") -> Response:
     jobs = _table(request).all()
     invoices = _invoices(request).all_invoices()
+    all_docs = [d for d in _received(request).all() if d["stav"] != "ke kontrole"]
     contacts = {c["id"]: c for c in request.app.state.storage.table(KONTAKTY_SCHEMA).all()}
     if stav:
         jobs = [j for j in jobs if j["stav"] == stav]
@@ -99,8 +124,13 @@ def job_list(request: Request, stav: str = "") -> Response:
     rows = []
     for j in jobs:
         inv = [i for i in invoices if i["zakazka_id"] == j["id"]]
+        docs = [d for d in all_docs if d["zakazka_id"] == j["id"]]
         rows.append(
-            {"job": j, "contact": contacts.get(j["kontakt_id"]), "warnings": job_warnings(j, inv)}
+            {
+                "job": j,
+                "contact": contacts.get(j["kontakt_id"]),
+                "warnings": job_warnings(j, inv, docs),
+            }
         )
     return render(request, "zakazky/seznam.html", rows=rows, stav=stav, states=JobState)
 
@@ -150,9 +180,16 @@ def _get(request: Request, job_id: str) -> Record:
     return rec
 
 
+def _received(request: Request) -> ReceivedDocs:
+    firma = FirmaConfig.load(request.app.state.settings.firma_path)
+    return ReceivedDocs(request.app.state.storage, firma)
+
+
 def _detail(request: Request, job: Record, status_code: int = 200, **ctx: Any) -> Response:
     invoices = _invoices(request).job_invoices(job["id"])
     invoices.sort(key=lambda i: i["cislo"])
+    docs = _received(request).for_job(job["id"])
+    docs.sort(key=lambda d: d["datum_vystaveni"] or job["datum_zalozeni"])
     contact = request.app.state.storage.table(KONTAKTY_SCHEMA).get(job["kontakt_id"])
     return render(
         request,
@@ -163,8 +200,9 @@ def _detail(request: Request, job: Record, status_code: int = 200, **ctx: Any) -
         contacts=contact_choices(request),
         states=JobState,
         invoices=invoices,
-        totals=job_totals(invoices),
-        warnings=job_warnings(job, invoices),
+        docs=docs,
+        totals=job_totals(invoices, docs),
+        warnings=job_warnings(job, invoices, docs),
         **ctx,
     )
 

@@ -1,0 +1,25 @@
+{
+  "values": {
+    "typ": "jiný",
+    "dodavatel_nazev": "Servis Ukazka",
+    "datum_splatnosti": "2027-03-17",
+    "castka": "2420.00",
+    "mena": "CZK",
+    "vs": "270042",
+    "ucet": "CZ6508000000192000145399",
+    "zpusob_uhrady": "převod",
+    "kategorie": 15,
+    "popis": "Nákup – Servis Ukazka"
+  },
+  "uncertain": [
+    "datum_vystaveni",
+    "dodavatel_nazev",
+    "kategorie",
+    "popis",
+    "typ",
+    "zpusob_uhrady"
+  ],
+  "steps": [
+    "QR platba"
+  ]
+}

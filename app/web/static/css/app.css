@@ -214,3 +214,40 @@ img.qr { width: 200px; max-width: 100%; height: auto; background: #fff; padding:
   .line .line-desc { grid-column: 1 / -1; }
   .nav { gap: .75rem; flex-wrap: wrap; }
 }
+
+/* Received documents and cash book. */
+label.uncertain input, label.uncertain select, fieldset.uncertain { border-color: var(--warn-text); background: var(--warn-bg); }
+label.uncertain::after { content: "zkontrolujte"; font-size: .75rem; font-weight: 600; color: var(--warn-text); }
+.review { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
+.review.no-preview { grid-template-columns: minmax(0, 1fr); max-width: 760px; }
+.preview { position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow: auto; padding: .5rem; }
+.preview img { width: 100%; height: auto; display: block; background: #fff; border-radius: 4px; margin-bottom: .5rem; }
+.tabs { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: 1rem 0; }
+.tabs a { padding: .35rem .8rem; border-radius: 999px; border: 1px solid var(--border); text-decoration: none; color: var(--text); }
+.tabs a.current { background: var(--brand-primary); color: var(--brand-primary-contrast); border-color: var(--brand-primary); }
+.tabs a.current .badge { color: inherit; border-color: currentColor; }
+form.inline-filter { margin: 0; }
+.upload input[type=file] { font: inherit; }
+.badge-doc-ke-kontrole { color: var(--warn-text); background: var(--warn-bg); border-color: currentColor; }
+.badge-doc-uhrazen { color: var(--ok-text); border-color: currentColor; }
+.stats .big { font-size: 1.4rem; }
+button.danger-link { color: var(--danger); font-size: .85rem; }
+.et-wrap { background: var(--surface); }
+table.et { border-collapse: collapse; font-size: .72rem; white-space: nowrap; }
+table.et th, table.et td { border: 1px solid var(--border); padding: .2rem .3rem; }
+table.et th { font-weight: 600; text-align: center; background: var(--bg); white-space: normal; min-width: 3.5rem; }
+table.et .colnum th { font-weight: 400; color: var(--muted); }
+table.et tr.subtotal td, table.et tr.carry td { background: var(--bg); font-style: italic; }
+table.et tr.total td { font-weight: 700; }
+@media (max-width: 900px) {
+  .review { grid-template-columns: minmax(0, 1fr); }
+  .preview { position: static; max-height: 60vh; }
+}
+@media print {
+  .topbar, .footer, .crumbs, .page-head .actions, form.filters { display: none; }
+  .container { max-width: none; padding: 0; }
+  table.et { font-size: 6.5pt; }
+  @page { size: A4 landscape; margin: 8mm; }
+}
+.nowrap { white-space: nowrap; }
+.grid + form.filters, .card + form.filters, .card + .tabs { margin-top: 1rem; }

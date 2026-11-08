@@ -126,6 +126,15 @@ class Fakturace:
 
 
 @dataclass
+class Evidence:
+    """Start of the cash book in the app and opening balances (amounts as CSV text)."""
+
+    zacatek: str = ""  # ISO date, e.g. 2027-01-01; empty = not set up yet
+    pocatecni_hotovost: str = "0,00"
+    pocatecni_banka: str = "0,00"
+
+
+@dataclass
 class Aplikace:
     pruvodce_dokoncen: bool = False
 
@@ -135,6 +144,7 @@ class FirmaConfig:
     firma: Firma = field(default_factory=Firma)
     banka: Banka = field(default_factory=Banka)
     fakturace: Fakturace = field(default_factory=Fakturace)
+    evidence: Evidence = field(default_factory=Evidence)
     aplikace: Aplikace = field(default_factory=Aplikace)
 
     @classmethod
@@ -146,6 +156,7 @@ class FirmaConfig:
             firma=_section(Firma, data.get("firma")),
             banka=_section(Banka, data.get("banka")),
             fakturace=_section(Fakturace, data.get("fakturace")),
+            evidence=_section(Evidence, data.get("evidence")),
             aplikace=_section(Aplikace, data.get("aplikace")),
         )
 

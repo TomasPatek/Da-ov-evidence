@@ -1,0 +1,17 @@
+{
+  "values": {
+    "typ": "jiný",
+    "mena": "CZK",
+    "zpusob_uhrady": "převod",
+    "kategorie": 15
+  },
+  "uncertain": [
+    "castka",
+    "datum_vystaveni",
+    "dodavatel_nazev",
+    "kategorie",
+    "typ",
+    "zpusob_uhrady"
+  ],
+  "steps": []
+}

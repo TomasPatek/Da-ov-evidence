@@ -1,0 +1,26 @@
+{
+  "values": {
+    "typ": "faktura",
+    "dodavatel_ico": "99990032",
+    "dodavatel_dic": "CZ99990032",
+    "dodavatel_nazev": "Díly Vzor s.r.o.",
+    "cislo_dodavatele": "2027000123",
+    "datum_vystaveni": "2027-01-05",
+    "datum_splatnosti": "2027-01-19",
+    "castka": "1500.00",
+    "mena": "CZK",
+    "vs": "2027000123",
+    "ucet": "19-2000145399/0800",
+    "zpusob_uhrady": "převod",
+    "kategorie": 15,
+    "popis": "Nákup – Díly Vzor s.r.o."
+  },
+  "uncertain": [
+    "dodavatel_nazev",
+    "kategorie",
+    "popis"
+  ],
+  "steps": [
+    "text PDF"
+  ]
+}

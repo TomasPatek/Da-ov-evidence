@@ -5,6 +5,8 @@ from __future__ import annotations
 from app.contacts import KONTAKTY_SCHEMA
 from app.invoices.schemas import FAKTURY_SCHEMA, POLOZKY_SCHEMA
 from app.jobs import ZAKAZKY_SCHEMA
+from app.journal import DENIK_SCHEMA
+from app.received import DOKLADY_SCHEMA
 from app.storage.audit import AUDIT_SCHEMA
 from app.storage.csvformat import TableSchema
 
@@ -14,5 +16,7 @@ ALL_SCHEMAS: tuple[TableSchema, ...] = (
     ZAKAZKY_SCHEMA,
     FAKTURY_SCHEMA,
     POLOZKY_SCHEMA,
+    DOKLADY_SCHEMA,
+    DENIK_SCHEMA,
     AUDIT_SCHEMA,
 )

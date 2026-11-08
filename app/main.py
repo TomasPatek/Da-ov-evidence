@@ -23,7 +23,9 @@ from app.web import (
     routes_contacts,
     routes_invoices,
     routes_jobs,
+    routes_journal,
     routes_main,
+    routes_received,
     routes_wizard,
 )
 from app.web.security import AuthGateMiddleware, SecurityHeadersMiddleware
@@ -85,6 +87,8 @@ def create_app(
     app.include_router(routes_contacts.router)
     app.include_router(routes_jobs.router)
     app.include_router(routes_invoices.router)
+    app.include_router(routes_received.router)
+    app.include_router(routes_journal.router)
     app.include_router(routes_main.router)
 
     @app.exception_handler(HTTPException)

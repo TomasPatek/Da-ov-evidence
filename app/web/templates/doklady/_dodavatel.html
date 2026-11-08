@@ -1,0 +1,14 @@
+<div id="dodavatel" class="form-fields">
+  {% if errors is defined or info is defined %}{% include "_errors.html" %}{% endif %}
+  <div class="row">
+    <label class="{{ 'uncertain' if 'dodavatel_ico' in uncertain }}">IČO dodavatele
+      <input type="text" name="dodavatel_ico" value="{{ ico }}" inputmode="numeric" maxlength="8">
+    </label>
+    <button type="button" class="secondary" hx-get="/doklady/ares"
+            hx-include="[name=dodavatel_ico],[name=dodavatel_nazev]"
+            hx-target="#dodavatel" hx-swap="outerHTML">Ověřit v ARES</button>
+  </div>
+  <label class="{{ 'uncertain' if 'dodavatel_nazev' in uncertain }}">Dodavatel
+    <input type="text" name="dodavatel_nazev" value="{{ supplier_name }}" required>
+  </label>
+</div>

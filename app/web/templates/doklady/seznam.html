@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Přijaté doklady · Daňová evidence{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Přijaté doklady</h1>
+  <a class="button" href="/doklady/novy">Zadat ručně</a>
+</div>
+{% include "_errors.html" %}
+<section class="card upload">
+  <form method="post" action="/doklady/nahrat" enctype="multipart/form-data">
+    <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+    <label>Nahrát doklady (PDF, fotka nebo ISDOC, i více najednou)
+      <input type="file" name="soubory" accept="{{ accept }}" multiple required>
+    </label>
+    <button type="submit" class="primary">Nahrát a přečíst</button>
+  </form>
+  <p class="muted">Doklady se čtou jen tady na serveru, nikam se neposílají. Přečtené údaje
+  zkontrolujete ve frontě <em>Ke kontrole</em>.</p>
+</section>
+<nav class="tabs" aria-label="Filtr">
+  <a href="/doklady?filtr=kontrola" class="{{ 'current' if filtr == 'kontrola' }}">Ke kontrole <span class="badge">{{ queue_count }}</span></a>
+  <a href="/doklady?filtr=neuhrazene" class="{{ 'current' if filtr == 'neuhrazene' }}">Neuhrazené <span class="badge">{{ unpaid_count }}</span></a>
+  <a href="/doklady" class="{{ 'current' if not filtr }}">Všechny</a>
+  {% if not filtr and years|length > 1 %}
+  <form method="get" action="/doklady" class="filters inline-filter">
+    <select name="rok" aria-label="Rok">{% for y in years %}<option value="{{ y }}" {{ 'selected' if rok == y|string }}>{{ y }}</option>{% endfor %}</select>
+    <button type="submit">Zobrazit</button>
+  </form>
+  {% endif %}
+</nav>
+{% if rows %}
+<div class="table-wrap">
+<table class="list">
+  <thead><tr><th>Doklad</th><th>Dodavatel</th><th class="hide-mobile">Vystaveno</th><th class="num">Částka</th><th>Stav</th></tr></thead>
+  <tbody>
+  {% for d in rows %}
+    <tr>
+      <td><a href="/doklady/{{ d.id }}">{{ d.id }}</a>{% if d.cislo_dodavatele %}<br><span class="muted">{{ d.cislo_dodavatele }}</span>{% endif %}</td>
+      <td>{{ d.dodavatel_nazev or "—" }}{% if d.popis %}<br><span class="muted">{{ d.popis }}</span>{% endif %}</td>
+      <td class="hide-mobile">{{ d.datum_vystaveni | cz_date }}</td>
+      <td class="num">{% if d.castka %}{{ d.castka | czk }}{% else %}—{% endif %}</td>
+      <td><span class="badge badge-doc-{{ d.stav | replace(' ', '-') }}">{{ d.stav }}</span></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="empty">{% if filtr == 'kontrola' %}Ve frontě nic nečeká.{% elif filtr == 'neuhrazene' %}Žádné neuhrazené doklady.{% else %}Zatím žádné doklady.{% endif %}</p>
+{% endif %}
+{% endblock %}

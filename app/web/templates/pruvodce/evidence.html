@@ -1,0 +1,24 @@
+{% extends "pruvodce/_layout.html" %}
+{% block step %}
+<h2>Začátek evidence</h2>
+<p>Od tohoto dne vede aplikace peněžní deník. Starší pohyby zůstávají v dosavadní evidenci
+(např. v tiskopisu ET 328). Počáteční stavy odpovídají řádku „převedeno“ na začátku roku.</p>
+<form method="post" action="/pruvodce/evidence">
+  <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+  <label>Evidence v aplikaci začíná dne
+    <input type="date" name="zacatek" value="{{ zacatek }}" required>
+  </label>
+  {% if locked %}<p class="muted">V deníku jsou zápisy od {{ locked | cz_date }}, začátek proto nemůže být později.</p>{% endif %}
+  <div class="row">
+    <label>Hotovost v pokladně k tomuto dni (Kč)
+      <input type="text" name="hotovost" value="{{ hotovost }}" inputmode="decimal">
+    </label>
+    <label>Zůstatek na podnikatelském účtu (Kč)
+      <input type="text" name="banka" value="{{ banka }}" inputmode="decimal">
+    </label>
+  </div>
+  <p class="muted">Pokud začínáte uprostřed roku, zadejte stavy k tomuto dni. Součty od začátku
+  roku do tohoto dne pak k součtům z aplikace připočtěte z dosavadní evidence.</p>
+  <button type="submit" class="primary">Uložit a pokračovat</button>
+</form>
+{% endblock %}
