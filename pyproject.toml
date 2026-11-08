@@ -20,6 +20,8 @@ dependencies = [
     "pillow>=13.0.0",
     "pypdfium2>=5.15.1",
     "defusedxml>=0.7.1",
+    "imap-tools>=1.16.0",
+    "apscheduler>=3.11.3",
 ]
 
 [dependency-groups]
@@ -61,7 +63,7 @@ strict = true
 packages = ["app"]
 
 [[tool.mypy.overrides]]
-module = ["argon2.*", "weasyprint.*", "pypdfium2.*", "pyzbar.*"]
+module = ["argon2.*", "weasyprint.*", "pypdfium2.*", "pyzbar.*", "apscheduler.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

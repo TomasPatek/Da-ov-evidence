@@ -21,8 +21,11 @@ from app.config import FirmaConfig
 from app.contacts import KONTAKTY_SCHEMA, ContactType, new_contact_id
 from app.ingest.files import FileKind, detect
 from app.ingest.model import Extraction
+from app.ingest.own_invoice import Customer, OwnInvoice, read_own_invoice
+from app.ingest.pdftext import extract_text_fields, pdf_text
 from app.ingest.pipeline import read_document
 from app.ingest.templates import SupplierTemplates
+from app.invoices.service import InvoiceDraft, InvoiceError, InvoiceService
 from app.jobs import ZAKAZKY_SCHEMA
 from app.journal import Account, EntryDraft, Journal, JournalError, PaymentMethod
 from app.money import ZERO
@@ -44,6 +47,11 @@ class DocType(StrEnum):
     OTHER = "jiný"
 
 
+# A document recognised as the user's own invoice issued elsewhere; it waits in the queue
+# until it is taken over into the issued invoices (never confirmed as an expense).
+OWN_INVOICE_TYPE = "vydaná faktura"
+
+
 class DocSource(StrEnum):
     EMAIL = "e-mail"
     PHOTO = "foto"
@@ -60,7 +68,13 @@ DOKLADY_SCHEMA = TableSchema(
     ),
     columns=(
         Column("id", description="Neměnný identifikátor `PDRRRR-NNN`, např. `PD2027-001`."),
-        Column("typ", description="`faktura`, `účtenka` nebo `jiný`."),
+        Column(
+            "typ",
+            description=(
+                "`faktura`, `účtenka` nebo `jiný`; `vydaná faktura` = vaše faktura vystavená "
+                "jinde (Air Bank), čeká na převzetí do vydaných faktur."
+            ),
+        ),
         Column("kontakt_id", description="Dodavatel, odkaz na `kontakty.csv` (po potvrzení)."),
         Column("dodavatel_ico", description="IČO dodavatele, jak bylo na dokladu."),
         Column("dodavatel_nazev", description="Název dodavatele, jak byl na dokladu."),
@@ -232,6 +246,7 @@ class ReceivedDocs:
             self.templates,
             self.storage.table(KONTAKTY_SCHEMA).all(),
             self.storage.table(ZAKAZKY_SCHEMA).all(),
+            own_iban=self.firma.banka.iban,
         )
         table = self.table(year)
         values = self._values_from(ex)
@@ -402,6 +417,68 @@ class ReceivedDocs:
         return self.table(year_of(doc_id) or 0).update(
             doc_id, {"stav": DocState.CONFIRMED.value, "datum_uhrady": None}
         )
+
+    def own_invoice(self, doc: Record) -> OwnInvoice | None:
+        """Details of a queued own invoice, read again from its file."""
+        path = self.file_path(doc)
+        if doc["typ"] != OWN_INVOICE_TYPE or path is None:
+            return None
+        data = path.read_bytes()
+        ex = Extraction()
+        extract_text_fields(pdf_text(data), ex, self.firma.firma.ico, self.firma.banka.ucet)
+        return read_own_invoice(data, ex, self.firma.firma.ico)
+
+    def take_over(
+        self,
+        doc_id: str,
+        cislo: str,
+        customer: Customer,
+        draft: InvoiceDraft,
+        vs: str = "",
+        source: str = "Air Bank",
+    ) -> Record:
+        """Move a queued own invoice into the issued invoices and drop it from the queue."""
+        doc = self.require(doc_id)
+        path = self.file_path(doc)
+        if doc["typ"] != OWN_INVOICE_TYPE or doc["stav"] != DocState.REVIEW or path is None:
+            raise ReceivedError("Tento doklad nejde převzít jako vydanou fakturu.")
+        draft.kontakt_id = draft.kontakt_id or self._customer_for(customer)
+        try:
+            record = InvoiceService(self.storage, self.firma).import_external(
+                cislo.strip(), draft, path.read_bytes(), source, vs.strip()
+            )
+        except InvoiceError as exc:
+            raise ReceivedError(str(exc)) from exc
+        self.discard(doc_id)
+        return record
+
+    def _customer_for(self, c: Customer) -> str:
+        if not c.nazev.strip():
+            raise ReceivedError("Vyberte nebo vyplňte odběratele.")
+        if c.ico and not validate_ico(c.ico):
+            raise ReceivedError("IČO odběratele nemá platný kontrolní součet.")
+        contacts = self.storage.table(KONTAKTY_SCHEMA)
+        ico = normalize_ico(c.ico) if c.ico else ""
+        for row in contacts.all():
+            if (ico and row["ico"] == ico) or (not ico and row["nazev"] == c.nazev.strip()):
+                return str(row["id"])
+        new = contacts.insert(
+            lambda rows: {
+                "id": new_contact_id(rows),
+                "typ": ContactType.CUSTOMER.value,
+                "ico": ico,
+                "dic": "",
+                "nazev": c.nazev.strip(),
+                "ulice": c.ulice.strip(),
+                "mesto": c.mesto.strip(),
+                "psc": c.psc.strip(),
+                "email": "",
+                "telefon": "",
+                "poznamka": "",
+                "ares_aktualizovano": None,
+            }
+        )
+        return str(new["id"])
 
     def discard(self, doc_id: str) -> None:
         """Remove a document that is still waiting for review (wrong upload, duplicate)."""

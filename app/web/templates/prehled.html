@@ -57,6 +57,7 @@
       <dt>Příjmy − výdaje</dt><dd>{{ journal_report.profit | czk }}</dd>
     </dl>
     {% for w in journal_report.warnings %}<p class="warn">{{ w }}</p>{% endfor %}
+    {% if bank_open %}<p><a class="button primary" href="/banka">Platby ke spárování: {{ bank_open }}</a></p>{% endif %}
     <p><a href="/denik">Otevřít deník</a></p>
     {% else %}
     <p class="warn">Nastavte začátek evidence a počáteční stavy pokladny a účtu.</p>

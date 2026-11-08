@@ -58,6 +58,21 @@ popořadě. Smazat fakturu nejde, jen stornovat.
 Datum vystavení musí zůstat ve stejném roce a mezi daty předchozí a následující faktury.
 Každá změna se zapíše do `audit.csv` i s původní hodnotou.
 
+### 3b. Faktury vystavené v Air Bank
+
+Fakturu vystavenou v internetovém bankovnictví Air Bank přepošlete na fakturační schránku
+(nebo ji nahrajte v *Doklady*). Aplikace ji pozná podle vašeho IČO jako dodavatele a platby
+na váš účet a ve frontě *Ke kontrole* ji označí jako *vaše faktura*.
+
+1. Otevřete ji, zkontrolujte číslo, odběratele (vyberte existující kontakt, nebo se založí nový),
+   data, částku a popis.
+2. Klikněte na *Převzít do vydaných faktur*. Faktura bude mezi vydanými pod svým číslem
+   a s původním PDF z Air Bank. Pokud už na účet dorazila platba se stejným VS, rovnou se spáruje.
+
+Air Bank i aplikace mají jednu společnou číselnou řadu: další faktura vystavená v aplikaci
+dostane číslo po nejvyšší převzaté. Převzatou fakturu v aplikaci neupravujete; opravte ji
+v Air Bank a převezměte znovu (původní nejdřív stornujte).
+
 ### 4. Pošlete fakturu odběrateli
 
 1. V detailu faktury klikněte na *PDF* a zkontrolujte ji.

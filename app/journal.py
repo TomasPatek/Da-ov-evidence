@@ -327,6 +327,15 @@ class Journal:
             second = table.insert(lambda rows: self._record(rows, inn, when.year))
         return first, second
 
+    def set_number(self, entry_id: str, number: str) -> Record:
+        """Replace the document number of a bank row (e.g. with the transaction code)."""
+        m = re.match(r"^D(\d{4})-\d+$", entry_id)
+        if not m or not _TRANSACTION_CODE_RE.fullmatch(number):
+            raise JournalError("Neplatný zápis nebo číslo dokladu.")
+        return self.storage.table(DENIK_SCHEMA, int(m.group(1))).update(
+            entry_id, {"cislo_dokladu": number}
+        )
+
     def delete(self, entry_id: str) -> None:
         m = re.match(r"^D(\d{4})-\d+$", entry_id)
         if not m:

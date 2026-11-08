@@ -39,7 +39,7 @@
       <td>{{ d.dodavatel_nazev or "—" }}{% if d.popis %}<br><span class="muted">{{ d.popis }}</span>{% endif %}</td>
       <td class="hide-mobile">{{ d.datum_vystaveni | cz_date }}</td>
       <td class="num">{% if d.castka %}{{ d.castka | czk }}{% else %}—{% endif %}</td>
-      <td><span class="badge badge-doc-{{ d.stav | replace(' ', '-') }}">{{ d.stav }}</span></td>
+      <td><span class="badge badge-doc-{{ d.stav | replace(' ', '-') }}">{{ d.stav }}</span>{% if d.typ == "vydaná faktura" %}<br><span class="badge">vaše faktura</span>{% endif %}</td>
     </tr>
   {% endfor %}
   </tbody>

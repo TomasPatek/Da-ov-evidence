@@ -102,6 +102,7 @@ Vydané faktury roku. Vystavená faktura se nemaže, jen se stornuje. Položky j
 | `duvod_storna` | text | Důvod storna; vyplněno jen u stornované faktury. |
 | `soubor_pdf` | text | PDF faktury, cesta v rámci složky roku. |
 | `poznamka` | text | Poznámka vytištěná na faktuře. |
+| `zdroj` | text | Kde faktura vznikla: prázdné = v aplikaci, jinak např. `Air Bank` (převzatá faktura, PDF je originál a aplikace ho nemění). |
 
 ### `RRRR/faktury-vydane-polozky.csv`
 
@@ -125,7 +126,7 @@ Přijaté doklady (faktury a účtenky od dodavatelů). Soubory leží ve složc
 | Sloupec | Typ | Popis |
 | --- | --- | --- |
 | `id` | text | Neměnný identifikátor `PDRRRR-NNN`, např. `PD2027-001`. |
-| `typ` | text | `faktura`, `účtenka` nebo `jiný`. |
+| `typ` | text | `faktura`, `účtenka` nebo `jiný`; `vydaná faktura` = vaše faktura vystavená jinde (Air Bank), čeká na převzetí do vydaných faktur. |
 | `kontakt_id` | text | Dodavatel, odkaz na `kontakty.csv` (po potvrzení). |
 | `dodavatel_ico` | text | IČO dodavatele, jak bylo na dokladu. |
 | `dodavatel_nazev` | text | Název dodavatele, jak byl na dokladu. |
@@ -166,6 +167,30 @@ Peněžní deník roku. Každý řádek je jeden pohyb peněz v pokladně nebo n
 | `danove_uznatelny` | `ano` / `ne` | `ano`, pokud zápis ovlivňuje základ daně (sloupce 9, 10 a 15–19). |
 | `zakazka_id` | text | Zakázka, ke které zápis patří; prázdné = režie. |
 | `poznamka` | text | Volná poznámka. |
+
+### `RRRR/banka.csv`
+
+Pohyby na podnikatelském účtu z notifikací a výpisů banky. Stejná transakce z obou zdrojů se sloučí podle kódu transakce. Spárovaný pohyb má zápis v deníku.
+
+| Sloupec | Typ | Popis |
+| --- | --- | --- |
+| `id` | text | Neměnný identifikátor `BPRRRR-NNNN`. |
+| `datum` | datum (`RRRR-MM-DD`) | Datum zaúčtování v bance. |
+| `smer` | text | `příjem` nebo `výdaj`. |
+| `castka` | částka (`1234,50`) | Částka, vždy kladná. |
+| `protiucet` | text | Účet protistrany (číslo/kód banky). |
+| `protiucet_nazev` | text | Název protistrany, jak ho uvádí banka. |
+| `vs` | text | Variabilní symbol. |
+| `ks` | text | Konstantní symbol. |
+| `ss` | text | Specifický symbol. |
+| `zprava` | text | Zpráva pro příjemce. |
+| `popis` | text | Typ pohybu podle banky, např. `Platba Cvakem`. |
+| `kod_transakce` | text | Kód transakce v bance; slouží ke sloučení duplicit. |
+| `zdroj` | text | `notifikace`, `výpis` nebo `notifikace, výpis`. |
+| `parovani` | text | Spárovaná faktura nebo přijatý doklad; u jiného zápisu prázdné. |
+| `stav` | text | `nespárováno`, `spárováno` nebo `ignorováno`. |
+| `denik_id` | text | Zápisy v deníku vytvořené z pohybu (oddělené čárkou). |
+| `poznamka` | text | Volná poznámka, u ignorovaného pohybu důvod. |
 
 ### `audit.csv`
 

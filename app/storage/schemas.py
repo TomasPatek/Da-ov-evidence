@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from app.banks.book import BANKA_SCHEMA
 from app.contacts import KONTAKTY_SCHEMA
 from app.invoices.schemas import FAKTURY_SCHEMA, POLOZKY_SCHEMA
 from app.jobs import ZAKAZKY_SCHEMA
@@ -18,5 +19,6 @@ ALL_SCHEMAS: tuple[TableSchema, ...] = (
     POLOZKY_SCHEMA,
     DOKLADY_SCHEMA,
     DENIK_SCHEMA,
+    BANKA_SCHEMA,
     AUDIT_SCHEMA,
 )

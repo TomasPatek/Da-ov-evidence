@@ -311,6 +311,8 @@ def _editable(request: Request, cislo: str) -> Record:
     invoice = _view(request, cislo).invoice
     if invoice["stav"] not in OPEN_STATES:
         raise HTTPException(400, "Upravit lze jen neuhrazenou a nestornovanou fakturu.")
+    if invoice.get("zdroj"):
+        raise HTTPException(400, f"Faktura vznikla v {invoice['zdroj']}; opravte ji tam.")
     return invoice
 
 

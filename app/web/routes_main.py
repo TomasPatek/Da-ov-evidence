@@ -8,6 +8,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Request
 from starlette.responses import FileResponse, RedirectResponse, Response
 
+from app.banks.book import BankBook
 from app.config import FirmaConfig
 from app.invoices.schemas import InvoiceState
 from app.invoices.service import OPEN_STATES, InvoiceService
@@ -74,6 +75,7 @@ def _overview(request: Request, firma: FirmaConfig) -> dict[str, Any]:
         "queue_count": sum(1 for d in docs if d["stav"] == DocState.REVIEW),
         "unpaid_docs": [d for d in docs if d["stav"] == DocState.CONFIRMED],
         "journal_report": report,
+        "bank_open": len(BankBook(request.app.state.storage, firma).open_movements()),
     }
 
 

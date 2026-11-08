@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Banka · Daňová evidence{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Banka</h1>
+  <div class="actions"><a class="button" href="/posta">Pošta</a></div>
+</div>
+{% include "_errors.html" %}
+{% if not journal_ready %}<div class="alert alert-warning" role="status">Začátek peněžního deníku není nastavený, spárované platby se do deníku nezapíšou. <a href="/pruvodce/evidence">Nastavit</a></div>{% endif %}
+<p class="muted">Pohyby na účtu {{ own_account or "(není nastavený)" }} z notifikací banky. Platba se stejným variabilním
+symbolem a částkou jako faktura nebo doklad se spáruje sama; ostatní potvrďte nebo zapište ručně.</p>
+<details class="card">
+  <summary>Nahrát notifikace ručně (.eml)</summary>
+  <form method="post" action="/banka/nahrat" enctype="multipart/form-data">
+    <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+    <input type="file" name="soubory" accept=".eml,message/rfc822" multiple required aria-label="Soubory .eml">
+    <button type="submit">Nahrát</button>
+  </form>
+</details>
+<nav class="tabs" aria-label="Filtr">
+  <a href="/banka" class="{{ 'current' if filtr != 'vse' }}">Ke spárování <span class="badge">{{ open_count }}</span></a>
+  <a href="/banka?filtr=vse" class="{{ 'current' if filtr == 'vse' }}">Všechny pohyby</a>
+</nav>
+{% if not items %}<p class="empty">{% if filtr == 'vse' %}Zatím žádné pohyby.{% else %}Vše je spárované.{% endif %}</p>{% endif %}
+{% for it in items %}{% set m = it.m %}
+<section class="card movement" id="{{ m.id }}">
+  <div class="movement-head">
+    <div>
+      <strong class="{{ 'income' if m.smer == 'příjem' else 'expense' }}">{{ "+" if m.smer == "příjem" else "−" }}{{ m.castka | czk }}</strong>
+      <span class="muted">{{ m.datum | cz_date }} · kód {{ m.kod_transakce }}</span>
+    </div>
+    <span class="badge badge-bank-{{ m.stav }}">{{ m.stav }}</span>
+  </div>
+  <p>{{ m.popis }}{% if m.vs %} · VS {{ m.vs }}{% endif %}{% if m.zprava %}<br><span class="muted">{{ m.zprava }}</span>{% endif %}</p>
+  {% if m.stav == "nespárováno" %}
+    {% if it.candidates %}
+    <form method="post" action="/banka/{{ m.id }}/parovat" class="match">
+      <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+      <fieldset><legend>Návrhy</legend>
+      {% for c in it.candidates %}
+        <label class="choice"><input type="radio" name="cil" value="{{ c.kind }}:{{ c.target }}" {{ 'checked' if loop.first }}>
+          {{ c.label }} · {{ c.amount | czk }}{% if c.note %} <span class="warn">({{ c.note }})</span>{% endif %}</label>
+      {% endfor %}
+      </fieldset>
+      <button type="submit" class="primary">Spárovat</button>
+    </form>
+    {% endif %}
+    <details>
+      <summary>Zapsat jinak</summary>
+      <form method="post" action="/banka/{{ m.id }}/zapsat">
+        <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+        <div class="row">
+          <label class="grow">Kategorie
+            <select name="kategorie" required><option value="">— vyberte —</option>
+              {% for c in (incomes if m.smer == "příjem" else expenses) %}<option value="{{ c.column }}">{{ c.column }} – {{ c.label }}</option>{% endfor %}
+            </select>
+          </label>
+          <label class="grow">Zakázka
+            <select name="zakazka_id"><option value="">— bez zakázky —</option>{% for j in jobs %}<option value="{{ j.id }}">{{ j.id }} {{ j.nazev }}</option>{% endfor %}</select>
+          </label>
+        </div>
+        <label>Text <input type="text" name="popis" value="{{ m.popis }}"></label>
+        <button type="submit">Zapsat do deníku</button>
+      </form>
+      <form method="post" action="/banka/{{ m.id }}/prevod" class="inline-form">
+        <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+        <button type="submit">{{ "Vklad hotovosti z pokladny" if m.smer == "příjem" else "Výběr do pokladny" }}</button>
+      </form>
+      <form method="post" action="/banka/{{ m.id }}/ignorovat" class="inline-form">
+        <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+        <input type="text" name="duvod" placeholder="Důvod (např. duplicita)" aria-label="Důvod" required>
+        <button type="submit" class="danger">Nezapisovat</button>
+      </form>
+    </details>
+  {% else %}
+    <p class="muted">{% if m.parovani %}Spárováno s {% if m.parovani.startswith("PD") %}<a href="/doklady/{{ m.parovani }}">{{ m.parovani }}</a>{% else %}<a href="/faktury/{{ m.parovani }}">fakturou {{ m.parovani }}</a>{% endif %}.{% elif m.stav == "ignorováno" %}Nezapsáno: {{ m.poznamka }}{% else %}Zapsáno do deníku.{% endif %}</p>
+    <form method="post" action="/banka/{{ m.id }}/zrusit" class="inline-form">
+      <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
+      <button type="submit" class="link danger-link">Zrušit spárování</button>
+    </form>
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

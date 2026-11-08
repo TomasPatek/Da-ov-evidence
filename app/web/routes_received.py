@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import logging
 from datetime import date
+from decimal import Decimal
 from typing import Any
 
 import pypdfium2 as pdfium
@@ -15,12 +16,17 @@ from starlette.responses import RedirectResponse, Response
 
 from app.ares.client import AresUnavailable
 from app.ares.ico import normalize_ico, validate_ico
+from app.banks.book import BankBook
 from app.config import FirmaConfig
+from app.contacts import KONTAKTY_SCHEMA
 from app.ingest.files import ACCEPT, UploadError
+from app.ingest.own_invoice import Customer
+from app.invoices.service import DraftLine, InvoiceDraft
 from app.jobs import ZAKAZKY_SCHEMA
 from app.journal import Journal, PaymentMethod
 from app.money import parse_user_amount
 from app.received import (
+    OWN_INVOICE_TYPE,
     Confirmation,
     DocSource,
     DocState,
@@ -316,9 +322,121 @@ def _get(request: Request, doc_id: str) -> Record:
     return doc
 
 
+def _own_page(request: Request, doc: Record, status_code: int = 200, **ctx: Any) -> Response:
+    docs = _docs(request)
+    own = docs.own_invoice(doc)
+    contacts = request.app.state.storage.table(KONTAKTY_SCHEMA).all()
+    contacts.sort(key=lambda c: c["nazev"].casefold())
+    v = ctx.pop("v", None)
+    if v is None and own is not None:
+        c = own.customer
+        match = next(
+            (k for k in contacts if (c.ico and k["ico"] == c.ico) or k["nazev"] == c.nazev), None
+        )
+        v = {
+            "cislo": own.cislo,
+            "vs": own.vs,
+            "kontakt_id": match["id"] if match else "",
+            "nazev": c.nazev,
+            "ulice": c.ulice,
+            "psc": c.psc,
+            "mesto": c.mesto,
+            "ico": c.ico,
+            "datum_vystaveni": own.datum_vystaveni.isoformat() if own.datum_vystaveni else "",
+            "datum_splatnosti": own.datum_splatnosti.isoformat() if own.datum_splatnosti else "",
+            "castka": f"{own.castka:.2f}".replace(".", ",") if own.castka else "",
+            "popis": own.popis,
+            "zakazka_id": "",
+        }
+    pages = 0
+    path = docs.file_path(doc)
+    if path is not None:
+        try:
+            pdf = pdfium.PdfDocument(str(path))
+            pages = min(len(pdf), 5)
+            pdf.close()
+        except pdfium.PdfiumError:
+            pages = 0
+    return render(
+        request,
+        "doklady/vydana.html",
+        status_code=status_code,
+        d=doc,
+        v=v or {},
+        contacts=contacts,
+        jobs=_jobs(request),
+        pages=pages,
+        **ctx,
+    )
+
+
 @router.get("/{doc_id}")
 def doc_detail(request: Request, doc_id: str) -> Response:
-    return _form_page(request, _get(request, doc_id))
+    doc = _get(request, doc_id)
+    if doc["typ"] == OWN_INVOICE_TYPE and doc["stav"] == DocState.REVIEW:
+        return _own_page(request, doc)
+    return _form_page(request, doc)
+
+
+@router.post("/{doc_id}/prevzit")
+async def doc_take_over(request: Request, doc_id: str) -> Response:
+    doc = _get(request, doc_id)
+    form = await request.form()
+    v = {
+        k: str(form.get(k, "")).strip()
+        for k in (
+            "cislo",
+            "vs",
+            "kontakt_id",
+            "nazev",
+            "ulice",
+            "psc",
+            "mesto",
+            "ico",
+            "datum_vystaveni",
+            "datum_splatnosti",
+            "castka",
+            "popis",
+            "zakazka_id",
+        )
+    }
+    errors: list[str] = []
+    issued = parse_date(v["datum_vystaveni"], "datum vystavení", errors)
+    due = parse_date(v["datum_splatnosti"], "datum splatnosti", errors)
+    try:
+        amount = parse_user_amount(v["castka"])
+    except ValueError:
+        errors.append("Částka není platné číslo.")
+        amount = None
+    if not v["popis"]:
+        errors.append("Vyplňte, co fakturujete.")
+    if not errors and issued and due and amount is not None:
+        draft = InvoiceDraft(
+            kontakt_id=v["kontakt_id"],
+            zakazka_id=v["zakazka_id"],
+            datum_vystaveni=issued,
+            datum_splatnosti=due,
+            lines=[DraftLine(v["popis"], Decimal("1"), "", amount)],
+        )
+        customer = Customer(
+            nazev=v["nazev"],
+            ulice=v["ulice"],
+            psc=v["psc"].replace(" ", ""),
+            mesto=v["mesto"],
+            ico=v["ico"].replace(" ", ""),
+        )
+        docs = _docs(request)
+        try:
+            invoice = docs.take_over(doc_id, v["cislo"], customer, draft, vs=v["vs"])
+        except ReceivedError as exc:
+            errors = str(exc).splitlines()
+        else:
+            book = BankBook(request.app.state.storage, docs.firma)
+            for movement in book.open_movements():
+                book.auto_match(movement)
+            log.info("Own invoice taken over")
+            return RedirectResponse(f"/faktury/{invoice['cislo']}?prevzato=1", status_code=303)
+    return _own_page(request, doc, status_code=400, v=v, errors=errors)
 
 
 @router.post("/{doc_id}")

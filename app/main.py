@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import logging
 import secrets
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -16,10 +18,13 @@ from app import __version__
 from app.ares.client import AresClient, HttpAresClient
 from app.auth import LoginThrottle, PasswordStore
 from app.config import Settings
+from app.mail.imap import ImapMailbox
+from app.mail.scheduler import MailboxFactory, start_scheduler
 from app.mail.smtp import MailSender, SmtpSender
 from app.storage import Storage
 from app.web import (
     routes_auth,
+    routes_bank,
     routes_contacts,
     routes_invoices,
     routes_jobs,
@@ -40,13 +45,26 @@ def create_app(
     settings: Settings | None = None,
     ares: AresClient | None = None,
     mailer: MailSender | None = None,
+    mailbox_factory: MailboxFactory | None = None,
 ) -> FastAPI:
     settings = settings or Settings.from_env()
     logging.basicConfig(
         level=settings.log_level, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
     )
 
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        scheduler = start_scheduler(
+            app.state.settings, app.state.storage, app.state.mailbox_factory
+        )
+        try:
+            yield
+        finally:
+            if scheduler is not None:
+                scheduler.shutdown(wait=False)
+
     app = FastAPI(
+        lifespan=lifespan,
         title="Daňová evidence",
         version=__version__,
         docs_url=None,
@@ -59,6 +77,7 @@ def create_app(
     app.state.throttle = LoginThrottle()
     app.state.ares = ares or HttpAresClient()
     app.state.mailer = mailer or SmtpSender(settings)
+    app.state.mailbox_factory = mailbox_factory or (lambda: ImapMailbox(settings))
     app.state.setup_token = settings.setup_token or secrets.token_hex(4).upper()
 
     settings.config_dir.mkdir(parents=True, exist_ok=True)
@@ -89,6 +108,7 @@ def create_app(
     app.include_router(routes_invoices.router)
     app.include_router(routes_received.router)
     app.include_router(routes_journal.router)
+    app.include_router(routes_bank.router)
     app.include_router(routes_main.router)
 
     @app.exception_handler(HTTPException)

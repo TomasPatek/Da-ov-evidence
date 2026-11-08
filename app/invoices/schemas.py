@@ -40,6 +40,13 @@ FAKTURY_SCHEMA = TableSchema(
         Column("duvod_storna", description="Důvod storna; vyplněno jen u stornované faktury."),
         Column("soubor_pdf", description="PDF faktury, cesta v rámci složky roku."),
         Column("poznamka", description="Poznámka vytištěná na faktuře."),
+        Column(
+            "zdroj",
+            description=(
+                "Kde faktura vznikla: prázdné = v aplikaci, jinak např. `Air Bank` "
+                "(převzatá faktura, PDF je originál a aplikace ho nemění)."
+            ),
+        ),
     ),
 )
 
