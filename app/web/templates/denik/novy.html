@@ -10,7 +10,8 @@
   <form method="post" action="/denik/novy">
     <input type="hidden" name="{{ csrf_field }}" value="{{ csrf_token }}">
     <div class="row">
-      <fieldset class="choices">
+      <fieldset class="choices" hx-get="/denik/kategorie" hx-trigger="change"
+                hx-include="[name=smer],[name=kategorie]" hx-target="#kategorie" hx-swap="outerHTML">
         <legend>Směr</legend>
         <label class="choice"><input type="radio" name="smer" value="příjem" {{ 'checked' if v.smer == 'příjem' }}> příjem</label>
         <label class="choice"><input type="radio" name="smer" value="výdaj" {{ 'checked' if v.smer == 'výdaj' }}> výdaj</label>
@@ -35,13 +36,7 @@
     <label>Kód transakce <span class="muted">(u platby z účtu, z notifikace banky; jinak B1, B2…)</span>
       <input type="text" name="kod_transakce" value="{{ v.kod_transakce }}" maxlength="40" autocomplete="off">
     </label>
-    <label>Kategorie (sloupec ET 328)
-      <select name="kategorie" required>
-        <option value="">— vyberte —</option>
-        <optgroup label="Příjmy">{% for c in incomes %}<option value="{{ c.column }}" {{ 'selected' if v.kategorie == c.column|string }}>{{ c.column }} – {{ c.label }}</option>{% endfor %}</optgroup>
-        <optgroup label="Výdaje">{% for c in expenses %}<option value="{{ c.column }}" {{ 'selected' if v.kategorie == c.column|string }}>{{ c.column }} – {{ c.label }}</option>{% endfor %}</optgroup>
-      </select>
-    </label>
+    {% with smer=v.smer, selected=v.kategorie %}{% include "denik/_kategorie.html" %}{% endwith %}
     <label>Text
       <input type="text" name="popis" value="{{ v.popis }}" required placeholder="např. Záloha na sociální pojištění">
     </label>

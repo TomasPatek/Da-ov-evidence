@@ -394,3 +394,33 @@ def test_transaction_codes_in_forms(ready: TestClient) -> None:
         },
     )
     assert resp.status_code == 400 and "Kód transakce" in resp.text
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/doklady",
+        "/doklady/novy",
+        "/doklady?filtr=kontrola",
+        "/doklady?filtr=neuhrazene",
+        "/denik",
+        "/denik/novy",
+        "/denik/novy?smer=příjem",
+        "/denik/prevod",
+        "/denik/et328",
+        "/pruvodce/evidence",
+        "/nastaveni",
+        "/",
+    ],
+)
+def test_every_page_opens(ready: TestClient, path: str) -> None:
+    assert ready.get(path).status_code == 200
+
+
+def test_categories_follow_direction(ready: TestClient) -> None:
+    form = ready.get("/denik/novy").text  # default: expense
+    assert "15 – materiál" in form and "9 – prodej" not in form
+    income = ready.get("/denik/kategorie", params={"smer": "příjem"}).text
+    assert "9 – prodej" in income and "15 – materiál" not in income
+    kept = ready.get("/denik/kategorie", params={"smer": "výdaj", "kategorie": "19"}).text
+    assert 'value="19" selected' in kept

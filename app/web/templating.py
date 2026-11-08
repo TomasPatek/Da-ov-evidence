@@ -36,7 +36,7 @@ templates.env.filters["cz_date"] = _cz_date
 templates.env.filters["iban"] = format_iban
 templates.env.filters["qty"] = lambda v: format_csv_decimal(v) if isinstance(v, Decimal) else v
 templates.env.filters["amount_input"] = lambda v: (
-    f"{v:.2f}".replace(".", ",") if v is not None else ""
+    f"{v:.2f}".replace(".", ",") if isinstance(v, Decimal) else ""
 )
 
 

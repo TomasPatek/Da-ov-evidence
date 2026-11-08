@@ -115,6 +115,19 @@ def _form(request: Request, status_code: int = 200, **ctx: Any) -> Response:
     )
 
 
+@router.get("/kategorie")
+def entry_categories(request: Request, smer: str = "výdaj", kategorie: str = "") -> Response:
+    """HTMX: category select limited to the chosen direction."""
+    return render(
+        request,
+        "denik/_kategorie.html",
+        smer=smer if smer in ("příjem", "výdaj") else "výdaj",
+        selected=kategorie,
+        incomes=INCOME_COLUMNS,
+        expenses=EXPENSE_COLUMNS,
+    )
+
+
 @router.get("/novy")
 def entry_new(request: Request, smer: str = "výdaj") -> Response:
     v = {

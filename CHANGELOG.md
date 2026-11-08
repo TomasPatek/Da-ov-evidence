@@ -19,6 +19,8 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 
 ### Opraveno
 
+- Formulář *Zadat ručně* u přijatých dokladů se neotevřel (chyba při zobrazení prázdné částky).
+- Nový zápis do deníku nabízí jen kategorie zvoleného směru (příjmy nebo výdaje).
 - PDF faktury: IBAN přetékal do sloupce s daty.
 - Údaj o zápisu v živnostenském rejstříku se na faktuře tiskne v patičce místo v bloku dodavatele.
 - Instalace podle návodu končila chybou `denied` a `open Dockerfile: no such file or directory`,
