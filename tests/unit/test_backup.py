@@ -59,7 +59,7 @@ class FakeRestic:
             return CommandResult(0, '{"message_type":"status"}\n' + json.dumps(summary) + "\n")
         if sub == "snapshots":
             return CommandResult(
-                0, json.dumps([{"short_id": "abcdef12", "time": "2027-01-02T02:30:01.5+01:00"}])
+                0, json.dumps([{"short_id": "abcdef12", "time": "2027-01-02T01:30:01.123456789Z"}])
             )
         return CommandResult(0)
 

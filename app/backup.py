@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -18,6 +19,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from app.config import Settings
 from app.storage.atomic import atomic_write_text, file_lock
@@ -189,9 +191,21 @@ class Backup:
         except json.JSONDecodeError:
             return []
         return [
-            {"id": str(s.get("short_id", "")), "cas": str(s.get("time", ""))[:19].replace("T", " ")}
+            {"id": str(s.get("short_id", "")), "cas": _local_time(str(s.get("time", "")))}
             for s in reversed(data)
         ]
+
+
+def _local_time(text: str) -> str:
+    """restic reports times with an offset (often UTC); show them in local time."""
+    try:
+        # restic prints nanoseconds; Python accepts at most microseconds.
+        moment = datetime.fromisoformat(re.sub(r"(\.\d{6})\d+", r"\1", text).replace("Z", "+00:00"))
+    except ValueError:
+        return text[:19].replace("T", " ")
+    if moment.tzinfo is not None:
+        moment = moment.astimezone(ZoneInfo("Europe/Prague"))
+    return moment.strftime("%Y-%m-%d %H:%M:%S")
 
 
 def restore_into(
