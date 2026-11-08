@@ -6,6 +6,7 @@ Used by E2E tests and the screenshot script; can also be run by hand:
 
 from __future__ import annotations
 
+import email
 import shutil
 import socket
 import sys
@@ -13,6 +14,7 @@ import threading
 import time
 from collections.abc import Iterator
 from contextlib import contextmanager
+from email import policy
 from pathlib import Path
 
 import uvicorn
@@ -26,6 +28,8 @@ from typing import ClassVar  # noqa: E402
 
 from app.ares.client import AresSubjekt  # noqa: E402
 from app.auth import PasswordStore  # noqa: E402
+from app.banks.airbank import AirBankParser  # noqa: E402
+from app.banks.book import BankBook  # noqa: E402
 from app.config import FirmaConfig, Settings  # noqa: E402
 from app.contacts import KONTAKTY_SCHEMA  # noqa: E402
 from app.invoices.pdf import render_pdf  # noqa: E402
@@ -189,6 +193,14 @@ def seed(settings: Settings, today: date | None = None) -> None:
     )
     docs.upload((samples / "faktura-sloupce.pdf").read_bytes(), today=today)
     docs.upload((samples / "faktura.isdoc").read_bytes(), today=today)
+
+    # Bank notifications (anonymized Air Bank samples) waiting for matching.
+    book = BankBook(storage, cfg)
+    for eml in sorted((ROOT / "tests" / "fixtures" / "airbank").glob("*.eml")):
+        msg = email.message_from_bytes(eml.read_bytes(), policy=policy.default)
+        movement = AirBankParser().parse_email(msg)  # type: ignore[arg-type]
+        if movement is not None:
+            book.auto_match(book.import_movement(movement)[0])
 
 
 def prepare(target: Path, configured: bool = True) -> Settings:

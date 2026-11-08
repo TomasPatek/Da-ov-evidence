@@ -13,8 +13,8 @@ web = "www.example.cz"
 zapis_rejstrik = "Fyzická osoba zapsaná v živnostenském rejstříku. Úřad příslušný podle § 71 odst. 2 živnostenského zákona: Městský úřad Horní Dolní."
 
 [banka]
-ucet = "1234567899/0100"
-iban = "CZ9501000000001234567899"
+ucet = "1000000005/3030"
+iban = "CZ0330300000001000000005"
 
 [fakturace]
 format_cisla = "RRRRNNNN"
