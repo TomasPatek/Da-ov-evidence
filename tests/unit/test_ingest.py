@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import json
 import zipfile
+from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -221,3 +222,25 @@ def test_own_ico_without_own_account_is_not_own() -> None:
     assert not is_own_document(ex, OWN_ICO, OWN_ACCOUNT, OWN_IBAN)
     ex = Extraction(text="IČO: 99999994\nČíslo účtu: 1000000005/3030")
     assert is_own_document(ex, OWN_ICO, OWN_ACCOUNT, OWN_IBAN)
+
+
+@pytest.mark.parametrize("space", [" ", " ", " "])
+def test_amounts_with_no_break_space_thousands(space: str) -> None:
+    from app.ingest.pdftext import _total, normalize
+
+    lines = normalize(f"Celkem k úhradě: 12{space}345,60 Kč").split("\n")
+    assert _total(lines) == (Decimal("12345.60"), True)
+
+
+def test_paid_label_of_air_bank_cash_invoice() -> None:
+    from app.ingest.pdftext import _total
+
+    assert _total(["Zaplaceno: 1 150,00 Kč", "+420 600 000 000"]) == (Decimal("1150.00"), True)
+    assert _total(["Celkem zaplaťte: 4 000,00 Kč"]) == (Decimal("4000.00"), True)
+
+
+def test_parse_amount_ignores_no_break_spaces() -> None:
+    from app.ingest.pdftext import parse_amount
+
+    assert parse_amount("1 150,00") == Decimal("1150.00")
+    assert parse_amount("12 345,60") == Decimal("12345.60")

@@ -98,6 +98,26 @@ Variabilní symbol: 20260042<br>Datum vystavení: 5. 11. 2026<br>Datum splatnost
 """
 
 
+def own_cash_invoice_page() -> str:
+    """Air Bank invoice paid in cash: no QR code, "Zaplaceno:" and no-break spaces."""
+    return """
+<p style="text-align:right;font-size:20pt">FAKTURA&nbsp;20260043</p>
+<table style="width:100%"><tr><td>
+<p><b style="font-size:16pt">1&nbsp;150,00 Kč</b><br>Neplaťte, peníze už dorazily</p>
+<p>Forma úhrady: hotově<br>Číslo účtu: 1000000005/3030<br>
+Variabilní symbol: 20260043<br>Datum vystavení: 6. 11. 2026<br>Datum splatnosti: 20. 11. 2026</p>
+<p>IBAN: CZ0330300000001000000005</p></td></tr></table>
+<table style="width:100%"><tr>
+<td style="width:50%;vertical-align:top">/ Dodavatel<br>Jana Vzorová<br>Ukázková 12<br>54321 Horní Dolní<br>
+Česká republika<br><br>IČO: 99999994<br>Nejsem plátce DPH.</td>
+<td style="vertical-align:top">/ Odběratel<br>Marie Hotová<br>Polní 8<br>54321 Vzorov (okr. Vzorov)<br>Česká republika</td>
+</tr></table>
+<p>/ Fakturuji Vám za</p><p>Výměna termostatu trouby</p>
+<p style="text-align:right">Zaplaceno:&nbsp;1&nbsp;150,00 Kč</p>
+<p>+420 600 000 000</p>
+"""
+
+
 def pdf(html: str, **kw: object) -> bytes:
     return HTML(string=f"<style>{STYLE}</style>{html}").write_pdf(**kw)  # type: ignore[no-any-return]
 
@@ -158,6 +178,7 @@ def main() -> None:
     files["faktura-qr.pdf"] = pdf(qr_page(payload))
     files["uctenka-qr.png"] = qr_png(payload, scale=6)
     files["vydana-airbank.pdf"] = pdf(own_invoice_page())
+    files["vydana-airbank-hotove.pdf"] = pdf(own_cash_invoice_page())
     files["faktura.isdoc"] = isdoc_bytes()
     files["faktura-s-isdoc.pdf"] = pdf(
         "<h2>Faktura VF27-0815</h2><p>Velkoobchod Vzor a.s.</p>",

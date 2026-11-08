@@ -17,7 +17,7 @@ ROUNDING = ROUND_HALF_UP
 _CSV_AMOUNT_RE = re.compile(r"^-?\d+(,\d{1,2})?$")
 _CSV_DECIMAL_RE = re.compile(r"^-?\d+(,\d+)?$")
 _USER_AMOUNT_RE = re.compile(r"^-?\d+([.,]\d+)?$")
-_NBSP = " "
+_NBSP = "\u00a0"  # no-break space between thousands and before the currency
 
 
 def _require_decimal(value: object) -> Decimal:

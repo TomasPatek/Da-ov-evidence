@@ -13,6 +13,7 @@ vyžaduje migraci dat, je vždy nová hlavní verze.
 ### Opraveno
 
 - Kontrola dokumentace CSV v CI už nepotřebuje knihovnu zbar.
+- Faktury vydané v Air Bank a zaplacené v hotovosti: správná částka (pevné mezery v částkách jako `1 150,00`) a popis plnění u textu „Zaplaceno:“.
 
 ## [1.0.0] - 2026-11-08
 

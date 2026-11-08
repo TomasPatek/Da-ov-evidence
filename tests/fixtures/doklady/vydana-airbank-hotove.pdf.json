@@ -1,0 +1,21 @@
+{
+  "values": {
+    "typ": "vydaná faktura",
+    "dodavatel_ico": "",
+    "dodavatel_nazev": "Marie Hotová",
+    "cislo_dodavatele": "20260043",
+    "datum_vystaveni": "2026-11-06",
+    "datum_splatnosti": "2026-11-20",
+    "castka": "1150.00",
+    "mena": "CZK",
+    "vs": "20260043",
+    "zpusob_uhrady": "hotovost",
+    "uhrazeno_predem": true,
+    "popis": "Výměna termostatu trouby"
+  },
+  "uncertain": [],
+  "steps": [
+    "text PDF",
+    "vlastní faktura"
+  ]
+}
